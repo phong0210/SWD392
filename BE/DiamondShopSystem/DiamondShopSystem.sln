@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36109.1 d17.14
+VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiamondShopSystem.API", "DiamondShopSystem.API\DiamondShopSystem.API.csproj", "{61F33C3E-12B2-4B85-94E8-D9D29E303182}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiamondShopSystem.BLL", "DiamondShopSystem.BLL\DiamondShopSystem.BLL.csproj", "{8A3671D5-9A93-4DB2-852D-67457FF6CF38}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiamondShopSystem.DAL", "DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj", "{4FF1DE6E-CBB4-494B-A7E7-959DAC64C9EF}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{4FF1DE6E-CBB4-494B-A7E7-959DAC64C9EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FF1DE6E-CBB4-494B-A7E7-959DAC64C9EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FF1DE6E-CBB4-494B-A7E7-959DAC64C9EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
