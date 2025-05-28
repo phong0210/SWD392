@@ -6,4 +6,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Entities\" />
+    <Folder Include="Data\Exceptions\" />
+    <Folder Include="Data\MetaData\" />
+    <Folder Include="Data\Responses\" />
+    <Folder Include="Data\Requests\" />
+    <Folder Include="Mappers\" />
+    <Folder Include="Repositories\Impelements\" />
+    <Folder Include="Repositories\Interfaces\" />
+  </ItemGroup>
+
 </Project>
