@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -34,8 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiamondShopSystem.BLL\DiamondShopSystem.BLL.csproj" />
-    <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj" />
+    <ProjectReference Include="..\DiamondShopSystem.BLL\DiamondShopSystem.BLL.csproj">
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj">
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>
