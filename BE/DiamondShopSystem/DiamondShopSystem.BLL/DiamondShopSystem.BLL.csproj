@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj" />
+    <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj">
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
