@@ -58,3 +58,6 @@ nunit-*.xml
 
 #visualstudio
 .vs/
+
+#environment variables
+.env
