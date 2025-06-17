@@ -33,4 +33,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public virtual User User { get; set; }
 
     }
-}

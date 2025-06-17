@@ -1,4 +1,3 @@
-
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -40,4 +39,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public virtual OrderDetails OrderDetail { get; set; }
 
     }
-}

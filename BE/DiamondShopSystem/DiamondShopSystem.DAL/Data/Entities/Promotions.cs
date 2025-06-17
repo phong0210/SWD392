@@ -1,4 +1,3 @@
-
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -57,4 +56,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public virtual ICollection<ProductPromotion> ProductPromotions { get; set; } = new List<ProductPromotion>();
 
     }
-}

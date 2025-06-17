@@ -52,4 +52,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     }
-}

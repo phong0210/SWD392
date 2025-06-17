@@ -77,4 +77,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public virtual ICollection<ProductPromotion> ProductPromotions { get; set; } = new List<ProductPromotion>();
 
     }
-}

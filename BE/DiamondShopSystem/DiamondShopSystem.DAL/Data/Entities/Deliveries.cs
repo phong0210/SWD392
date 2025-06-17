@@ -42,4 +42,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
 
         public virtual Order Order { get; set; }
     }
-}
