@@ -12,8 +12,6 @@
     <Folder Include="Data\Responses\" />
     <Folder Include="Data\Requests\" />
     <Folder Include="Mappers\" />
-    <Folder Include="Repositories\Impelements\" />
-    <Folder Include="Repositories\Interfaces\" />
   </ItemGroup>
 
   <ItemGroup>

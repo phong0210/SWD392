@@ -1,6 +1,45 @@
+version: '3.9'
+
 services:
   diamondshopsystem.api:
     image: ${DOCKER_REGISTRY-}diamondshopsystemapi
     build:
       context: .
       dockerfile: DiamondShopSystem.API/Dockerfile
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SUPABASECONNECT_USER_ID: ${SUPABASECONNECT_USER_ID}
+      SUPABASECONNECT_PASSWORD: ${SUPABASECONNECT_PASSWORD}
+      SUPABASECONNECT_SERVER: ${SUPABASECONNECT_SERVER}
+      SUPABASECONNECT_PORT: ${SUPABASECONNECT_PORT}
+      SUPABASECONNECT_DATABASE: ${SUPABASECONNECT_DATABASE}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_KEY: ${JWT_KEY}
+      JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS: ${JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS}
+      JWT_TOKEN_VALIDITY_IN_MINUTES: ${JWT_TOKEN_VALIDITY_IN_MINUTES}
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -16,7 +16,6 @@
     <Folder Include="Extensions\" />
     <Folder Include="Services\Implements\" />
     <Folder Include="Services\Interfaces\" />
-    <Folder Include="Utils\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +29,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Otp.NET" Version="1.4.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
   </ItemGroup>
 
 </Project>
