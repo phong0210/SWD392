@@ -1,0 +1,6 @@
+services:
+  diamondshopsystem.api:
+    image: ${DOCKER_REGISTRY-}diamondshopsystemapi
+    build:
+      context: .
+      dockerfile: DiamondShopSystem.API/Dockerfile

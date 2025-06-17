@@ -13,6 +13,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["DiamondShopSystem.API/DiamondShopSystem.API.csproj", "DiamondShopSystem.API/"]
+COPY ["DiamondShopSystem.BLL/DiamondShopSystem.BLL.csproj", "DiamondShopSystem.BLL/"]
+COPY ["DiamondShopSystem.DAL/DiamondShopSystem.DAL.csproj", "DiamondShopSystem.DAL/"]
 RUN dotnet restore "./DiamondShopSystem.API/DiamondShopSystem.API.csproj"
 COPY . .
 WORKDIR "/src/DiamondShopSystem.API"
