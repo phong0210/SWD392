@@ -19,7 +19,7 @@ namespace DiamondShopSystem.DAL.Data.Entities
 
         [Required]
         [Column("password_hash")]
-        public string Password { get; set; }
+        public string PasswordHash { get; set; }
 
         [Required]
         [Column("email")]
@@ -32,7 +32,7 @@ namespace DiamondShopSystem.DAL.Data.Entities
         [Range(1000000000, 9999999999, ErrorMessage = "Phone number must be a 10-digit number.")]
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone number must be a 10-digit number without any special characters or spaces.")]
         [StringLength(10, ErrorMessage = "Phone number cannot be longer than 10 digits.")]
-        public int PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; }
 
         [Column("google_id")]
         public string GoogleId { get; set; }
@@ -41,7 +41,7 @@ namespace DiamondShopSystem.DAL.Data.Entities
         [Required]
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}", ApplyFormatInEditMode = true)]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Column("status")]
         [Required]
@@ -49,7 +49,6 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public virtual StaffProfiles StaffProfiles { get; set; }
         public virtual VIP VIP { get; set; }
         public virtual LoyaltyPoints LoyaltyPoints { get; set; }
-
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     }

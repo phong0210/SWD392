@@ -7,7 +7,6 @@ namespace DiamondShopSystem.DAL.Data.Entities
     public class Deliveries
     {
         [Key]
-        [Required]
         [ForeignKey("Order")]
         [Column("id")]
         public Guid Id { get; set; }
@@ -40,7 +39,7 @@ namespace DiamondShopSystem.DAL.Data.Entities
         [Required]
         [Column("order_id")]
         public Guid OrderId { get; set; }
-        
+
         public virtual Order Order { get; set; }
     }
 }
