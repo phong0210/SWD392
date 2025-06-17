@@ -23,10 +23,11 @@ namespace DiamondShopSystem.DAL.Data.Entities
 
         [Required]
         [ForeignKey("User")]
-        [Column("id")]
+        [Column("user_id")]
         public Guid UserId { get; set; }
 
         [Column("promotion_id")]
+        [ForeignKey("Promotion")]
         public Guid? PromotionId { get; set; }
 
         [Required]
@@ -52,9 +53,11 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public Status Status { get; set; } = Status.Pending;
 
         [Column("sale_staff_id")]
-        [Required]
-        public Guid? SaleStaffId { get; set; }
-
+        // In Order.cs
+        public virtual Promotions? Promotion { get; set; }
         public virtual User User { get; set; }
+        public virtual Deliveries? Deliveries { get; set; }
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public virtual ICollection<OrderDetails> OrderDetails { get; set; } = new List<OrderDetails>();
     }
 }
