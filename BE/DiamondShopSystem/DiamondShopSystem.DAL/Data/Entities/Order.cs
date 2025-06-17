@@ -53,7 +53,7 @@ namespace DiamondShopSystem.DAL.Data.Entities
         public Status Status { get; set; } = Status.Pending;
 
         [Column("sale_staff_id")]
-        // In Order.cs
+      
         public virtual Promotions? Promotion { get; set; }
         public virtual User User { get; set; }
         public virtual Deliveries? Deliveries { get; set; }

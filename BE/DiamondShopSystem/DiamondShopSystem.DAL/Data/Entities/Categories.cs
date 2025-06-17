@@ -26,5 +26,3 @@ namespace DiamondShopSystem.DAL.Data.Entities
 
     }
 }
-
-

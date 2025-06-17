@@ -26,7 +26,6 @@ namespace DiamondShopSystem.DAL.Data.Entities
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}", ApplyFormatInEditMode = true)]
         public DateTime? EndDate { get; set; }
-
         [Required]
         [Column("status")]
         public bool IsActive { get; set; } = true;

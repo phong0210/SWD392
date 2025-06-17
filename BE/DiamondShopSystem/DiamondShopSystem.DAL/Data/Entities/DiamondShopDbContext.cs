@@ -22,7 +22,6 @@ namespace DiamondShopSystem.DAL.Data.Entities
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
             // User 1:1 StaffProfiles
             modelBuilder.Entity<User>()
                 .HasOne(u => u.StaffProfiles)
