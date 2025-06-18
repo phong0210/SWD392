@@ -13,7 +13,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
 
-DotNetEnv.Env.Load(); // Docker Compose will handle environment variables
+DotNetEnv.Env.Load(Path.Combine("..", ".env")); // Load from parent of API folder
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Register services

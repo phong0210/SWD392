@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Shop System - Setup Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .setup-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00d4aa, #00a8ff);
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        .content {
+            padding: 40px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page h2 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .page h3 {
+            color: #34495e;
+            font-size: 1.3rem;
+            margin: 25px 0 15px 0;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .page p, .page li {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .page ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow-x: auto;
+            border-left: 4px solid #667eea;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+            margin: 20px 0;
+        }
+
+        .highlight strong {
+            color: #e74c3c;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .page-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: background 0.3s ease;
+        }
+
+        .dot.active {
+            background: #667eea;
+        }
+
+        .env-example {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .success-check {
+            color: #27ae60;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .warning-icon {
+            color: #f39c12;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .setup-container {
+                margin: 10px;
+                min-height: auto;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .navigation {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="header">
+            <h1>💎 Diamond Shop System</h1>
+            <p>Interactive Setup Guide</p>
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="content">
+            <!-- Page 1: Welcome -->
+            <div class="page active" id="page1">
+                <h2><span class="step-number">1</span>Welcome</h2>
+                <p>Welcome to the Diamond Shop System setup guide! This interactive guide will walk you through setting up your development environment step by step.</p>
+                
+                <h3>What You'll Learn</h3>
+                <ul>
+                    <li>How to set up your development environment</li>
+                    <li>Configure Docker services for database management</li>
+                    <li>Set up local development with hot reload</li>
+                    <li>Access and manage your database with pgAdmin</li>
+                    <li>Handle Entity Framework migrations</li>
+                </ul>
+
+                <h3>Prerequisites Check</h3>
+                <p>Before we begin, make sure you have these installed:</p>
+                <ul>
+                    <li><span class="success-check">✓</span><strong>Docker Desktop</strong> (latest version)</li>
+                    <li><span class="success-check">✓</span><strong>.NET 8.0 SDK</strong></li>
+                    <li><span class="success-check">✓</span><strong>Git</strong></li>
+                    <li><span class="success-check">✓</span><strong>Visual Studio Code</strong> or Visual Studio</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong><span class="warning-icon">⚠️</span>Important:</strong> This guide assumes you have basic knowledge of Docker, .NET, and command line operations.
+                </div>
+            </div>
+
+            <!-- Page 2: Clone Repository -->
+            <div class="page" id="page2">
+                <h2><span class="step-number">2</span>Clone Repository</h2>
+                <p>Let's start by getting the code on your local machine.</p>
+
+                <h3>Clone the Repository</h3>
+                <div class="code-block" data-lang="bash">git clone &lt;your-repository-url&gt;
+cd DiamondShopSystem</div>
+
+                <p>Replace <code>&lt;your-repository-url&gt;</code> with the actual GitHub repository URL.</p>
+
+                <div class="highlight">
+                    <strong><span class="success-check">✓</span>Success Check:</strong> You should now have a DiamondShopSystem folder with all the project files.
+                </div>
+            </div>
+
+            <!-- Page 3: Environment Setup -->
+            <div class="page" id="page3">
+                <h2><span class="step-number">3</span>Environment Setup</h2>
+                <p>Now we need to configure your environment variables.</p>
+
+                <h3>Create .env File</h3>
+                <p>Create a <code>.env</code> file in the root directory:</p>
+
+                <div class="env-example">
+                    <strong>📄 .env</strong>
+                    <div class="code-block" data-lang="env"># Database Configuration
+DB_NAME=diamondshop_db
+DB_PASSWORD=your_secure_password_here
+
+# Supabase Configuration (if using)
+SUPABASECONNECT_USER_ID=your_supabase_user
+SUPABASECONNECT_PASSWORD=your_supabase_password
+SUPABASECONNECT_SERVER=your_supabase_server
+SUPABASECONNECT_PORT=5432
+SUPABASECONNECT_DATABASE=your_supabase_db
+
+# JWT Configuration
+JWT_AUDIENCE=your_jwt_audience
+JWT_ISSUER=your_jwt_issuer
+JWT_KEY=your_super_secret_jwt_key_here_make_it_long_and_complex
+JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS=7
+JWT_TOKEN_VALIDITY_IN_MINUTES=60</div>
+                </div>
+
+                <div class="highlight">
+                    <strong><span class="warning-icon">⚠️</span>Security Note:</strong> Replace all placeholder values with your actual configuration. Never commit this file to version control!
+                </div>
+            </div>
+
+            <!-- Page 4: Docker Setup -->
+            <div class="page" id="page4">
+                <h2><span class="step-number">4</span>Docker Setup</h2>
+                <p>Let's start the database services using Docker.</p>
+
+                <h3>Start Database Services</h3>
+                <p>We'll start only PostgreSQL and pgAdmin for now:</p>
+
+                <div class="code-block" data-lang="bash">docker-compose up postgres pgadmin -d</div>
+
+                <p>This command will:</p>
+                <ul>
+                    <li>Start PostgreSQL on port <strong>5433</strong></li>
+                    <li>Start pgAdmin on port <strong>5050</strong></li>
+                    <li>Run them in detached mode (<code>-d</code>)</li>
+                </ul>
+
+                <h3>Verify Services</h3>
+                <div class="code-block" data-lang="bash">docker-compose ps</div>
+
+                <div class="highlight">
+                    <strong><span class="success-check">✓</span>Success Check:</strong> Both services should show as "Up" and healthy.
+                </div>
+            </div>
+
+            <!-- Page 5: pgAdmin Setup -->
+            <div class="page" id="page5">
+                <h2><span class="step-number">5</span>pgAdmin Setup</h2>
+                <p>Now let's configure pgAdmin to access your database.</p>
+
+                <h3>Access pgAdmin</h3>
+                <p>1. Open your browser and go to: <strong>http://localhost:5050</strong></p>
+                <p>2. Login with:</p>
+                <ul>
+                    <li><strong>Email:</strong> admin@admin.com</li>
+                    <li><strong>Password:</strong> admin123</li>
+                </ul>
+
+                <h3>Add Database Server</h3>
+                <p>3. Right-click "Servers" → "Register" → "Server"</p>
+                <p>4. Fill in the connection details:</p>
+                <ul>
+                    <li><strong>Name:</strong> Diamond Shop DB</li>
+                    <li><strong>Host name/address:</strong> postgres</li>
+                    <li><strong>Port:</strong> 5432</li>
+                    <li><strong>Username:</strong> postgres</li>
+                    <li><strong>Password:</strong> [Your DB_PASSWORD from .env]</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong><span class="success-check">✓</span>Success Check:</strong> You should now see your database server connected in pgAdmin.
+                </div>
+            </div>
+
+            <!-- Page 6: Development Setup -->
+            <div class="page" id="page6">
+                <h2><span class="step-number">6</span>Development Setup</h2>
+                <p>Now for the best part - setting up your development environment for fast iteration!</p>
+
+                <h3>Recommended: Local Development</h3>
+                <p>This approach gives you hot reload without Docker rebuilds:</p>
+
+                <div class="code-block" data-lang="bash"># Navigate to API project
+cd DiamondShopSystem.API
+
+# Run with hot reload
+dotnet watch run</div>
+
+                <p>Your API will be available at: <strong>http://localhost:5000</strong></p>
+
+                <h3>Alternative: Full Docker</h3>
+                <p>If you prefer everything in Docker:</p>
+
+                <div class="code-block" data-lang="bash"># Build and start all services
+docker-compose up --build</div>
+
+                <p>API will be available at: <strong>http://localhost:8081</strong></p>
+            </div>
+
+            <!-- Page 7: Database Migrations -->
+            <div class="page" id="page7">
+                <h2><span class="step-number">7</span>Database Migrations</h2>
+                <p>Let's set up your database schema using Entity Framework migrations.</p>
+
+                <h3>Option 1: Using Docker EF Tools</h3>
+                <div class="code-block" data-lang="bash"># Start EF tools container
+docker-compose run --rm ef
+
+# Inside the container, run migrations
+dotnet ef database update --project DiamondShopSystem.API
+
+# Exit container
+exit</div>
+
+                <h3>Option 2: Using Local .NET CLI</h3>
+                <div class="code-block" data-lang="bash"># Install EF Core tools (if not installed)
+dotnet tool install --global dotnet-ef
+
+# Run migrations
+dotnet ef database update --project DiamondShopSystem.API</div>
+
+                <div class="highlight">
+                    <strong><span class="success-check">✓</span>Success Check:</strong> Check pgAdmin to see your database tables have been created.
+                </div>
+            </div>
+
+            <!-- Page 8: Daily Workflow -->
+            <div class="page" id="page8">
+                <h2><span class="step-number">8</span>Daily Workflow</h2>
+                <p>Here's your recommended daily development workflow for maximum productivity.</p>
+
+                <h3>🌅 Start Your Day</h3>
+                <div class="code-block" data-lang="bash"># Start database services
+docker-compose up postgres pgadmin -d
+
+# Navigate to API project
+cd DiamondShopSystem.API
+
+# Start development with hot reload
+dotnet watch run</div>
+
+                <h3>💻 During Development</h3>
+                <ul>
+                    <li>Edit your code - changes will automatically reload</li>
+                    <li>Use pgAdmin for database queries and management</li>
+                    <li>Create migrations when you change your models</li>
+                </ul>
+
+                <h3>🌙 End Your Day</h3>
+                <div class="code-block" data-lang="bash"># Stop development server (Ctrl+C)
+# Optionally stop database services
+docker-compose down</div>
+            </div>
+
+            <!-- Page 9: Useful Commands -->
+            <div class="page" id="page9">
+                <h2><span class="step-number">9</span>Useful Commands</h2>
+                <p>Keep these commands handy for your daily development tasks.</p>
+
+                <h3>Docker Management</h3>
+                <div class="code-block" data-lang="bash"># View running containers
+docker-compose ps
+
+# View logs
+docker-compose logs diamondshopsystem.api
+
+# Stop all services
+docker-compose down
+
+# Rebuild specific service
+docker-compose build diamondshopsystem.api</div>
+
+                <h3>Database Operations</h3>
+                <div class="code-block" data-lang="bash"># Connect to PostgreSQL directly
+docker-compose exec postgres psql -U postgres -d your_db_name
+
+# Create backup
+docker-compose exec postgres pg_dump -U postgres your_db_name > backup.sql</div>
+
+                <h3>EF Core Migrations</h3>
+                <div class="code-block" data-lang="bash"># Create new migration
+dotnet ef migrations add MigrationName --project DiamondShopSystem.API
+
+# Update database
+dotnet ef database update --project DiamondShopSystem.API</div>
+            </div>
+
+            <!-- Page 10: Troubleshooting -->
+            <div class="page" id="page10">
+                <h2><span class="step-number">10</span>Troubleshooting</h2>
+                <p>Common issues and their solutions.</p>
+
+                <h3>🚨 Common Issues</h3>
+
+                <h3>Port Conflicts</h3>
+                <p>If ports 5433, 5050, or 8081 are in use, modify the port mappings in <code>docker-compose.yml</code></p>
+
+                <h3>Database Connection Issues</h3>
+                <div class="code-block" data-lang="bash"># Check PostgreSQL health
+docker-compose exec postgres pg_isready -U postgres
+
+# View container status
+docker-compose ps</div>
+
+                <h3>Permission Issues (Linux/Mac)</h3>
+                <p>Add your user to the docker group or use <code>sudo</code> with Docker commands.</p>
+
+                <h3>Migration Issues</h3>
+                <ul>
+                    <li>Verify connection string points to correct database</li>
+                    <li>Check if EF Core tools are installed</li>
+                    <li>Ensure database permissions are correct</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong><span class="success-check">✓</span>Pro Tip:</strong> Always check Docker logs when something isn't working: <code>docker-compose logs [service-name]</code>
+                </div>
+            </div>
+
+            <!-- Page 11: Congratulations -->
+            <div class="page" id="page11">
+                <h2><span class="step-number">🎉</span>Congratulations!</h2>
+                <p>You've successfully set up your Diamond Shop System development environment!</p>
+
+                <h3>What You've Accomplished</h3>
+                <ul>
+                    <li><span class="success-check">✓</span>Cloned the repository</li>
+                    <li><span class="success-check">✓</span>Configured environment variables</li>
+                    <li><span class="success-check">✓</span>Set up Docker services</li>
+                    <li><span class="success-check">✓</span>Configured pgAdmin for database management</li>
+                    <li><span class="success-check">✓</span>Set up local development with hot reload</li>
+                    <li><span class="success-check">✓</span>Learned the recommended daily workflow</li>
+                </ul>
+
+                <h3>Next Steps</h3>
+                <p>You're now ready to start developing! Here are some suggestions:</p>
+                <ul>
+                    <li>Explore the codebase and understand the project structure</li>
+                    <li>Make a small change and see hot reload in action</li>
+                    <li>Create your first database migration</li>
+                    <li>Set up your preferred debugging tools</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong>Happy Coding! 🚀</strong><br>
+                    Your development environment is optimized for productivity with fast feedback loops and efficient database management.
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeStep(-1)">
+                ← Previous
+            </button>
+            
+            <div class="page-indicator">
+                <span id="pageInfo">1 / 11</span>
+                <div style="display: flex; gap: 5px; margin-left: 15px;">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            
+            <button class="nav-btn" id="nextBtn" onclick="changeStep(1)">
+                Next →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 11;
+
+        function updateUI() {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show current page
+            document.getElementById(`page${currentStep}`).classList.add('active');
+            
+            // Update progress bar
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // Update page indicator
+            document.getElementById('pageInfo').textContent = `${currentStep} / ${totalSteps}`;
+            
+            // Update dots
+            document.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index + 1 === currentStep);
+            });
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentStep === 1;
+            document.getElementById('nextBtn').disabled = currentStep === totalSteps;
+            
+            // Update button text for last page
+            if (currentStep === totalSteps) {
+                document.getElementById('nextBtn').innerHTML = '🎉 Complete';
+            } else {
+                document.getElementById('nextBtn').innerHTML = 'Next →';
+            }
+        }
+
+        function changeStep(direction) {
+            const newStep = currentStep + direction;
+            if (newStep >= 1 && newStep <= totalSteps) {
+                currentStep = newStep;
+                updateUI();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft' && currentStep > 1) {
+                changeStep(-1);
+            } else if (e.key === 'ArrowRight' && currentStep < totalSteps) {
+                changeStep(1);
+            }
+        });
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
