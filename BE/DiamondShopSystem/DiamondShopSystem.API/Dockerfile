@@ -4,6 +4,9 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+# Optional: Create non-root user for security
+RUN adduser --disabled-password --gecos '' appuser
+
 # Build image with SDK
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
@@ -29,4 +32,12 @@ RUN dotnet publish "DiamondShopSystem.API.csproj" -c $BUILD_CONFIGURATION -o /ap
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Optional: Switch to non-root user
+# USER appuser
+
+# Optional: Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
 ENTRYPOINT ["dotnet", "DiamondShopSystem.API.dll"]

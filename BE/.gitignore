@@ -61,3 +61,10 @@ nunit-*.xml
 
 #environment variables
 .env
+
+# Database configuration files
+pg_hba.conf
+
+# Docker volumes (if you create local volume mounts)
+data/
+postgres-data/
