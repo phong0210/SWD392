@@ -4,6 +4,10 @@ namespace DiamondShopSystem.DAL.Data.Entities
 {
     public class DiamondShopDbContext : DbContext
     {
+        public DiamondShopDbContext(DbContextOptions<DiamondShopDbContext> options) : base(options)
+        {
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<StaffProfiles> StaffProfiles { get; set; }
         public DbSet<VIP> VIPs { get; set; }
@@ -114,7 +118,6 @@ namespace DiamondShopSystem.DAL.Data.Entities
                 .WithOne(od => od.Warranty)
                 .HasForeignKey<Warranties>(w => w.OrderDetailId)
                 .OnDelete(DeleteBehavior.Cascade);
-
         }
     }
 }
