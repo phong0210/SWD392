@@ -1,9 +1,9 @@
-﻿using DiamondShopSystem.DAL.Data.Entities;
+﻿using DiamondShopSystem.BLL.Domain.Entities;
 
 namespace DiamondShopSystem.BLL.Utils
 {
         public interface IJWTUtil
         {
-            string GenerateJwtToken(User user, Tuple<string, Guid> tuple, bool flag);
+            string GenerateJwtToken(User user, Tuple<string, Guid>? guidClaimer, bool flag);
         }
 }

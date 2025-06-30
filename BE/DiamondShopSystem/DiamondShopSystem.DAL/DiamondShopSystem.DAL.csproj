@@ -9,8 +9,6 @@
   <ItemGroup>
     <Folder Include="Data\Exceptions\" />
     <Folder Include="Data\MetaData\" />
-    <Folder Include="Data\Responses\" />
-    <Folder Include="Data\Requests\" />
     <Folder Include="Mappers\" />
   </ItemGroup>
 
@@ -28,6 +26,14 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DiamondShopSystem.BLL\DiamondShopSystem.BLL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\Configurations\ProductPromotionConfiguration.cs" />
   </ItemGroup>
 
 </Project>

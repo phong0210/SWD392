@@ -1,4 +1,4 @@
-﻿using DiamondShopSystem.DAL.Data.Entities;
+﻿using DiamondShopSystem.BLL.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -30,7 +30,7 @@ namespace DiamondShopSystem.BLL.Utils
                     {
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                         new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? string.Empty),
-                        new Claim(ClaimTypes.Role, user.StaffProfiles?.Role?.RoleName.ToString() ?? "User") 
+                        new Claim(ClaimTypes.Role, user.Role?.Name ?? "User") 
                     };
 
             if (guidClaimer != null)

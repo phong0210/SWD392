@@ -1,4 +1,4 @@
-﻿using DiamondShopSystem.DAL.Data.Entities;
+﻿using DiamondShopSystem.DAL.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

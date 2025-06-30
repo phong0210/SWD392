@@ -1,10 +1,9 @@
-using DiamondShopSystem.API.Shared.Responses;
 using DiamondShopSystem.BLL.Utils;
-using DiamondShopSystem.DAL.Data.Entities;
-using DiamondShopSystem.DAL.Repositories.Impelements;
+using DiamondShopSystem.API.DTOs;
+using DiamondShopSystem.DAL.Data;
+using DiamondShopSystem.DAL.Repositories.Implementations;
 using DiamondShopSystem.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -12,6 +11,10 @@ using System.Collections;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
+using DiamondShopSystem.API.Middlewares;
+using FluentValidation.AspNetCore;
+using DiamondShopSystem.BLL.Application.Services.Authentication;
+using DiamondShopSystem.API.Extensions;
 
 DotNetEnv.Env.Load(Path.Combine("..", ".env")); // Load from parent of API folder
 
@@ -52,23 +55,11 @@ void ConfigureMiddleware()
         app.UseSwaggerUI();
     }
 
-    app.UseExceptionHandler(); // Uses AddExceptionHandler logic
-
-    // Optional: Keep this if it provides *different logic* (like logging)
-    app.UseMiddleware<ExceptionHandlerMiddleware>();
+    app.UseMiddleware<ErrorHandlingMiddleware>();
 
     app.UseHttpsRedirection();
-
-    app.UseCors(options =>
-    {
-        options.SetIsOriginAllowed(origin =>
-            origin.StartsWith("http://localhost:") ||
-            origin.StartsWith("https://localhost:") ||
-            origin.EndsWith(".vercel.app"))
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
-    });
+    app.UseSecurityMiddleware(builder.Configuration);
+    app.UseCors("SecureCorsPolicy");
 
     app.UseAuthentication();
     app.UseAuthorization();
@@ -107,18 +98,29 @@ void ConfigureServices()
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        });
+        })
+        .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<DiamondShopSystem.API.Validators.RegisterUserRequestValidator>());
+
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddFluentValidationClientsideAdapters();
 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DiamondShopSystem.BLL.Application.Interfaces.IUnitOfWork).Assembly));
 
-    builder.Services.AddScoped<IUnitOfWork<DiamondShopDbContext>, UnitOfWork<DiamondShopDbContext>>();
+    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Interfaces.IUnitOfWork, DiamondShopSystem.DAL.Repositories.Implementations.UnitOfWork>();
     builder.Services.AddScoped<IOTPUtil, OTPUtil>();
     builder.Services.AddScoped<IJWTUtil, JwtUtil>();
-
-    RegisterApplicationServices();
+    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Services.Authentication.IAuthenticationService, DiamondShopSystem.BLL.Application.Services.Authentication.AuthenticationService>();
+    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Services.VNPay.IVNPayService, DiamondShopSystem.BLL.Application.Services.VNPay.VNPayService>();
+    builder.Services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
+    builder.Services.AddScoped<IAuthenticationLogger, AuthenticationLogger>();
+    builder.Services.AddHttpClient<GoogleOAuthService>();
+    
+    // Add security services
+    builder.Services.AddSecurityServices(builder.Configuration);
 }
 
 void ConfigureAuthentication()
@@ -126,11 +128,11 @@ void ConfigureAuthentication()
     var config = builder.Configuration;
     var jwtSettings = new JWTSetting
     {
-        Issuer = config["Jwt:Issuer"],
-        Audience = config["Jwt:Audience"],
-        Key = config["Jwt:Key"],
-        RefreshTokenValidityInDays = int.Parse(config["Jwt:RefreshTokenValidityInDays"] ?? "7"),
-        TokenValidityInMinutes = int.Parse(config["Jwt:TokenValidityInMinutes"] ?? "30")
+        Issuer = config["JWT_ISSUER"],
+        Audience = config["JWT_AUDIENCE"],
+        Key = config["JWT_KEY"],
+        RefreshTokenValidityInDays = int.Parse(config["JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS"] ?? "7"),
+        TokenValidityInMinutes = int.Parse(config["JWT_TOKEN_VALIDITY_IN_MINUTES"] ?? "30")
     };
 
     builder.Services.AddSingleton(jwtSettings);
@@ -197,6 +199,8 @@ void ConfigureSwagger()
             Description = "A Diamond Shop System Project"
         });
 
+        // Temporarily commented out JWT security configuration
+        /*
         options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -223,6 +227,7 @@ void ConfigureSwagger()
                 new List<string>()
             }
         });
+        */
     });
 }
 
@@ -244,15 +249,15 @@ void ConfigureDatabase()
     }
     Console.WriteLine("=====================================");
 
-    var host = Environment.GetEnvironmentVariable("DB_HOST");
-    var port = Environment.GetEnvironmentVariable("DB_PORT");
+    var host = Environment.GetEnvironmentVariable("DB_LOCAL_HOST");
+    var port = Environment.GetEnvironmentVariable("DB_PORT_LOCAL");
     var database = Environment.GetEnvironmentVariable("DB_NAME");
     var username = Environment.GetEnvironmentVariable("DB_USER");
     var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
     // Add logging to see what values are being read
     Console.WriteLine($"DB_LOCAL_HOST: {host}");
-    Console.WriteLine($"DB_PORT: {port}");
+    Console.WriteLine($"DB_PORT_LOCAL: {port}");
     Console.WriteLine($"DB_NAME: {database}");
     Console.WriteLine($"DB_USER: {username}");
     Console.WriteLine($"DB_PASSWORD: {password}");
@@ -276,6 +281,7 @@ void ConfigureDatabase()
     {
         options.UseNpgsql(connectionString, npgsqlOptions =>
         {
+            npgsqlOptions.MigrationsAssembly("DiamondShopSystem.DAL");
             npgsqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
                 maxRetryDelay: TimeSpan.FromSeconds(30),
@@ -291,8 +297,3 @@ void ConfigureDatabase()
     });
 }
 
-void RegisterApplicationServices()
-{
-    // Example:
-    // builder.Services.AddScoped<IUserService, UserService>();
-}
