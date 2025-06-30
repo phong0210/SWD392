@@ -68,3 +68,5 @@ pg_hba.conf
 # Docker volumes (if you create local volume mounts)
 data/
 postgres-data/
+
+GEMINI.md
