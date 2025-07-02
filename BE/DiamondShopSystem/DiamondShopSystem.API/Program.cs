@@ -13,7 +13,7 @@ using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
 
-DotNetEnv.Env.Load(Path.Combine("..", ".env")); // Load from parent of API folder
+DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +66,7 @@ void ConfigureMiddleware()
 
 void ConfigureServices()
 {
+
     builder.Services.AddExceptionHandler(options =>
     {
         options.ExceptionHandler = async context =>
@@ -121,15 +122,30 @@ void ConfigureServices()
 
 void ConfigureAuthentication()
 {
+    var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+    var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
+    var jwtRefreshTokenValidityInDays = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS") ?? "7";
+    var jwtTokenValidityInMinutes = Environment.GetEnvironmentVariable("JWT_TOKEN_VALIDITY_IN_MINUTES") ?? "30";
     var config = builder.Configuration;
     var jwtSettings = new JWTSetting
+
     {
-        Issuer = config["JWT_ISSUER"],
-        Audience = config["JWT_AUDIENCE"],
-        Key = config["JWT_KEY"],
-        RefreshTokenValidityInDays = int.Parse(config["JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS"] ?? "7"),
-        TokenValidityInMinutes = int.Parse(config["JWT_TOKEN_VALIDITY_IN_MINUTES"] ?? "30")
+        Issuer = jwtIssuer,
+        Audience = jwtAudience,
+        Key = jwtKey ?? throw new InvalidOperationException("JWT_KEY environment variable is not set!"),
+        RefreshTokenValidityInDays = jwtRefreshTokenValidityInDays != null ? int.Parse(jwtRefreshTokenValidityInDays) : 7,
+        TokenValidityInMinutes = jwtTokenValidityInMinutes != null ? int.Parse(jwtTokenValidityInMinutes) : 30
     };
+
+    Console.WriteLine("=== JWT Settings ===");
+    Console.WriteLine($"Issuer: {jwtSettings.Issuer}");
+    Console.WriteLine($"Audience: {jwtSettings.Audience}");
+    Console.WriteLine($"Key: {(string.IsNullOrEmpty(jwtSettings.Key) ? "NULL/EMPTY" : "***SET***")}");
+    Console.WriteLine($"Refresh Token Validity (Days): {jwtSettings.RefreshTokenValidityInDays}");
+    Console.WriteLine($"Token Validity (Minutes): {jwtSettings.TokenValidityInMinutes}");
+    Console.WriteLine("Key Length: " + (string.IsNullOrEmpty(jwtSettings.Key) ? 0 : Encoding.UTF8.GetByteCount(jwtSettings.Key)));
+    Console.WriteLine("======================");
 
     builder.Services.AddSingleton(jwtSettings);
 
@@ -186,6 +202,8 @@ void ConfigureAuthentication()
 
 void ConfigureSwagger()
 {
+    builder.Services.AddControllers();
+
     builder.Services.AddSwaggerGen(options =>
     {
         options.SwaggerDoc("v1", new OpenApiInfo
@@ -196,7 +214,7 @@ void ConfigureSwagger()
         });
 
         // Temporarily commented out JWT security configuration
-        /*
+       
         options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -223,7 +241,6 @@ void ConfigureSwagger()
                 new List<string>()
             }
         });
-        */
     });
 }
 

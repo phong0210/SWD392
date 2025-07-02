@@ -14,10 +14,10 @@ namespace DiamondShopSystem.BLL.Utils
 
         public JwtUtil(IConfiguration configuration)
         {
-            _jwtKey = configuration["Jwt:Key"];
-            _issuer = configuration["Jwt:Issuer"];
-            _audience = configuration["Jwt:Audience"];
-            _tokenValidityInMinutes = double.Parse(configuration["Jwt:TokenValidityInMinutes"] ?? "30");
+            _jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new InvalidOperationException("JWT_KEY environment variable is not set!")  ;
+            _issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new InvalidOperationException("JWT_ISSUER environment variable is not set!");
+            _audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? throw new InvalidOperationException("JWT_AUDIENCE environment variable is not set!");
+            _tokenValidityInMinutes = double.Parse(Environment.GetEnvironmentVariable("JWT_TOKEN_VALIDITY_IN_MINUTES") ?? "30");
         }
 
         public string GenerateJwtToken(User user, Tuple<string, Guid>? guidClaimer, bool isResetPasswordOnly)
