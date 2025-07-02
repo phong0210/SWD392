@@ -1,20 +1,17 @@
-using DiamondShopSystem.BLL.Utils;
 using DiamondShopSystem.API.DTOs;
+using DiamondShopSystem.API.Extensions;
+using DiamondShopSystem.API.Middlewares;
+using DiamondShopSystem.BLL.Application.Services.Authentication;
+using DiamondShopSystem.BLL.Utils;
 using DiamondShopSystem.DAL.Data;
-using DiamondShopSystem.DAL.Repositories.Implementations;
-using DiamondShopSystem.DAL.Repositories.Interfaces;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Unicode;
-using DiamondShopSystem.API.Middlewares;
-using FluentValidation.AspNetCore;
-using DiamondShopSystem.BLL.Application.Services.Authentication;
-using DiamondShopSystem.API.Extensions;
 
 DotNetEnv.Env.Load(Path.Combine("..", ".env")); // Load from parent of API folder
 
@@ -94,12 +91,11 @@ void ConfigureServices()
         };
     });
 
-    builder.Services.AddControllers()
-        .AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        })
-        .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<DiamondShopSystem.API.Validators.RegisterUserRequestValidator>());
+    // FluentValidation setup (Migrated to newer version)
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddFluentValidationClientsideAdapters();
+    builder.Services.AddValidatorsFromAssemblyContaining<DiamondShopSystem.API.Validators.RegisterUserRequestValidator>();
+
 
     builder.Services.AddFluentValidationAutoValidation();
     builder.Services.AddFluentValidationClientsideAdapters();
