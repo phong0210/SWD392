@@ -58,3 +58,14 @@ nunit-*.xml
 
 #visualstudio
 .vs/
+
+#environment variables
+.env
+
+# Database configuration files
+pg_hba.conf
+
+# Docker volumes (if you create local volume mounts)
+postgres-data/
+
+GEMINI.md
