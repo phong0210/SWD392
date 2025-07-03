@@ -70,13 +70,13 @@ import ReviewFB from "@/pages/Customer/ReviewFB/ReviewFB";
 const MainRouter = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const role = user?.role || null;
-  if (role === Role.ADMIN)
+  if (role === Role.HeadOfficeAdmin)
     return <Navigate to={config.routes.admin.dashboard} />;
-  if (role === Role.MANAGER)
+  if (role === Role.StoreManager)
     return <Navigate to={config.routes.admin.dashboard} />;
-  if (role === Role.SALE_STAFF)
+  if (role === Role.SalesStaff)
     return <Navigate to={config.routes.salesStaff.order} />;
-  if (role === Role.DELI_STAFF)
+  if (role === Role.DeliveryStaff)
     return <Navigate to={config.routes.deliStaff.deliveryPending} />;
 
   return <MainLayout />;
@@ -85,7 +85,7 @@ const MainRouter = () => {
 const CustomerRouter = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const role = user?.role || null;
-  return role === Role.CUSTOMER ? <Outlet /> : <Navigate to={config.routes.public.login} />;
+  return role === Role.Customer ? <Outlet /> : <Navigate to={config.routes.public.login} />;
 };
 
 const publicRoutes = {

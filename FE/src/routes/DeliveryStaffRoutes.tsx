@@ -17,7 +17,7 @@ import { Role } from "@/utils/enum";
 const DeliveryStaffRouter = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const role = user?.role || null;
-    return role === Role.DELI_STAFF ? <StaffLayout /> : <Navigate to="/" />;
+    return role === Role.DeliveryStaff ? <StaffLayout /> : <Navigate to="/" />;
 }
 
 const deliStaffRoutes = [

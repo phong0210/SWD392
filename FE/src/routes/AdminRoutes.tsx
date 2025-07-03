@@ -44,7 +44,7 @@ import { Role } from "@/utils/enum";
 const AdminRouter = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const role = user?.role || null;
-    return role === Role.ADMIN || role === Role.MANAGER ? <AdminLayout /> : <Navigate to='/' />
+    return role === Role.HeadOfficeAdmin || role === Role.StoreManager ? <AdminLayout /> : <Navigate to='/' />
 }
 
 const AdminRoutes = {

@@ -6,17 +6,11 @@ export enum PageEnum {
 }
 
 export const Role: {[key: string]: string} = {
-    // CUSTOMER: 'ROLE_CUSTOMER',
-    // DELI_STAFF: "ROLE_DELIVERY_STAFF",
-    // SALE_STAFF: "ROLE_SALE_STAFF",
-    // MANAGER: "ROLE_MANAGER",
-    // ADMIN: "ROLE_ADMIN",
-    // Backend role name mappings
-    Customer: 'ROLE_CUSTOMER',
-    DeliveryStaff: 'ROLE_DELIVERY_STAFF',
-    SalesStaff: 'ROLE_SALE_STAFF',
-    StoreManager: 'ROLE_MANAGER',
-    HeadOfficeAdmin: 'ROLE_ADMIN'
+    Customer: 'Customer',
+    DeliveryStaff: 'DeliveryStaff',
+    SalesStaff: 'SalesStaff',
+    StoreManager: 'StoreManager',
+    HeadOfficeAdmin: 'HeadOfficeAdmin'
 }
 
 export enum LinkEnum {

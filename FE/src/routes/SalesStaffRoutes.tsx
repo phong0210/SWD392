@@ -38,7 +38,7 @@ import { Role } from "@/utils/enum";
 const SalesStaffRouter = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const role = user?.role || null;
-    return role === Role.SALE_STAFF ? <StaffLayout /> : <Navigate to="/" />;
+    return role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
 }
 
 const salesStaffRoutes = [
