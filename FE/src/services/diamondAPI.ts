@@ -2,29 +2,30 @@
 import { get, post, put, remove } from "./apiCaller";
 
 export const showAllDiamond = () => {
-    return get(`/diamond/showAll`);
+    return get(`/api/diamonds`);
 }
     
 export const showDiamonds = (params: any) => {
-    return get(`/diamond/showDiamonds`,params);
+    return get(`/api/diamonds`,params);
 }
 
 export const getDiamondDetails = (diamondID: number) => {
-    return get(`/diamond/${diamondID}`)
+    return get(`/api/diamonds/${diamondID}`)
 }
 
 export const createDiamond = (diamond: object) => {
-    return post(`/diamond/create`, diamond);
+    return post(`/api/diamonds`, diamond);
 }
 
 export const updateDiamond = (id: number, diamond: object) => {
-    return put(`/diamond/update/${id}`, diamond);
+    return put(`/api/diamonds/${id}`, diamond);
 }
 
 export const deleteDiamond = (id: number) => {
-    return remove(`/diamond/delete/${id}`);
+    return remove(`/api/diamonds/${id}`);
 }
 
-export const getImageDiamond = (id: number) => {
-    return get(`/usingImage/${id}`)
-}
+// TEMPORARY: Commented out until backend image endpoint is available
+// export const getImageDiamond = (id: number) => {
+//     return get(`/usingImage/${id}`)
+// }
