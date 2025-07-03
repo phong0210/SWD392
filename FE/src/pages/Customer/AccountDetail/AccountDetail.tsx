@@ -22,9 +22,10 @@ interface Account {
   password: string;
 }
 
-const fetchCustomerInfo = async (userId: string) => {
+const fetchCustomerInfo = async (AccountID: number) => {
   try {
-    const { data } = await getCustomer(userId);
+    const { data } = await getCustomer(AccountID);
+    console.log(data);
     return data;
   } catch (error) {
     console.log("Error fetching customer info:", error);

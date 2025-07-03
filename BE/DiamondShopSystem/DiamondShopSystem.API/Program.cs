@@ -1,23 +1,23 @@
-using DiamondShopSystem.API.DTOs;
-using DiamondShopSystem.API.Extensions;
-using DiamondShopSystem.API.Middlewares;
-using DiamondShopSystem.BLL.Application.Services.Authentication;
-using DiamondShopSystem.BLL.Utils;
-using DiamondShopSystem.DAL.Data;
-using FluentValidation;
-using FluentValidation.AspNetCore;
+using System.Collections;
+using System.Text;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Collections;
-using System.Text;
+using DiamondShopSystem.DAL;
+using DiamondShopSystem.DAL.Repositories;
+using DiamondShopSystem.BLL.Mapping;
+using MediatR;
+using AutoMapper;
+using DiamondShopSystem.BLL.Handlers;
+using DiamondShopSystem.API.Policies;
 
-DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); 
+DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register services
+// Modular service registration
 ConfigureServices();
 ConfigureDatabase();
 ConfigureAuthentication();
@@ -34,7 +34,7 @@ using (var scope = app.Services.CreateScope())
 
     if (applyMigrations)
     {
-        var dbContext = services.GetRequiredService<DiamondShopDbContext>();
+        var dbContext = services.GetRequiredService<AppDbContext>();
         dbContext.Database.Migrate();
     }
 }
@@ -52,11 +52,11 @@ void ConfigureMiddleware()
         app.UseSwaggerUI();
     }
 
-    app.UseMiddleware<ErrorHandlingMiddleware>();
+    // Add your custom error handling middleware if needed
+    // app.UseMiddleware<ErrorHandlingMiddleware>();
 
     app.UseHttpsRedirection();
-    app.UseSecurityMiddleware(builder.Configuration);
-    app.UseCors("SecureCorsPolicy");
+    app.UseCors("AllowAll"); // Or your named policy
 
     app.UseAuthentication();
     app.UseAuthorization();
@@ -66,89 +66,42 @@ void ConfigureMiddleware()
 
 void ConfigureServices()
 {
-
-    builder.Services.AddExceptionHandler(options =>
-    {
-        options.ExceptionHandler = async context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            context.Response.ContentType = "application/json";
-
-            var response = new ApiResponse<object>
-            {
-                StatusCode = StatusCodes.Status500InternalServerError,
-                Message = "An unexpected error occurred.",
-                Reason = "Something went wrong on the server.",
-                IsSuccess = false,
-                Data = new
-                {
-                    Path = context.Request.Path,
-                    Method = context.Request.Method,
-                    Timestamp = DateTime.UtcNow
-                }
-            };
-
-            await context.Response.WriteAsJsonAsync(response);
-        };
-    });
-
-    // FluentValidation setup (Migrated to newer version)
-    builder.Services.AddFluentValidationAutoValidation();
-    builder.Services.AddFluentValidationClientsideAdapters();
-    builder.Services.AddValidatorsFromAssemblyContaining<DiamondShopSystem.API.Validators.RegisterUserRequestValidator>();
-
-
-    builder.Services.AddFluentValidationAutoValidation();
-    builder.Services.AddFluentValidationClientsideAdapters();
-
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddHttpContextAccessor();
-    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DiamondShopSystem.BLL.Application.Interfaces.IUnitOfWork).Assembly));
+    builder.Services.AddAutoMapper(typeof(EntityToDtoProfile).Assembly);
+    builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.UserCreateValidator).Assembly);
 
-    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Interfaces.IUnitOfWork, DiamondShopSystem.DAL.Repositories.Implementations.UnitOfWork>();
-    builder.Services.AddScoped<IOTPUtil, OTPUtil>();
-    builder.Services.AddScoped<IJWTUtil, JwtUtil>();
-    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Services.Authentication.IAuthenticationService, DiamondShopSystem.BLL.Application.Services.Authentication.AuthenticationService>();
-    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Services.VNPay.IVNPayService, DiamondShopSystem.BLL.Application.Services.VNPay.VNPayService>();
-    builder.Services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
-    builder.Services.AddScoped<IAuthenticationLogger, AuthenticationLogger>();
-    builder.Services.AddHttpClient<GoogleOAuthService>();
-    
-    // Add security services
-    builder.Services.AddSecurityServices(builder.Configuration);
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+    // CORS (allow all for development)
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll",
+            policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    });
+
+    builder.Services.AddControllers();
+
+    builder.Services.AddDiamondShopValidators();
 }
 
 void ConfigureAuthentication()
 {
-    // TODO: JWT authentication temporarily disabled for debugging. Uncomment to restore.
-    /*
+    var config = builder.Configuration;
+    var jwtSecret = Environment.GetEnvironmentVariable("JWT_KEY");
     var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
     var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
-    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
-    var jwtRefreshTokenValidityInDays = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS") ?? "7";
-    var jwtTokenValidityInMinutes = Environment.GetEnvironmentVariable("JWT_TOKEN_VALIDITY_IN_MINUTES") ?? "30";
-    var config = builder.Configuration;
-    var jwtSettings = new JWTSetting
-    {
-        Issuer = jwtIssuer,
-        Audience = jwtAudience,
-        Key = jwtKey ?? throw new InvalidOperationException("JWT_KEY environment variable is not set!"),
-        RefreshTokenValidityInDays = jwtRefreshTokenValidityInDays != null ? int.Parse(jwtRefreshTokenValidityInDays) : 7,
-        TokenValidityInMinutes = jwtTokenValidityInMinutes != null ? int.Parse(jwtTokenValidityInMinutes) : 30
-    };
+    var jwtTokenValidityInMinutes = Environment.GetEnvironmentVariable("JWT_TOKEN_VALIDITY_IN_MINUTES");
+    var jwtRefreshTokenValidityDays = Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS");
 
-    Console.WriteLine("=== JWT Settings ===");
-    Console.WriteLine($"Issuer: {jwtSettings.Issuer}");
-    Console.WriteLine($"Audience: {jwtSettings.Audience}");
-    Console.WriteLine($"Key: {(string.IsNullOrEmpty(jwtSettings.Key) ? "NULL/EMPTY" : "***SET***")}");
-    Console.WriteLine($"Refresh Token Validity (Days): {jwtSettings.RefreshTokenValidityInDays}");
-    Console.WriteLine($"Token Validity (Minutes): {jwtSettings.TokenValidityInMinutes}");
-    Console.WriteLine("Key Length: " + (string.IsNullOrEmpty(jwtSettings.Key) ? 0 : Encoding.UTF8.GetByteCount(jwtSettings.Key)));
-    Console.WriteLine("======================");
-
-    builder.Services.AddSingleton(jwtSettings);
+    Console.WriteLine("======Configuring authentication======");
+    Console.WriteLine("JWT_KEY: " + jwtSecret);
+    Console.WriteLine("JWT_ISSUER: " + jwtIssuer);
+    Console.WriteLine("JWT_AUDIENCE: " + jwtAudience);
+    Console.WriteLine("JWT_TOKEN_VALIDITY_IN_MINUTES: " + jwtTokenValidityInMinutes);
+    Console.WriteLine("JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS: " + jwtRefreshTokenValidityDays);
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -159,9 +112,9 @@ void ConfigureAuthentication()
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
-                ValidIssuer = jwtSettings.Issuer,
-                ValidAudience = jwtSettings.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             };
 
             options.Events = new JwtBearerEvents
@@ -180,33 +133,16 @@ void ConfigureAuthentication()
                     context.HandleResponse();
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     context.Response.ContentType = "application/json";
-                    var response = new ApiResponse<object>
-                    {
-                        StatusCode = StatusCodes.Status401Unauthorized,
-                        Message = "Unauthorized access",
-                        Reason = "Authentication failed. Please provide a valid token.",
-                        IsSuccess = false,
-                        Data = new
-                        {
-                            Path = context.Request.Path,
-                            Method = context.Request.Method,
-                            Timestamp = DateTime.UtcNow
-                        }
-                    };
-                    await context.Response.WriteAsJsonAsync(response);
+                    await context.Response.WriteAsync("{\"error\":\"Unauthorized access\"}");
                 }
             };
         });
 
-    builder.Services.AddAuthorization();
-    */
-    // For now, do not add authentication/authorization services.
+    builder.Services.AddRolePolicies();
 }
 
 void ConfigureSwagger()
 {
-    builder.Services.AddControllers();
-
     builder.Services.AddSwaggerGen(options =>
     {
         options.SwaggerDoc("v1", new OpenApiInfo
@@ -216,8 +152,7 @@ void ConfigureSwagger()
             Description = "A Diamond Shop System Project"
         });
 
-        // TODO: JWT security scheme temporarily disabled for debugging. Uncomment to restore.
-        /*
+        // JWT security for Swagger UI
         options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -244,40 +179,24 @@ void ConfigureSwagger()
                 new List<string>()
             }
         });
-        */
     });
 }
 
 void ConfigureDatabase()
 {
-    // Debug: Print ALL environment variables
-    Console.WriteLine("=== ALL ENVIRONMENT VARIABLES ===");
-    foreach (DictionaryEntry env in Environment.GetEnvironmentVariables())
-    {
-        if (env.Key.ToString().Contains("DB") || env.Key.ToString().Contains("JWT"))
-        {
-            var value = env.Value?.ToString();
-            if (env.Key.ToString().Contains("PASSWORD") || env.Key.ToString().Contains("KEY"))
-            {
-                value = string.IsNullOrEmpty(value) ? "NULL/EMPTY" : "***SET***";
-            }
-            Console.WriteLine($"{env.Key}: {value}");
-        }
-    }
-    Console.WriteLine("=====================================");
+    Console.WriteLine("======Configuring database======");
+    Console.WriteLine("DB_LOCAL_HOST: " + Environment.GetEnvironmentVariable("DB_LOCAL_HOST"));
+    Console.WriteLine("DB_PORT_LOCAL: " + Environment.GetEnvironmentVariable("DB_PORT_LOCAL"));
+    Console.WriteLine("DB_NAME: " + Environment.GetEnvironmentVariable("DB_NAME"));
+    Console.WriteLine("DB_USER: " + Environment.GetEnvironmentVariable("DB_USER"));
+    Console.WriteLine("DB_PASSWORD: " + Environment.GetEnvironmentVariable("DB_PASSWORD"));
 
+    // Read from environment variables or .env
     var host = Environment.GetEnvironmentVariable("DB_LOCAL_HOST");
     var port = Environment.GetEnvironmentVariable("DB_PORT_LOCAL");
     var database = Environment.GetEnvironmentVariable("DB_NAME");
     var username = Environment.GetEnvironmentVariable("DB_USER");
     var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
-
-    // Add logging to see what values are being read
-    Console.WriteLine($"DB_LOCAL_HOST: {host}");
-    Console.WriteLine($"DB_PORT_LOCAL: {port}");
-    Console.WriteLine($"DB_NAME: {database}");
-    Console.WriteLine($"DB_USER: {username}");
-    Console.WriteLine($"DB_PASSWORD: {password}");
 
     if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(database) ||
         string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
@@ -285,16 +204,9 @@ void ConfigureDatabase()
         throw new InvalidOperationException("One or more required database environment variables are missing!");
     }
 
-        var connectionString = $"Host={host};" +
-                       $"Port={port};" +
-                       $"Database={database};" +
-                       $"Username={username};" +
-                       $"Password={password};" +
-                       "Client Encoding=UTF8;";
+    var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};Client Encoding=UTF8;";
 
-    Console.WriteLine($"Connection String: {connectionString}");
-
-    builder.Services.AddDbContext<DiamondShopDbContext>(options =>
+    builder.Services.AddDbContext<AppDbContext>(options =>
     {
         options.UseNpgsql(connectionString, npgsqlOptions =>
         {
@@ -312,5 +224,4 @@ void ConfigureDatabase()
             options.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
         }
     });
-}
-
+} 
