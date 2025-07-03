@@ -133,20 +133,23 @@ When implementing any new feature (such as login, registration, etc.), you **mus
 
 ---
 
-## Example: File/Folder Map for Login Feature
+## Recommended Structure: Organize Handlers by Feature
 
-When implementing the login feature, your files should be organized as follows:
+For easier maintenance and scalability, **separate your Handlers, DTOs, Validators, and Commands into subfolders by feature** (e.g., Auth, Product, Order) under the `Handlers/` directory.
+
+### Example: Updated File/Folder Map for Login Feature
 
 ```
 BE/
   DiamondShopSystem/
     DiamondShopSystem.BLL/
       Handlers/
-        LoginRequestDto.cs
-        LoginResponseDto.cs
-        LoginRequestValidator.cs
-        LoginCommand.cs
-        LoginCommandHandler.cs
+        Auth/
+          LoginRequestDto.cs
+          LoginResponseDto.cs
+          LoginRequestValidator.cs
+          LoginCommand.cs
+          LoginCommandHandler.cs
       Mapping/
         EntityToDtoProfile.cs (add mapping if needed)
     DiamondShopSystem.API/
@@ -159,12 +162,10 @@ BE/
         User.cs
 ```
 
-- **DTOs, Validators, Commands, Handlers:** Go in `DiamondShopSystem.BLL/Handlers/`
+- **Each feature (e.g., Auth, Product, Order) gets its own subfolder in `Handlers/`.**
 - **Mapping Profiles:** Go in `DiamondShopSystem.BLL/Mapping/`
 - **Controllers:** Go in `DiamondShopSystem.API/Controllers/`
 - **Repositories/Entities:** Go in `DiamondShopSystem.DAL/`
-
-> Always follow this structure for new features to ensure maintainability and consistency.
 
 ---
 
@@ -174,14 +175,14 @@ Follow these steps **exactly** for every new backend feature:
 
 ### 1. **Define Request and Response DTOs**
 - **What:** Create classes for the request and response payloads (e.g., `LoginRequestDto`, `LoginResponseDto`).
-- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/`
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/<Feature>/`
 - **How:**
   - Request DTO: Properties for all input fields.
   - Response DTO: Properties for all output fields (e.g., token, user info).
 
 ### 2. **Create a FluentValidation Validator**
 - **What:** Implement a validator for the request DTO (e.g., `LoginRequestValidator`).
-- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/` (or a `Validators/` subfolder)
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/<Feature>/` (or a `Validators/` subfolder within the feature)
 - **How:**
   - Use FluentValidation rules for all required fields and formats.
 - **Avoid:** Do not put validation logic in the controller or handler.
@@ -190,7 +191,7 @@ Follow these steps **exactly** for every new backend feature:
 - **What:**
   - Command (e.g., `LoginCommand`) encapsulates the request DTO.
   - Handler (e.g., `LoginCommandHandler`) contains the business logic.
-- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/`
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/<Feature>/`
 - **How:**
   - Handler should:
     - Use `IUnitOfWork` and `IGenericRepository` for data access (never use DbContext directly).
@@ -229,7 +230,7 @@ Follow these steps **exactly** for every new backend feature:
 
 ### 8. **Follow Folder Structure Strictly**
 - **Always place files in the correct subfolders:**
-  - **BLL:** Handlers, DTOs, Validators, Mapping
+  - **BLL:** Handlers (by feature), DTOs, Validators, Mapping
   - **API:** Controllers
   - **DAL:** Repositories, Entities
 
