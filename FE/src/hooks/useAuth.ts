@@ -37,7 +37,8 @@ const getRole = () => {
     const decoded = cookieUtils.decodeJwt() as JwtType;
     if (!decoded || !decoded.Role) return null;
 
-    return decoded.Role;
+    // Map backend role name to FE role constant if available
+    return Role[decoded.Role] || decoded.Role;
 }
 
 const getAccountID = () => {

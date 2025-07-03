@@ -3,7 +3,8 @@
 import styled from "styled-components";
 import { ChangeEvent, FormEvent, useState, useRef, useEffect } from "react";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
-import useAuth from "@/hooks/useAuth";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { getCustomer } from "@/services/accountApi";
 
 interface Address {
@@ -58,6 +59,8 @@ const Account = () => {
   const [accountErrors, setAccountErrors] = useState<Partial<Account>>({});
 
   const modalRef = useRef(null); // Tham chiếu đến phần tử modal
+
+  const { user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -222,19 +225,18 @@ const Account = () => {
     }).format(date);
   };
 
-  const { AccountID } = useAuth();
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {
-    if (AccountID) {
+    if (user) {
       const getCustomerInfo = async () => {
-        const info = await fetchCustomerInfo(AccountID);
+        const info = await fetchCustomerInfo(user.AccountID);
         if (info) {
           setCustomerInfo(info);
         }
       };
       getCustomerInfo();
     }
-  }, [AccountID]);
+  }, [user]);
   return (
     <div>
       <AccountCus />

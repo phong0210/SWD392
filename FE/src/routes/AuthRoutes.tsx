@@ -1,11 +1,13 @@
 import config from "@/config"
-import useAuth from "@/hooks/useAuth"
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import Login from "@/pages/Login"
 import Register from "@/pages/Register"
 import { Navigate, Outlet } from "react-router-dom"
 
 const AuthRouter = () => {
-    const { role } = useAuth();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const role = user?.role || null;
     return !role ? <Outlet/> : <Navigate to='/' />;
 }
 

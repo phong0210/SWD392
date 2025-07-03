@@ -6,6 +6,7 @@ import { Form, Input, InputNumber, notification, Popconfirm, Table } from "antd"
 import Sidebar from "../../../components/Admin/Sidebar/Sidebar";
 // import { customerData, CustomerDataType } from "./CustomerData";
 import { showAllAccounts, updateAccount } from "@/services/authAPI";
+import { Role } from "@/utils/enum";
 
 
 interface EditableCellProps {
@@ -74,7 +75,7 @@ const Customer = () => {
     try {
       const response = await showAllAccounts();
       const { data } = response.data;
-      const filteredCustomers = data.filter((customer: any) => customer.Role === "ROLE_CUSTOMER");
+      const filteredCustomers = data.filter((customer: any) => customer.Role === Role.CUSTOMER);
 
       const formattedCustomers = filteredCustomers.map((customer: any) => ({
         key: customer.AccountID,

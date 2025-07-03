@@ -23,7 +23,8 @@ import RingGuide from "@/pages/Home/RingGuilde/RingGuide";
 
 // import OrderDetails from "@/pages/Customer/OrderDetails/OrderDetails";
 import AllDiamond from "@/pages/Home/AllDiamond/AllDiamond";
-import useAuth from "@/hooks/useAuth";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { Role } from "@/utils/enum";
 import AllCollection from "@/pages/Home/AllCollection/AllCollection";
 import CollectionInformation from "@/pages/Home/CollectionInformation/CollectionInfomation";
@@ -67,12 +68,13 @@ import ReviewFB from "@/pages/Customer/ReviewFB/ReviewFB";
 
 
 const MainRouter = () => {
-  const { role } = useAuth();
-  if (role?.includes(Role.ADMIN))
+  const { user } = useSelector((state: RootState) => state.auth);
+  const role = user?.role || null;
+  if (role === Role.ADMIN)
     return <Navigate to={config.routes.admin.dashboard} />;
-  if (role?.includes(Role.MANAGER))
+  if (role === Role.MANAGER)
     return <Navigate to={config.routes.admin.dashboard} />;
-  if (role?.includes(Role.SALE_STAFF))
+  if (role === Role.SALE_STAFF)
     return <Navigate to={config.routes.salesStaff.order} />;
   if (role === Role.DELI_STAFF)
     return <Navigate to={config.routes.deliStaff.deliveryPending} />;
@@ -81,8 +83,9 @@ const MainRouter = () => {
 };
 
 const CustomerRouter = () => {
-  const { role } = useAuth();
-  return role?.includes(Role.CUSTOMER) ? <Outlet /> : <Navigate to={config.routes.public.login} />;
+  const { user } = useSelector((state: RootState) => state.auth);
+  const role = user?.role || null;
+  return role === Role.CUSTOMER ? <Outlet /> : <Navigate to={config.routes.public.login} />;
 };
 
 const publicRoutes = {

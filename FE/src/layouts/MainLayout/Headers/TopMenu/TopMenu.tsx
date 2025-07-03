@@ -7,29 +7,38 @@ import { HeaderProps } from './TopMenu.type';
 import Toolbar from '@/components/Toolbar';
 import { MenuProps } from 'antd';
 import cookieUtils from '@/services/cookieUtils';
-
-const items: MenuProps['items'] = [
-    {
-        label: <Link to={config.routes.customer.account}>Profile</Link>,
-        key: config.routes.customer.account
-    },
-    {
-        type: 'divider'
-    },
-    {
-        label: (
-            <Link to={config.routes.public.login} onClick={() => cookieUtils.clear()}>
-                Logout
-            </Link>
-        ),
-        key: config.routes.public.login
-    }
-];
+import { useDispatch } from 'react-redux';
+import { logout } from '@/store/slices/authSlice';
 
 const TopMenu = ({
     role
 }: HeaderProps) => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const handleLogout = () => {
+        dispatch(logout());
+        cookieUtils.clear();
+        navigate(config.routes.public.login);
+    };
+
+    const items: MenuProps['items'] = [
+        {
+            label: <Link to={config.routes.customer.account}>Profile</Link>,
+            key: config.routes.customer.account
+        },
+        {
+            type: 'divider'
+        },
+        {
+            label: (
+                <span onClick={handleLogout} style={{ cursor: 'pointer' }}>
+                    Logout
+                </span>
+            ),
+            key: 'logout'
+        }
+    ];
 
     return (
         <>

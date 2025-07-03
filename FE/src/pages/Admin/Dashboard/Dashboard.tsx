@@ -11,6 +11,7 @@ import { showAllOrder, showReveneSummary } from "@/services/orderAPI";
 import { showAllAccounts } from "@/services/authAPI";
 import { getImage } from "@/services/imageAPI";
 import { showAllDiscount } from "@/services/discountAPI";
+import { Role } from "@/utils/enum";
 
 const calculateKpiTotal = (startYear: any, startMonth: any, increasePerMonth: any) => {
   const currentDate = new Date();
@@ -48,7 +49,7 @@ const Dashboard = () => {
       const { data: discountsData } = responseDiscount.data;
 
       const formattedCustomers = customersData
-      .filter((customer: any) => (customer.CustomerID !== null && customer.Role === "ROLE_CUSTOMER"))
+      .filter((customer: any) => (customer.CustomerID !== null && customer.Role === Role.CUSTOMER))
       .map((customer: any) => ({
         accountID: customer.AccountID,
         customerName: customer.Name,

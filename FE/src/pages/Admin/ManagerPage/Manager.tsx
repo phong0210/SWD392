@@ -7,6 +7,7 @@ import { Form, Input, InputNumber, Popconfirm, Table, Button, notification } fro
 import Sidebar from "../../../components/Admin/Sidebar/Sidebar";
 import { SortOrder } from "antd/es/table/interface";
 import { deleteAccount, register, showAllAccounts, updateAccount } from "@/services/authAPI";
+import { Role } from "@/utils/enum";
 
 interface EditableCellProps {
   editing: boolean;
@@ -78,7 +79,7 @@ const Manager = () => {
     try {
       const response = await showAllAccounts();
       const { data } = response.data;
-      const filteredManagers = data.filter((customer: any) => customer.Role === "ROLE_MANAGER");
+      const filteredManagers = data.filter((customer: any) => customer.Role === Role.MANAGER);
 
       const formattedManagers = filteredManagers.map((manager: any) => ({
         key: manager.AccountID,

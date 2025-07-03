@@ -1,9 +1,11 @@
-import useAuth from "@/hooks/useAuth";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import Navbar from "./Navbar/Navbar";
 import TopMenu from "./TopMenu/TopMenu";
 
 const Headers = () => {
-    const { role } = useAuth();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const role = user?.role || null;
     
     return (
         <>

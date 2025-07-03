@@ -1,7 +1,9 @@
 import Link from "@/components/Link";
 import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
-import { login } from "@/services/authAPI";
+import { useDispatch, useSelector } from 'react-redux';
+import { login as loginThunk } from '@/store/slices/authSlice';
+import { RootState } from '@/store';
 import cookieUtils from "@/services/cookieUtils";
 import { message } from "antd";
 import { useState } from "react";
@@ -15,30 +17,22 @@ import AuthForm from "@/components/AuthForm";
 const Login = () => {
     useDocumentTitle('Login | Aphromas Diamond');
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
-
     const [messageApi, contextHolder] = message.useMessage();
+    const { loading, error, token } = useSelector((state: RootState) => state.auth);
 
     const onFinish = async (values: any) => {
-        try {
-            setIsSubmitting(true);
-
-            const { data } = await login(values);
-
-            if (!data.data) throw data;
-            else {
-                await messageApi.success('Login successfully');
-                cookieUtils.setItem(config.cookies.token, data.data.token);
-                navigate(config.routes.public.home);
-            }
-        } catch (error: any) {
-            if (error.response) messageApi.error(error.response.data);
-            else messageApi.error(error.statusCode === 404 ? "This account haven't created" : error.message);
-        } finally {
-            setIsSubmitting(false);
+        const resultAction = await dispatch(loginThunk(values));
+        if (loginThunk.fulfilled.match(resultAction)) {
+            await messageApi.success('Login successfully');
+            // Save token to cookie if needed
+            // cookieUtils.setItem(config.cookies.token, resultAction.payload.token);
+            navigate(config.routes.public.home);
+        } else {
+            messageApi.error(resultAction.payload || 'Login failed');
         }
-    }
+    };
 
     const redirect = {
         description: "Don't have account?",
@@ -63,7 +57,7 @@ const Login = () => {
                 description={description}
                 redirect={redirect}
                 onFinish={onFinish}
-                isSubmitting={isSubmitting}
+                isSubmitting={loading}
             />
         </>
     )
