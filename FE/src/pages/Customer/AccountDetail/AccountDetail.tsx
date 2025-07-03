@@ -22,11 +22,10 @@ interface Account {
   password: string;
 }
 
-const fetchCustomerInfo = async (AccountID: number) => {
+const fetchCustomerInfo = async (userId: string) => {
   try {
-    const { data } = await getCustomer(AccountID);
-    console.log(data.data);
-    return data.data;
+    const { data } = await getCustomer(userId);
+    return data;
   } catch (error) {
     console.log("Error fetching customer info:", error);
     return null;
@@ -227,9 +226,9 @@ const Account = () => {
 
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {
-    if (user) {
+    if (user && user.userId) {
       const getCustomerInfo = async () => {
-        const info = await fetchCustomerInfo(user.AccountID);
+        const info = await fetchCustomerInfo(user.userId);
         if (info) {
           setCustomerInfo(info);
         }
@@ -247,63 +246,30 @@ const Account = () => {
             <InfoContainer>
               <Column>
                 <Row>
-                  <InfoTitle>Address Delivery</InfoTitle>
-                  {/* <EditButton onClick={handleAddressEdit}>Edit</EditButton> */}
-                </Row>
-
-                <Row>
-                  <Column>
-                    <DetailGroup>
-                      <Label>STREET ADDRESS</Label>
-                     {customerInfo &&( <Detail>{customerInfo.Address}</Detail>)}
-                    </DetailGroup>
-                    {/* <DetailGroup>
-                      <Label>CITY</Label>
-                      <Detail>{address.city}</Detail>
-                    </DetailGroup>
-                    <DetailGroup>
-                      <Label>DISTRICT</Label>
-                      <Detail>{address.district}</Detail>
-                    </DetailGroup> */}
-                  </Column>
-                  {/* <Column>
-                    <DetailGroup>
-                      <Label>WARD</Label>
-                      <Detail>{address.ward}</Detail>
-                    </DetailGroup>
-                  </Column> */}
-                </Row>
-              </Column>
-              <Column>
-                <Row>
                   <InfoTitle>Account Details</InfoTitle>
-                  {/* <EditButton onClick={handleAccountEdit}>Edit</EditButton> */}
                 </Row>
-
                 {customerInfo && (
                   <Row>
                     <Column>
-                      {/* <DetailGroup>
-                        <Label>FIRST NAME</Label>
-                        <Detail>{account.firstName}</Detail>
-                      </DetailGroup> */}
                       <DetailGroup>
                         <Label>FULL NAME</Label>
-                        <Detail>{customerInfo.Name}</Detail>
+                        <Detail>{customerInfo.fullName}</Detail>
                       </DetailGroup>
                       <DetailGroup>
                         <Label>EMAIL</Label>
-                        <Detail>{customerInfo.Email}</Detail>
-                      </DetailGroup>
-                    </Column>
-                    <Column>
-                      <DetailGroup>
-                        <Label>PHONE NUMBER</Label>
-                        <Detail>{customerInfo.PhoneNumber}</Detail>
+                        <Detail>{customerInfo.email}</Detail>
                       </DetailGroup>
                       <DetailGroup>
-                        <Label>Birthday</Label>
-                        <Detail>{formatDate(customerInfo.Birthday)}</Detail>
+                        <Label>PHONE</Label>
+                        <Detail>{customerInfo.phone}</Detail>
+                      </DetailGroup>
+                      <DetailGroup>
+                        <Label>ROLE</Label>
+                        <Detail>{customerInfo.roleName}</Detail>
+                      </DetailGroup>
+                      <DetailGroup>
+                        <Label>ACTIVE</Label>
+                        <Detail>{customerInfo.isActive ? 'Yes' : 'No'}</Detail>
                       </DetailGroup>
                     </Column>
                   </Row>

@@ -28,13 +28,14 @@ namespace DiamondShopSystem.API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
-        [HttpGet("{id}")] // Assuming a GetUserById query exists or will be created
-        [Authorize(Roles = "Customer,SalesStaff,StoreManager,HeadOfficeAdmin")]
+        [HttpGet("{id}")]
+        // [Authorize(Roles = "Customer,SalesStaff,StoreManager,HeadOfficeAdmin")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
-            // This would typically be a GetUserByIdQuery
-            // For now, returning a placeholder or NotFound
-            return NotFound();
+            var user = await _mediator.Send(new GetUserByIdQuery(id));
+            if (user == null)
+                return NotFound();
+            return Ok(user);
         }
 
         [HttpPut("profile")]

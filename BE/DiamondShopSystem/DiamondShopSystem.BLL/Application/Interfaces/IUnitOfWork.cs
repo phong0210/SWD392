@@ -9,7 +9,7 @@ namespace DiamondShopSystem.BLL.Application.Interfaces
         IRepository<Product> Products { get; }
         IRepository<Category> Categories { get; }
         IRepository<Order> Orders { get; }
-        IRepository<User> Users { get; }
+        IUserRepository Users { get; }
         IRepository<Role> Roles { get; }
         IRepository<CustomerProfile> CustomerProfiles { get; }
         IRepository<VipStatus> VipStatuses { get; }

@@ -15,7 +15,7 @@ namespace DiamondShopSystem.DAL.Repositories.Implementations
         public IRepository<Product> Products { get; private set; }
         public IRepository<Category> Categories { get; private set; }
         public IRepository<Order> Orders { get; private set; }
-        public IRepository<User> Users { get; private set; }
+        public IUserRepository Users { get; private set; }
         public IRepository<Role> Roles { get; private set; }
         public IRepository<CustomerProfile> CustomerProfiles { get; private set; }
         public IRepository<VipStatus> VipStatuses { get; private set; }
@@ -30,7 +30,7 @@ namespace DiamondShopSystem.DAL.Repositories.Implementations
             Products = new ProductRepository(_context);
             Categories = new GenericRepository<Category>(_context);
             Orders = new GenericRepository<Order>(_context);
-            Users = new GenericRepository<User>(_context);
+            Users = new UserRepository(_context);
             Roles = new GenericRepository<Role>(_context);
             CustomerProfiles = new GenericRepository<CustomerProfile>(_context);
             VipStatuses = new GenericRepository<VipStatus>(_context);

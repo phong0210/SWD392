@@ -122,6 +122,8 @@ void ConfigureServices()
 
 void ConfigureAuthentication()
 {
+    // TODO: JWT authentication temporarily disabled for debugging. Uncomment to restore.
+    /*
     var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
     var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
     var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
@@ -129,7 +131,6 @@ void ConfigureAuthentication()
     var jwtTokenValidityInMinutes = Environment.GetEnvironmentVariable("JWT_TOKEN_VALIDITY_IN_MINUTES") ?? "30";
     var config = builder.Configuration;
     var jwtSettings = new JWTSetting
-
     {
         Issuer = jwtIssuer,
         Audience = jwtAudience,
@@ -198,6 +199,8 @@ void ConfigureAuthentication()
         });
 
     builder.Services.AddAuthorization();
+    */
+    // For now, do not add authentication/authorization services.
 }
 
 void ConfigureSwagger()
@@ -213,8 +216,8 @@ void ConfigureSwagger()
             Description = "A Diamond Shop System Project"
         });
 
-        // Temporarily commented out JWT security configuration
-       
+        // TODO: JWT security scheme temporarily disabled for debugging. Uncomment to restore.
+        /*
         options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -241,6 +244,7 @@ void ConfigureSwagger()
                 new List<string>()
             }
         });
+        */
     });
 }
 
