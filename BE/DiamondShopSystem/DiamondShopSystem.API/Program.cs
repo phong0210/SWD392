@@ -192,8 +192,8 @@ void ConfigureDatabase()
     Console.WriteLine("DB_PASSWORD: " + Environment.GetEnvironmentVariable("DB_PASSWORD"));
 
     // Read from environment variables or .env
-    var host = Environment.GetEnvironmentVariable("DB_LOCAL_HOST");
-    var port = Environment.GetEnvironmentVariable("DB_PORT_LOCAL");
+    var host = Environment.GetEnvironmentVariable("DB_HOST");
+    var port = Environment.GetEnvironmentVariable("DB_PORT");
     var database = Environment.GetEnvironmentVariable("DB_NAME");
     var username = Environment.GetEnvironmentVariable("DB_USER");
     var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
