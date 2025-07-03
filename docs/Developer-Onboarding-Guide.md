@@ -1,5 +1,11 @@
 # Developer Onboarding Guide: Implementing Services & APIs
 
+> **Important:** All backend code must be placed in the correct subfolders:
+> - **BLL:** C:/Users/syrex/Desktop/SWD392/BE/DiamondShopSystem/DiamondShopSystem.BLL
+> - **API:** C:/Users/syrex/Desktop/SWD392/BE/DiamondShopSystem/DiamondShopSystem.API
+> - **DAL:** C:/Users/syrex/Desktop/SWD392/BE/DiamondShopSystem/DiamondShopSystem.DAL
+> Always use these paths for new files and features.
+
 Welcome to the Diamond Shop System codebase! This guide will help you get started with implementing new services and APIs, both in the backend (C#/.NET) and frontend (React/TypeScript).
 
 ---
@@ -108,22 +114,22 @@ When implementing any new feature (such as login, registration, etc.), you **mus
 ### Step-by-Step Checklist for Implementing a New Feature
 
 1. **Define DTOs**
-   - Create request and response DTOs for your feature.
+   - Create request and response DTOs for your feature in the BLL folder: `DiamondShopSystem.BLL/Handlers/`.
 2. **Create Validators**
-   - Implement a FluentValidation validator for the request DTO.
+   - Implement a FluentValidation validator for the request DTO in the BLL folder: `DiamondShopSystem.BLL/Handlers/` or a dedicated `Validators/` folder.
 3. **Set Up MediatR Command/Query**
-   - Define a command or query (e.g., `LoginCommand : IRequest<LoginResponseDto>`).
+   - Define a command or query (e.g., `LoginCommand : IRequest<LoginResponseDto>`) in the BLL folder: `DiamondShopSystem.BLL/Handlers/`.
    - Implement the handler, injecting repositories, services, and AutoMapper as needed.
 4. **Use Generic Repository & Unit of Work**
-   - Access data via `IUnitOfWork` and `IGenericRepository<T>`.
+   - Access data via `IUnitOfWork` and `IGenericRepository<T>` in the DAL folder: `DiamondShopSystem.DAL/Repositories/`.
 5. **Map Entities to DTOs**
-   - Use AutoMapper in your handler to map entities to DTOs.
+   - Use AutoMapper in your handler to map entities to DTOs. Place mapping profiles in `DiamondShopSystem.BLL/Mapping/`.
 6. **Controller**
-   - The controller should only receive the request, send it to MediatR, and return the result. No business logic in controllers.
+   - The controller should only receive the request, send it to MediatR, and return the result. Place controllers in the API folder: `DiamondShopSystem.API/Controllers/`.
 7. **Register Everything in DI**
-   - Ensure all new handlers, validators, and mapping profiles are registered in `Program.cs`.
+   - Ensure all new handlers, validators, and mapping profiles are registered in `DiamondShopSystem.API/Program.cs`.
 
-> **Strict Rule:** All new features must adhere to this design. This ensures maintainability, testability, and consistency across the codebase.
+> **Strict Rule:** All new features must adhere to this design and folder structure. This ensures maintainability, testability, and consistency across the codebase.
 
 ---
 
