@@ -95,4 +95,36 @@ The backend follows Domain-Driven Design (DDD) and clean architecture principles
 
 ---
 
+## 6. Required Patterns & Technologies for All Features
+
+When implementing any new feature (such as login, registration, etc.), you **must strictly follow** these architectural patterns and technologies already established in the codebase:
+
+- **AutoMapper**: Use for mapping between domain entities and DTOs. Define mapping profiles in `BLL/Mapping/`.
+- **FluentValidation**: Use for validating all incoming requests. Place validators in `BLL/Handlers/` or a dedicated `Validators/` folder.
+- **MediatR**: Use the CQRS pattern. All business logic should be implemented as MediatR commands/queries and handlers, not in controllers.
+- **Generic Repository & Unit of Work**: Access data only through the repository and unit of work abstractions, never directly via DbContext in handlers or controllers.
+- **Dependency Injection (DI)**: Register all services, handlers, validators, and mapping profiles in the DI container (see `Program.cs`).
+
+### Step-by-Step Checklist for Implementing a New Feature
+
+1. **Define DTOs**
+   - Create request and response DTOs for your feature.
+2. **Create Validators**
+   - Implement a FluentValidation validator for the request DTO.
+3. **Set Up MediatR Command/Query**
+   - Define a command or query (e.g., `LoginCommand : IRequest<LoginResponseDto>`).
+   - Implement the handler, injecting repositories, services, and AutoMapper as needed.
+4. **Use Generic Repository & Unit of Work**
+   - Access data via `IUnitOfWork` and `IGenericRepository<T>`.
+5. **Map Entities to DTOs**
+   - Use AutoMapper in your handler to map entities to DTOs.
+6. **Controller**
+   - The controller should only receive the request, send it to MediatR, and return the result. No business logic in controllers.
+7. **Register Everything in DI**
+   - Ensure all new handlers, validators, and mapping profiles are registered in `Program.cs`.
+
+> **Strict Rule:** All new features must adhere to this design. This ensures maintainability, testability, and consistency across the codebase.
+
+---
+
 For further questions, check the codebase, read the docs, or ask a team member. Happy coding! 
