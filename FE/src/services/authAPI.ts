@@ -16,6 +16,14 @@ export const showAllAccounts = () => {
     return get(`/api/users`);
 }
 
+export const updateAccount = (email: string, account: object) => {
+    return put(`/api/users/${email}`, account);
+}
+
+export const deleteAccount = (id: number) => {
+    return remove(`/api/users/${id}`);
+}
+
 // Deprecated legacy endpoints (commented out)
 // export const updateAccount = (name: string, account: object) => {
 //     return put(`/auth/update/${name}`, account);

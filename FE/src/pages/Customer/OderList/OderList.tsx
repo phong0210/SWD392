@@ -12,7 +12,7 @@ import AccountCus from "@/components/Customer/Account Details/AccountCus";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { orderRelation, showAllOrder, updateOrder } from "@/services/orderAPI";
-import { showAllAccounts } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 import useAuth from "@/hooks/useAuth";
 // import DropdownButton from './DropdownButton';
 

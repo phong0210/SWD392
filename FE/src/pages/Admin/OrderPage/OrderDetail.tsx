@@ -6,7 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { orderDetail, showAllOrder, updateOrder } from "@/services/orderAPI";
 import paypalLogo from '@/assets/logo/payment/paypal.png';
 import { OrderStatus, PaymentMethodEnum, Role } from "@/utils/enum";
-import { showAllAccounts } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 import { showAllOrderLineForAdmin } from "@/services/orderLineAPI";
 import { getDiamondDetails } from "@/services/diamondAPI";
 import { getImage } from "@/services/imageAPI";
