@@ -5,24 +5,25 @@ import cookieUtils from "@/services/cookieUtils";
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getCustomer } from "@/services/accountApi";
+
 const fetchCustomerInfo = async (AccountID: number) => {
   try {
     const { data } = await getCustomer(AccountID);
-    console.log(data.data);
-    return data.data;
+    console.log("getCustomerAPICalled", data);
+    return data;
   } catch (error) {
     console.log("Error fetching customer info:", error);
     return null;
   }
 };
+
 const AccountCus = () => {
   const { AccountID } = useAuth();
-  console.log(AccountID);
+  console.log("AccountID check", AccountID);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {
-    
-    if (AccountID) {
+    if (AccountID && AccountID !== 0) {
       const getCustomerInfo = async () => {
         const info = await fetchCustomerInfo(AccountID);
         if (info) {

@@ -3,7 +3,8 @@
 import styled from "styled-components";
 import { ChangeEvent, FormEvent, useState, useRef, useEffect } from "react";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
-import useAuth from "@/hooks/useAuth";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { getCustomer } from "@/services/accountApi";
 
 interface Address {
@@ -24,8 +25,8 @@ interface Account {
 const fetchCustomerInfo = async (AccountID: number) => {
   try {
     const { data } = await getCustomer(AccountID);
-    console.log(data.data);
-    return data.data;
+    console.log(data);
+    return data;
   } catch (error) {
     console.log("Error fetching customer info:", error);
     return null;
@@ -58,6 +59,8 @@ const Account = () => {
   const [accountErrors, setAccountErrors] = useState<Partial<Account>>({});
 
   const modalRef = useRef(null); // Tham chiếu đến phần tử modal
+
+  const { user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -222,19 +225,18 @@ const Account = () => {
     }).format(date);
   };
 
-  const { AccountID } = useAuth();
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {
-    if (AccountID) {
+    if (user && user.userId) {
       const getCustomerInfo = async () => {
-        const info = await fetchCustomerInfo(AccountID);
+        const info = await fetchCustomerInfo(user.userId);
         if (info) {
           setCustomerInfo(info);
         }
       };
       getCustomerInfo();
     }
-  }, [AccountID]);
+  }, [user]);
   return (
     <div>
       <AccountCus />
@@ -245,63 +247,30 @@ const Account = () => {
             <InfoContainer>
               <Column>
                 <Row>
-                  <InfoTitle>Address Delivery</InfoTitle>
-                  {/* <EditButton onClick={handleAddressEdit}>Edit</EditButton> */}
-                </Row>
-
-                <Row>
-                  <Column>
-                    <DetailGroup>
-                      <Label>STREET ADDRESS</Label>
-                     {customerInfo &&( <Detail>{customerInfo.Address}</Detail>)}
-                    </DetailGroup>
-                    {/* <DetailGroup>
-                      <Label>CITY</Label>
-                      <Detail>{address.city}</Detail>
-                    </DetailGroup>
-                    <DetailGroup>
-                      <Label>DISTRICT</Label>
-                      <Detail>{address.district}</Detail>
-                    </DetailGroup> */}
-                  </Column>
-                  {/* <Column>
-                    <DetailGroup>
-                      <Label>WARD</Label>
-                      <Detail>{address.ward}</Detail>
-                    </DetailGroup>
-                  </Column> */}
-                </Row>
-              </Column>
-              <Column>
-                <Row>
                   <InfoTitle>Account Details</InfoTitle>
-                  {/* <EditButton onClick={handleAccountEdit}>Edit</EditButton> */}
                 </Row>
-
                 {customerInfo && (
                   <Row>
                     <Column>
-                      {/* <DetailGroup>
-                        <Label>FIRST NAME</Label>
-                        <Detail>{account.firstName}</Detail>
-                      </DetailGroup> */}
                       <DetailGroup>
                         <Label>FULL NAME</Label>
-                        <Detail>{customerInfo.Name}</Detail>
+                        <Detail>{customerInfo.fullName}</Detail>
                       </DetailGroup>
                       <DetailGroup>
                         <Label>EMAIL</Label>
-                        <Detail>{customerInfo.Email}</Detail>
-                      </DetailGroup>
-                    </Column>
-                    <Column>
-                      <DetailGroup>
-                        <Label>PHONE NUMBER</Label>
-                        <Detail>{customerInfo.PhoneNumber}</Detail>
+                        <Detail>{customerInfo.email}</Detail>
                       </DetailGroup>
                       <DetailGroup>
-                        <Label>Birthday</Label>
-                        <Detail>{formatDate(customerInfo.Birthday)}</Detail>
+                        <Label>PHONE</Label>
+                        <Detail>{customerInfo.phone}</Detail>
+                      </DetailGroup>
+                      <DetailGroup>
+                        <Label>ROLE</Label>
+                        <Detail>{customerInfo.roleName}</Detail>
+                      </DetailGroup>
+                      <DetailGroup>
+                        <Label>ACTIVE</Label>
+                        <Detail>{customerInfo.isActive ? 'Yes' : 'No'}</Detail>
                       </DetailGroup>
                     </Column>
                   </Row>

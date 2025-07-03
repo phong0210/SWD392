@@ -9,7 +9,7 @@ import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import OrderMenu from "@/components/Staff/SalesStaff/OrderMenu/OrderMenu";
 import { showAllOrder } from "@/services/orderAPI";
 import { OrderStatus } from "@/utils/enum";
-import { showAllAccounts } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 
 const columns: TableColumnsType<DataType> = [
   {

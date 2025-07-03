@@ -24,6 +24,7 @@ import {
   showAllAccounts,
   updateAccount,
 } from "@/services/authAPI";
+import { Role } from "@/utils/enum";
 
 interface EditableCellProps {
   editing: boolean;
@@ -94,7 +95,7 @@ const SalesStaff = () => {
       const response = await showAllAccounts();
       const { data } = response.data;
       const filteredManagers = data.filter(
-        (customer: any) => customer.Role === "ROLE_SALE_STAFF"
+        (customer: any) => customer.Role === Role.SALE_STAFF
       );
 
       const formattedStaffs = filteredManagers.map((manager: any) => ({

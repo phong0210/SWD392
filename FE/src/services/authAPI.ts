@@ -1,11 +1,11 @@
 import { get, post, put, remove } from "./apiCaller"
 
 export const login = (account: object) => {
-    return post(`/auth/signin`, account);
+    return post(`/api/auth/login`, account);
 }
 
 export const register = (account: object) => {
-    return post(`/auth/signup`, account);
+    return post(`/api/users/register`, account);
 }
 
 export const registerCustomer = (account: object) => {
@@ -13,13 +13,21 @@ export const registerCustomer = (account: object) => {
 }
 
 export const showAllAccounts = () => {
-    return get(`/auth/ShowAllAccounts`);
+    return get(`/api/users`);
 }
 
-export const updateAccount = (name: string, account: object) => {
-    return put(`/auth/update/${name}`, account);
+export const updateAccount = (email: string, account: object) => {
+    return put(`/api/users/${email}`, account);
 }
 
 export const deleteAccount = (id: number) => {
-    return remove(`/auth/delete/${id}`);
+    return remove(`/api/users/${id}`);
 }
+
+// Deprecated legacy endpoints (commented out)
+// export const updateAccount = (name: string, account: object) => {
+//     return put(`/auth/update/${name}`, account);
+// }
+// export const deleteAccount = (id: number) => {
+//     return remove(`/auth/delete/${id}`);
+// }

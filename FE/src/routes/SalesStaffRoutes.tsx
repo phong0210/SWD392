@@ -1,5 +1,7 @@
 import config from "@/config"
 import { Navigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 import StaffLayout from "@/layouts/StaffLayout"
 
@@ -30,13 +32,13 @@ import Messages from "@/pages/Staff/SalesStaff/ClientCaringPage/Message";
 import FeedbackSale from "@/pages/Staff/SalesStaff/ClientCaringPage/FeedbackSale";
 import FeedbackCompleted from "@/pages/Staff/SalesStaff/ClientCaringPage/FeedbackCompleted";
 
-import useAuth from "@/hooks/useAuth";
 import { Role } from "@/utils/enum";
 
 
 const SalesStaffRouter = () => {
-    const { role } = useAuth();
-    return role === Role.SALE_STAFF ? <StaffLayout /> : <Navigate to="/" />;
+    const { user } = useSelector((state: RootState) => state.auth);
+    const role = user?.role || null;
+    return role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
 }
 
 const salesStaffRoutes = [

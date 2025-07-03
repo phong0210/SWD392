@@ -36,14 +36,15 @@ import DeliveryStaff from "@/pages/Admin/StaffPage/DeliveryStaff/DeliveryStaff"
 import DeliStaffDetail from "@/pages/Admin/StaffPage/DeliveryStaff/DeliStaffDetail"
 import Manager from "@/pages/Admin/ManagerPage/Manager"
 
-import useAuth from "@/hooks/useAuth"
-import { Role } from "@/utils/enum"
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { Navigate } from "react-router-dom"
+import { Role } from "@/utils/enum";
 
 const AdminRouter = () => {
-    //Use database
-    const { role } = useAuth();
-    return role === Role.ADMIN || role === Role.MANAGER ? <AdminLayout /> : <Navigate to='/' />
+    const { user } = useSelector((state: RootState) => state.auth);
+    const role = user?.role || null;
+    return role === Role.HeadOfficeAdmin || role === Role.StoreManager ? <AdminLayout /> : <Navigate to='/' />
 }
 
 const AdminRoutes = {

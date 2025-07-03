@@ -7,7 +7,7 @@ import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import OrderMenu from "../../../../components/Admin/OrderMenu/OrderMenu";
 import { Link } from "react-router-dom";
 import { showAllOrder } from "@/services/orderAPI";
-import { showAllAccounts } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 
 const AcceptedOrder = () => {
   const [searchText, setSearchText] = useState("");

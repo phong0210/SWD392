@@ -22,33 +22,33 @@ export type OrderAPIProps = {
 }
 
 export const showAllOrder = () => {
-    return get(`/order/showAll`);
+    return get(`/api/orders`);
 }
 
 export const showOrdersPage = () => {
-    return get(`/order/showOrders`);
+    return get(`/api/orders`);
 }
 
 export const showReveneSummary = () => {
-    return post(`/order/summarize`);
+    return post(`/api/orders/summarize`);
 }
 
 export const orderDetail = (id: number) => {
-    return get(`/order/detail/${id}`);
+    return get(`/api/orders/${id}`);
 }
 
 export const orderRelation = (id: number) => {
-    return get(`/order/detail/${id}`);
+    return get(`/api/orders/${id}`);
 }
 
 export const createOrder = (order: object) => {
-    return post(`/order/create`, order);
+    return post(`/api/orders`, order);
 }
 
 export const updateOrder = (id: number, order: Partial<OrderAPIProps>) => {
-    return put(`/order/update/${id}`, order);
+    return put(`/api/orders/${id}`, order);
 }
 
 export const deleteOrder = (id: number) => {
-    return remove(`/order/delete/${id}`);
+    return remove(`/api/orders/${id}`);
 }

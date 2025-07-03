@@ -13,25 +13,25 @@ export interface OrderLineBody {
 }
 
 export const showAllOrderLineForAdmin = () => {
-    return get(`/orderLine/showAll`);
+    return get(`/api/order-lines`);
 }
 
-export const showAllOrderLineForCustomer = () => {
-    return get(`/orderLine/showOrder`);
+export const showAllOrderLineForCustomer = (customerId: number) => {
+    return get(`/api/order-lines/customer/${customerId}`);
 }
 
 export const OrderLineDetail = (id: number) => {
-    return get(`/orderLine/${id}`);
+    return get(`/api/order-lines/${id}`);
 }
 
 export const createOrderLine = (orderLine: OrderLineBody) => {
-    return post(`/orderLine/create`, orderLine);
+    return post(`/api/order-lines`, orderLine);
 }
 
 export const updateOrderLine = (id: number, orderLine: object) => {
-    return put(`/orderLine/update/${id}`, orderLine);
+    return put(`/api/order-lines/${id}`, orderLine);
 }
 
 export const deleteOrderLine = (id: number) => {
-    return remove(`/orderLine/delete/${id}`);
+    return remove(`/api/order-lines/${id}`);
 }

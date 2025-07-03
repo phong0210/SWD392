@@ -8,7 +8,7 @@ import OrderMenu from "../../../../components/Admin/OrderMenu/OrderMenu";
 import { OrderDataType } from "../OrderData";
 import { Link } from "react-router-dom";
 import { showAllOrder } from "@/services/orderAPI";
-import { showAllAccounts } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 
 
 const CancelledOrder = () => {

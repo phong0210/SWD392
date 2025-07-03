@@ -1,5 +1,7 @@
 import config from "@/config"
 import { Navigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 import StaffLayout from "@/layouts/StaffLayout"
 
@@ -9,13 +11,13 @@ import DeliveryDelivered from "@/pages/Staff/DeliveryReport/DeliveryDelivered";
 import DeliveryReturn from "@/pages/Staff/DeliveryReport/DeliveryReturn";
 import DeliveryCompleted from "@/pages/Staff/DeliveryReport/DeliveryCompleted";
 import DeliveryPending from "@/pages/Staff/DeliveryReport/DeliveryPending";
-import useAuth from "@/hooks/useAuth";
 import { Role } from "@/utils/enum";
 
 
 const DeliveryStaffRouter = () => {
-    const { role } = useAuth();
-    return role === Role.DELI_STAFF ? <StaffLayout /> : <Navigate to="/" />;
+    const { user } = useSelector((state: RootState) => state.auth);
+    const role = user?.role || null;
+    return role === Role.DeliveryStaff ? <StaffLayout /> : <Navigate to="/" />;
 }
 
 const deliStaffRoutes = [

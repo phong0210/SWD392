@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { orderRelation, showAllOrder } from "@/services/orderAPI";
 import useAuth from "@/hooks/useAuth";
-import { showAllAccounts } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 // import DropdownButton from './DropdownButton';
 
 const onChange: TableProps<DataType>["onChange"] = (

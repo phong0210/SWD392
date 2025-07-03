@@ -6,6 +6,7 @@ import uploadSliceSetting from "@/pages/Admin/ProductPage/Jewelry Setting/compon
 import { uploadSliceDiaProduct } from "@/pages/Admin/ProductPage/Jewelry/components/AddDiaJewComponent/slice";
 import uploadSliceReguProduct from "@/pages/Admin/ProductPage/Jewelry/components/AddReguComponent/slice";
 import { configureStore } from "@reduxjs/toolkit";
+import { authSlice } from "@/store/slices/authSlice";
 
 export const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
         uploadDiaProduct: uploadSliceDiaProduct.reducer,
         uploadReguProduct: uploadSliceReguProduct.reducer,
         order: orderSlice.reducer,
+        auth: authSlice.reducer,
     },
     middleware: (getDefaultMiddleWare) => 
         getDefaultMiddleWare({
