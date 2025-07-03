@@ -1,6 +1,6 @@
 using System;
 
-namespace DiamondShopSystem.BLL.Handlers
+namespace DiamondShopSystem.BLL.Handlers.User
 {
     public class UserCreateDto
     {
