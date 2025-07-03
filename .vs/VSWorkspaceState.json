@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\BE",
+    "\\BE\\DiamondShopSystem",
+    "\\BE\\DiamondShopSystem\\DiamondShopSystem.API",
+    "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL",
+    "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL\\Repositories",
+    "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL\\Repositories\\Implementations",
+    "\\docs",
+    "\\FE"
+  ],
+  "SelectedNode": "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL\\Repositories\\Implementations\\GenericRepository.cs",
+  "PreviewInSolutionExplorer": false
+}

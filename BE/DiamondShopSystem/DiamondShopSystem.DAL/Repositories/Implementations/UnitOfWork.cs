@@ -1,44 +1,42 @@
-using DiamondShopSystem.BLL.Application.Interfaces;
 using DiamondShopSystem.BLL.Domain.Entities;
 using DiamondShopSystem.DAL.Data;
+using DiamondShopSystem.DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace DiamondShopSystem.DAL.Repositories.Implementations
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly DiamondShopDbContext _context;
-        private readonly ConcurrentDictionary<Type, object> _repositories;
-
-        public IRepository<Product> Products { get; private set; }
-        public IRepository<Category> Categories { get; private set; }
-        public IRepository<Order> Orders { get; private set; }
-        public IRepository<User> Users { get; private set; }
-        public IRepository<Role> Roles { get; private set; }
-        public IRepository<CustomerProfile> CustomerProfiles { get; private set; }
-        public IRepository<VipStatus> VipStatuses { get; private set; }
-        public IRepository<Promotion> Promotions { get; private set; }
-        public IRepository<Delivery> Deliveries { get; private set; }
-
+        private Hashtable? _repositories;
         public UnitOfWork(DiamondShopDbContext context)
         {
-            _context = context;
-            _repositories = new ConcurrentDictionary<Type, object>();
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            
+        }
+        public IGenericRepository<T> Repository<T>() where T : class
+        {
+            if (_repositories == null)
+                _repositories = new Hashtable();
 
-            Products = new ProductRepository(_context);
-            Categories = new GenericRepository<Category>(_context);
-            Orders = new GenericRepository<Order>(_context);
-            Users = new GenericRepository<User>(_context);
-            Roles = new GenericRepository<Role>(_context);
-            CustomerProfiles = new GenericRepository<CustomerProfile>(_context);
-            VipStatuses = new GenericRepository<VipStatus>(_context);
-            Promotions = new GenericRepository<Promotion>(_context);
-            Deliveries = new GenericRepository<Delivery>(_context);
+            var type = typeof(T).Name;
+
+            if (!_repositories.ContainsKey(type))
+            {
+                var repositoryType = typeof(GenericRepository<>);
+                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _context);
+                _repositories.Add(type, repositoryInstance);
+            }
+
+            return (IGenericRepository<T>)_repositories[type]!;
         }
 
-        public async Task<int> CommitAsync()
+        public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }
@@ -46,8 +44,6 @@ namespace DiamondShopSystem.DAL.Repositories.Implementations
         public void Dispose()
         {
             _context.Dispose();
-            _repositories.Clear();
-            GC.SuppressFinalize(this);
         }
     }
 }

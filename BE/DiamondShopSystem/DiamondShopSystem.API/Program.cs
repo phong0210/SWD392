@@ -1,17 +1,16 @@
-using DiamondShopSystem.API.DTOs;
+﻿using DiamondShopSystem.API.DTOs;
 using DiamondShopSystem.API.Extensions;
 using DiamondShopSystem.API.Middlewares;
-using DiamondShopSystem.BLL.Application.Services.Authentication;
 using DiamondShopSystem.BLL.Utils;
 using DiamondShopSystem.DAL.Data;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
+using DiamondShopSystem.DAL.Repositories.Implementations;
+using DiamondShopSystem.DAL.Repositories.Interfaces;
 
 DotNetEnv.Env.Load(Path.Combine("..", ".env")); // Load from parent of API folder
 
@@ -20,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Register services
 ConfigureServices();
 ConfigureDatabase();
-ConfigureAuthentication();
+ConfigureAuthentication(); // ✅ Uncomment this line
 ConfigureSwagger();
 
 var app = builder.Build();
@@ -40,7 +39,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure middleware
-ConfigureMiddleware();
+ConfigureMiddleware(); // ✅ Uncomment this line
 
 app.Run();
 
@@ -61,7 +60,7 @@ void ConfigureMiddleware()
     app.UseAuthentication();
     app.UseAuthorization();
 
-    app.MapControllers();
+    app.MapControllers(); // ✅ Điều này rất quan trọng - map các controllers
 }
 
 void ConfigureServices()
@@ -91,32 +90,21 @@ void ConfigureServices()
         };
     });
 
+    // Add Controllers - ✅ Thêm dòng này
+    builder.Services.AddControllers();
+
     // FluentValidation setup (Migrated to newer version)
-    builder.Services.AddFluentValidationAutoValidation();
-    builder.Services.AddFluentValidationClientsideAdapters();
-    builder.Services.AddValidatorsFromAssemblyContaining<DiamondShopSystem.API.Validators.RegisterUserRequestValidator>();
-
-
-    builder.Services.AddFluentValidationAutoValidation();
-    builder.Services.AddFluentValidationClientsideAdapters();
-
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DiamondShopSystem.BLL.Application.Interfaces.IUnitOfWork).Assembly));
 
-    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Interfaces.IUnitOfWork, DiamondShopSystem.DAL.Repositories.Implementations.UnitOfWork>();
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<IOTPUtil, OTPUtil>();
     builder.Services.AddScoped<IJWTUtil, JwtUtil>();
-    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Services.Authentication.IAuthenticationService, DiamondShopSystem.BLL.Application.Services.Authentication.AuthenticationService>();
-    builder.Services.AddScoped<DiamondShopSystem.BLL.Application.Services.VNPay.IVNPayService, DiamondShopSystem.BLL.Application.Services.VNPay.VNPayService>();
-    builder.Services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
-    builder.Services.AddScoped<IAuthenticationLogger, AuthenticationLogger>();
-    builder.Services.AddHttpClient<GoogleOAuthService>();
-    
+
     // Add security services
-    builder.Services.AddSecurityServices(builder.Configuration);
+    //builder.Services.AddSecurityServices(builder.Configuration);
 }
 
 void ConfigureAuthentication()
@@ -195,8 +183,7 @@ void ConfigureSwagger()
             Description = "A Diamond Shop System Project"
         });
 
-        // Temporarily commented out JWT security configuration
-        /*
+        // JWT security configuration - ✅ Uncomment if you want JWT in Swagger
         options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
         {
             Name = "Authorization",
@@ -223,7 +210,6 @@ void ConfigureSwagger()
                 new List<string>()
             }
         });
-        */
     });
 }
 
@@ -245,15 +231,15 @@ void ConfigureDatabase()
     }
     Console.WriteLine("=====================================");
 
-    var host = Environment.GetEnvironmentVariable("DB_LOCAL_HOST");
-    var port = Environment.GetEnvironmentVariable("DB_PORT_LOCAL");
+    var host = Environment.GetEnvironmentVariable("DB_HOST");
+    var port = Environment.GetEnvironmentVariable("DB_PORT");
     var database = Environment.GetEnvironmentVariable("DB_NAME");
     var username = Environment.GetEnvironmentVariable("DB_USER");
     var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
     // Add logging to see what values are being read
-    Console.WriteLine($"DB_LOCAL_HOST: {host}");
-    Console.WriteLine($"DB_PORT_LOCAL: {port}");
+    Console.WriteLine($"DB_HOST: {host}");
+    Console.WriteLine($"DB_PORT: {port}");
     Console.WriteLine($"DB_NAME: {database}");
     Console.WriteLine($"DB_USER: {username}");
     Console.WriteLine($"DB_PASSWORD: {password}");
@@ -264,12 +250,12 @@ void ConfigureDatabase()
         throw new InvalidOperationException("One or more required database environment variables are missing!");
     }
 
-        var connectionString = $"Host={host};" +
-                       $"Port={port};" +
-                       $"Database={database};" +
-                       $"Username={username};" +
-                       $"Password={password};" +
-                       "Client Encoding=UTF8;";
+    var connectionString = $"Host={host};" +
+                   $"Port={port};" +
+                   $"Database={database};" +
+                   $"Username={username};" +
+                   $"Password={password};" +
+                   "Client Encoding=UTF8;";
 
     Console.WriteLine($"Connection String: {connectionString}");
 
@@ -292,4 +278,3 @@ void ConfigureDatabase()
         }
     });
 }
-

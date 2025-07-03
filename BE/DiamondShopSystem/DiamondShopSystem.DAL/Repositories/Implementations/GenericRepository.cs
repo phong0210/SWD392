@@ -1,84 +1,67 @@
-using DiamondShopSystem.BLL.Application.Interfaces;
-using DiamondShopSystem.BLL.Domain.Entities;
 using DiamondShopSystem.DAL.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using DiamondShopSystem.DAL.Repositories.Interfaces;
 
 namespace DiamondShopSystem.DAL.Repositories.Implementations
 {
-    public class GenericRepository<T> : IRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         protected readonly DiamondShopDbContext _context;
+        private readonly DbSet<T> _dbSet;
 
         public GenericRepository(DiamondShopDbContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _dbSet = _context.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await _dbSet.FindAsync(id);
         }
 
-        public async Task<IReadOnlyList<T>> ListAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await _context.Set<T>().ToListAsync();
+            return await _dbSet.ToListAsync();
         }
 
-        public async Task<T> AddAsync(T entity)
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            _context.Set<T>().Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            return await _dbSet.Where(predicate).ToListAsync();
         }
 
-        public async Task UpdateAsync(T entity)
+        public async Task AddAsync(T entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            await _dbSet.AddAsync(entity);
         }
 
-        public async Task DeleteAsync(T entity)
+        public void Update(T entity)
         {
-            _context.Set<T>().Remove(entity);
-            await _context.SaveChangesAsync();
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            _dbSet.Update(entity);
         }
 
-        public async Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec)
+        public void Remove(T entity)
         {
-            return await ApplySpecification(spec).ToListAsync();
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            _dbSet.Remove(entity);
         }
 
-        private IQueryable<T> ApplySpecification(ISpecification<T> spec)
+        public async Task<int> SaveChangesAsync()
         {
-            var query = _context.Set<T>().AsQueryable();
-
-            if (spec.Criteria != null)
-            {
-                query = query.Where(spec.Criteria);
-            }
-
-            query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
-
-            query = spec.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
-
-            if (spec.OrderBy != null)
-            {
-                query = query.OrderBy(spec.OrderBy);
-            }
-            else if (spec.OrderByDescending != null)
-            {
-                query = query.OrderByDescending(spec.OrderByDescending);
-            }
-
-            if (spec.IsPagingEnabled)
-            {
-                query = query.Skip(spec.Skip).Take(spec.Take);
-            }
-
-            return query;
+            return await _context.SaveChangesAsync();
         }
     }
 }
