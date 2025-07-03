@@ -133,4 +133,116 @@ When implementing any new feature (such as login, registration, etc.), you **mus
 
 ---
 
+## Recommended Structure: Organize Handlers by Feature
+
+For easier maintenance and scalability, **separate your Handlers, DTOs, Validators, and Commands into subfolders by feature** (e.g., Auth, Product, Order) under the `Handlers/` directory.
+
+### Example: Updated File/Folder Map for Login Feature
+
+```
+BE/
+  DiamondShopSystem/
+    DiamondShopSystem.BLL/
+      Handlers/
+        Auth/
+          LoginRequestDto.cs
+          LoginResponseDto.cs
+          LoginRequestValidator.cs
+          LoginCommand.cs
+          LoginCommandHandler.cs
+      Mapping/
+        EntityToDtoProfile.cs (add mapping if needed)
+    DiamondShopSystem.API/
+      Controllers/
+        AuthController.cs
+    DiamondShopSystem.DAL/
+      Repositories/
+        (use IUnitOfWork, IGenericRepository for data access)
+      Entities/
+        User.cs
+```
+
+- **Each feature (e.g., Auth, Product, Order) gets its own subfolder in `Handlers/`.**
+- **Mapping Profiles:** Go in `DiamondShopSystem.BLL/Mapping/`
+- **Controllers:** Go in `DiamondShopSystem.API/Controllers/`
+- **Repositories/Entities:** Go in `DiamondShopSystem.DAL/`
+
+---
+
+## Step-by-Step Guide: Implementing a New Feature (e.g., Login)
+
+Follow these steps **exactly** for every new backend feature:
+
+### 1. **Define Request and Response DTOs**
+- **What:** Create classes for the request and response payloads (e.g., `LoginRequestDto`, `LoginResponseDto`).
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/<Feature>/`
+- **How:**
+  - Request DTO: Properties for all input fields.
+  - Response DTO: Properties for all output fields (e.g., token, user info).
+
+### 2. **Create a FluentValidation Validator**
+- **What:** Implement a validator for the request DTO (e.g., `LoginRequestValidator`).
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/<Feature>/` (or a `Validators/` subfolder within the feature)
+- **How:**
+  - Use FluentValidation rules for all required fields and formats.
+- **Avoid:** Do not put validation logic in the controller or handler.
+
+### 3. **Set Up MediatR Command and Handler**
+- **What:**
+  - Command (e.g., `LoginCommand`) encapsulates the request DTO.
+  - Handler (e.g., `LoginCommandHandler`) contains the business logic.
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Handlers/<Feature>/`
+- **How:**
+  - Handler should:
+    - Use `IUnitOfWork` and `IGenericRepository` for data access (never use DbContext directly).
+    - Validate credentials/business rules.
+    - Use AutoMapper to map entities to response DTOs.
+    - Generate tokens or perform other business logic.
+- **Avoid:** No direct database access or business logic in the controller.
+
+### 4. **Add/Update AutoMapper Profile**
+- **What:** Add mapping between entities and DTOs (e.g., `User` to `LoginResponseDto`).
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.BLL/Mapping/EntityToDtoProfile.cs`
+- **How:**
+  - Use `CreateMap<Source, Destination>()`.
+  - Ignore properties that are set manually (e.g., token).
+
+### 5. **Implement the API Controller**
+- **What:** Add a controller (e.g., `AuthController`) with endpoints for your feature.
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.API/Controllers/`
+- **How:**
+  - Accept only DTOs as input/output.
+  - Use MediatR to send commands/queries.
+  - Return results from handlers.
+- **Avoid:** No business logic, validation, or mapping in the controller.
+
+### 6. **Register Everything in Dependency Injection (DI)**
+- **What:** Ensure all handlers, validators, and mapping profiles are registered.
+- **Where:** `BE/DiamondShopSystem/DiamondShopSystem.API/Program.cs`
+- **How:**
+  - Use assembly scanning for MediatR and AutoMapper.
+  - Register validators in your custom registration method.
+
+### 7. **Test the Feature**
+- **What:** Test the endpoint using Swagger, Postman, or integration tests.
+- **How:**
+  - Validate that validation, business logic, and mapping all work as expected.
+
+### 8. **Follow Folder Structure Strictly**
+- **Always place files in the correct subfolders:**
+  - **BLL:** Handlers (by feature), DTOs, Validators, Mapping
+  - **API:** Controllers
+  - **DAL:** Repositories, Entities
+
+### 9. **General Rules**
+- **No business logic in controllers.**
+- **No direct DbContext access outside repositories.**
+- **All mapping must be done in handlers using AutoMapper.**
+- **All validation must use FluentValidation.**
+- **All business logic must be in MediatR handlers.**
+
+> **If in doubt, refer to the file/folder map and checklist above.**
+
+---
+
 For further questions, check the codebase, read the docs, or ask a team member. Happy coding! 
