@@ -185,8 +185,8 @@ void ConfigureSwagger()
 void ConfigureDatabase()
 {
     Console.WriteLine("======Configuring database======");
-    Console.WriteLine("DB_LOCAL_HOST: " + Environment.GetEnvironmentVariable("DB_LOCAL_HOST"));
-    Console.WriteLine("DB_PORT_LOCAL: " + Environment.GetEnvironmentVariable("DB_PORT_LOCAL"));
+    Console.WriteLine("DB_LOCAL_HOST: " + Environment.GetEnvironmentVariable("DB_HOST"));
+    Console.WriteLine("DB_PORT_LOCAL: " + Environment.GetEnvironmentVariable("DB_PORT"));
     Console.WriteLine("DB_NAME: " + Environment.GetEnvironmentVariable("DB_NAME"));
     Console.WriteLine("DB_USER: " + Environment.GetEnvironmentVariable("DB_USER"));
     Console.WriteLine("DB_PASSWORD: " + Environment.GetEnvironmentVariable("DB_PASSWORD"));
