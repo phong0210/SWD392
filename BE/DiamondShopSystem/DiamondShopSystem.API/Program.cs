@@ -14,6 +14,7 @@ using DiamondShopSystem.BLL.Handlers;
 using DiamondShopSystem.API.Policies;
 using DiamondShopSystem.BLL.Handlers.User;
 using DiamondShopSystem.BLL.Services;
+using DiamondShopSystem.API.Policies;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -78,12 +79,8 @@ void ConfigureServices()
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-    // CORS (allow all for development)
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowAll",
-            policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-    });
+    // CORS Policies
+    builder.Services.AddCorsPolicies();
 
     builder.Services.AddControllers();
 

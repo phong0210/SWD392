@@ -7,6 +7,7 @@ namespace DiamondShopSystem.API.Controllers
     public class TestController : ControllerBase
     {
         [HttpGet]
+
         public IActionResult Get() => Ok("API is working!");
     }
 } 
