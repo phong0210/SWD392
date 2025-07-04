@@ -89,6 +89,7 @@ void ConfigureServices()
 
     builder.Services.AddDiamondShopValidators();
     builder.Services.AddScoped<JwtUtil>();
+    builder.Services.AddScoped<AuthService>();
 }
 
 void ConfigureAuthentication()

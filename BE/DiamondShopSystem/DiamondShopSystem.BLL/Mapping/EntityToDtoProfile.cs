@@ -11,6 +11,7 @@ namespace DiamondShopSystem.BLL.Mapping
         {
             // Example mappings (add DTOs as you create them)
             CreateMap<User, LoginResponseDto>();
+            CreateMap<User, UserDto>();
             CreateMap<User, UserCreateDto>();
             CreateMap<User, UserCreateValidator>();
             CreateMap<UserCreateDto, User>();
