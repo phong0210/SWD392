@@ -1,7 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
-using DiamondShopSystem.BLL.Handlers.Auth;
-using DiamondShopSystem.BLL.Handlers.User;
+using DiamondShopSystem.BLL.Handlers.Auth.DTOs;
+using DiamondShopSystem.BLL.Handlers.Auth.Validators;
+using DiamondShopSystem.BLL.Handlers.User.DTOs;
+using DiamondShopSystem.BLL.Handlers.User.Commands.Get;
+using DiamondShopSystem.BLL.Handlers.User.Validators;
 
 namespace DiamondShopSystem.BLL.Handlers
 {
@@ -11,6 +14,8 @@ namespace DiamondShopSystem.BLL.Handlers
         {
             services.AddScoped<FluentValidation.IValidator<LoginRequestDto>, LoginRequestValidator>();
             services.AddScoped<FluentValidation.IValidator<UserCreateDto>, UserCreateValidator>();
+            services.AddScoped<FluentValidation.IValidator<UserGetCommand>, UserGetValidator>();
+            services.AddScoped<FluentValidation.IValidator<UserUpdateDto>, UserUpdateValidator>();
             // Add more validators here as needed
             return services;
         }

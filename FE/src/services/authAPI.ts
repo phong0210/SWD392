@@ -5,7 +5,7 @@ export const login = (account: object) => {
 }
 
 export const register = (account: object) => {
-    return post(`/api/users/register`, account);
+    return post(`/api/user/register`, account);
 }
 
 export const registerCustomer = (account: object) => {
@@ -14,6 +14,10 @@ export const registerCustomer = (account: object) => {
 
 export const showAllAccounts = () => {
     return get(`/api/users`);
+}
+
+export const getAccountDetail = (id: number) => {
+    return get(`/api/user/detail/${id}`);
 }
 
 export const updateAccount = (email: string, account: object) => {

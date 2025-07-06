@@ -14,6 +14,9 @@ using DiamondShopSystem.BLL.Handlers;
 using DiamondShopSystem.API.Policies;
 using DiamondShopSystem.BLL.Handlers.User;
 using DiamondShopSystem.BLL.Services;
+using DiamondShopSystem.BLL.Handlers.User.Validators;
+using DiamondShopSystem.BLL.Services.Auth;
+using DiamondShopSystem.BLL.Services.User;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -73,7 +76,7 @@ void ConfigureServices()
     builder.Services.AddSwaggerGen();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(typeof(EntityToDtoProfile).Assembly);
-    builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.User.UserCreateValidator).Assembly);
+    builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.User.Validators.UserCreateValidator).Assembly);
 
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -84,8 +87,13 @@ void ConfigureServices()
     builder.Services.AddControllers();
 
     builder.Services.AddDiamondShopValidators();
+    
+    // Auth Services
     builder.Services.AddScoped<JwtUtil>();
-    builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    
+    // User Services
+    builder.Services.AddScoped<IUserService, UserService>();
 }
 
 void ConfigureAuthentication()

@@ -1,15 +1,15 @@
 using System;
 
-namespace DiamondShopSystem.BLL.Handlers.User
+namespace DiamondShopSystem.BLL.Handlers.User.DTOs
 {
-    public class UserDto
+    public class UserCreateDto
     {
-        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public bool Status { get; set; }
+        public bool Status { get; set; } = true;
+        public Guid? GoogleId { get; set; }
     }
 } 

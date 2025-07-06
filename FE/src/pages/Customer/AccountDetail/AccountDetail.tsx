@@ -5,18 +5,10 @@ import { ChangeEvent, FormEvent, useState, useRef, useEffect } from "react";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { getCustomer } from "@/services/accountApi";
-
-interface Address {
-  street: string;
-  city: string;
-  ward: string;
-  district: string;
-}
+import { getAccountDetail } from "@/services/authAPI";
 
 interface Account {
-  firstName: string;
-  lastName: string;
+  name: string;
   phone: string;
   email: string;
   password: string;
@@ -24,8 +16,12 @@ interface Account {
 
 const fetchCustomerInfo = async (AccountID: number) => {
   try {
-    const { data } = await getCustomer(AccountID);
+    const { data } = await getAccountDetail(AccountID);
     console.log("data for getCustomer:", data);
+    // Handle the nested response structure
+    if (data && data.user) {
+      return data.user;
+    }
     return data;
   } catch (error) {
     console.log("Error fetching customer info:", error);
@@ -33,109 +29,117 @@ const fetchCustomerInfo = async (AccountID: number) => {
   }
 };
 
-const Account = () => {
-  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
-  const [isAccountModalOpen, setAccountModalOpen] = useState(false);
+const updateAccountDetails = async (userId: number, accountData: Account) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/${userId}/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        name: accountData.name,
+        email: accountData.email,
+        phone: accountData.phone
+      })
+    });
 
-  const [address, setAddress] = useState<Address>({
-    street: "191-103 Integer Rd.",
-    city: "Forrest Ray",
-    ward: "Tay Thanh",
-    district: "10",
-  });
+    if (!response.ok) {
+      throw new Error('Failed to update account details');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating account details:', error);
+    throw new Error('Failed to update account details');
+  }
+};
+
+const Account = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isPasswordEditing, setIsPasswordEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const [account, setAccount] = useState<Account>({
-    firstName: "Le Phuoc",
-    lastName: "Loc",
-    phone: "0123456789",
-    email: "loclpse171201@gmail.com",
-    password: "*************",
+    name: "",
+    phone: "",
+    email: "",
+    password: "",
   });
 
-  const [tempAddress, setTempAddress] = useState<Address>({ ...address });
   const [tempAccount, setTempAccount] = useState<Account>({ ...account });
+  const [tempPassword, setTempPassword] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
-  const [addressErrors, setAddressErrors] = useState<Partial<Address>>({});
   const [accountErrors, setAccountErrors] = useState<Partial<Account>>({});
-
-  const modalRef = useRef(null); // Tham chiếu đến phần tử modal
+  const [passwordErrors, setPasswordErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
 
   const { user } = useSelector((state: RootState) => state.auth);
 
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      // Kiểm tra nếu click ra ngoài phạm vi modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (
-        modalRef.current &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !(modalRef.current as any).contains(event.target)
-      ) {
-        closeModal();
-      }
-    };
-
-    // Thêm sự kiện mousedown khi component được mount
-    document.addEventListener("mousedown", handleOutsideClick);
-
-    // Xóa sự kiện khi component bị unmount
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }); // [] đảm bảo useEffect chỉ chạy một lần khi component mount
-
-  const validateAddress = (address: Address) => {
-    const errors: Partial<Address> = {};
-    if (!address.street) errors.street = "Street address is required";
-    if (!address.city) errors.city = "City is required";
-    if (!address.ward) errors.ward = "Ward is required";
-    if (!address.district) errors.district = "District is required";
+  const validateAccount = (account: Account) => {
+    const errors: Partial<Account> = {};
+    if (!account.name) errors.name = "Name is required";
+    if (!account.email) errors.email = "Email is required";
     return errors;
   };
 
-  const validateAccount = (account: Account) => {
-    const errors: Partial<Account> = {};
-    if (!account.firstName) errors.firstName = "First name is required";
-    if (!account.lastName) errors.lastName = "Last name is required";
-    // if (!account.phone) errors.phone = "Phone number is required";
-    if (!account.email) errors.email = "Email is required";
-    if (!account.password) errors.password = "Password is required";
+  const validatePassword = (passwordData: typeof tempPassword) => {
+    const errors: typeof passwordErrors = {};
+    if (!passwordData.currentPassword) errors.currentPassword = "Current password is required";
+    if (!passwordData.newPassword) errors.newPassword = "New password is required";
+    if (passwordData.newPassword.length < 6) errors.newPassword = "Password must be at least 6 characters";
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
     return errors;
   };
 
   const validateEmail = (email: string) => {
-    // Regex for email validation
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
 
-  // const handleAddressEdit = () => {
-  //   setTempAddress({ ...address });
-  //   setAddressModalOpen(true);
-  // };
+  const handleEditStart = () => {
+    if (customerInfo) {
+      setTempAccount({
+        name: customerInfo.fullName || "",
+        phone: customerInfo.phone || "",
+        email: customerInfo.email || "",
+        password: "",
+      });
+    }
+    setIsEditing(true);
+    setMessage(null);
+  };
 
-  // const handleAccountEdit = () => {
-  //   setTempAccount({ ...account });
-  //   setAccountModalOpen(true);
-  // };
+  const handlePasswordEditStart = () => {
+    setTempPassword({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsPasswordEditing(true);
+    setMessage(null);
+  };
 
-  const closeModal = () => {
+  const handleCancel = () => {
+    setIsEditing(false);
+    setIsPasswordEditing(false);
     resetFormValues();
-    setAddressModalOpen(false);
-    setAccountModalOpen(false);
+    setMessage(null);
   };
 
   const resetFormValues = () => {
-    setAddressErrors({});
     setAccountErrors({});
-  };
-
-  const handleAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTempAddress((prevAddress) => ({
-      ...prevAddress,
-      [name]: value,
-    }));
+    setPasswordErrors({});
   };
 
   const handleAccountChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -145,56 +149,84 @@ const Account = () => {
       [name]: value,
     }));
 
-    // Clear the error for the email field if it is valid
     if (name === "email" && validateEmail(value)) {
       setAccountErrors((prevErrors) => ({
         ...prevErrors,
         email: undefined,
       }));
-    } else if (name === "email") {
-      setAccountErrors((prevErrors) => ({
-        ...prevErrors,
-        // email: 'Invalid email format',
-      }));
     }
   };
 
-  const handleAddressSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const errors = validateAddress(tempAddress);
-    if (Object.keys(errors).length === 0) {
-      setAddress(tempAddress);
-      closeModal();
-    } else {
-      setAddressErrors(errors);
-    }
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTempPassword((prevPassword) => ({
+      ...prevPassword,
+      [name]: value,
+    }));
   };
 
-  const handleAccountSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleAccountSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+    setMessage(null);
+
     const errors = validateAccount(tempAccount);
     const emailIsValid = validateEmail(tempAccount.email);
 
     if (!emailIsValid) {
-      errors.email = "Email is required";
+      errors.email = "Invalid email format";
     }
-    // Check if phone number is exactly 10 digits and starts with 0
+
     if (tempAccount.phone.length !== 10 || !tempAccount.phone.startsWith("0")) {
       errors.phone = "Phone number must be exactly 10 digits and start with 0";
     }
 
     if (Object.keys(errors).length === 0) {
-      setAccount(tempAccount);
-      closeModal();
+      try {
+        const response = await updateAccountDetails(user.userId, tempAccount);
+        setMessage({ type: 'success', text: 'Account details updated successfully!' });
+        setTimeout(() => {
+          setIsEditing(false);
+          // Refresh customer info
+          if (user && user.userId) {
+            fetchCustomerInfo(user.userId).then(setCustomerInfo);
+          }
+        }, 2000);
+      } catch (error) {
+        setMessage({ type: 'error', text: 'Failed to update account details. Please try again.' });
+      }
     } else {
       setAccountErrors(errors);
     }
+    setIsLoading(false);
+  };
+
+  const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage(null);
+
+    const errors = validatePassword(tempPassword);
+
+    if (Object.keys(errors).length === 0) {
+      try {
+        // TODO: Implement API call to change password
+        // const response = await changePassword(tempPassword);
+        setMessage({ type: 'success', text: 'Password changed successfully!' });
+        setTimeout(() => {
+          setIsPasswordEditing(false);
+        }, 2000);
+      } catch (error) {
+        setMessage({ type: 'error', text: 'Failed to change password. Please check your current password.' });
+      }
+    } else {
+      setPasswordErrors(errors);
+    }
+    setIsLoading(false);
   };
 
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    // Allow only numeric input
     const numericValue = value.replace(/[^0-9]/g, "");
 
     setTempAccount((prevAccount) => ({
@@ -202,7 +234,6 @@ const Account = () => {
       [name]: numericValue,
     }));
 
-    // Validate phone number length and starting digit
     if (numericValue.length === 10 && numericValue.startsWith("0")) {
       setAccountErrors((prevErrors) => ({
         ...prevErrors,
@@ -237,6 +268,7 @@ const Account = () => {
       getCustomerInfo();
     }
   }, [user]);
+
   return (
     <div>
       <AccountCus />
@@ -248,30 +280,171 @@ const Account = () => {
               <Column>
                 <Row>
                   <InfoTitle>Account Details</InfoTitle>
+                  {!isEditing && !isPasswordEditing && (
+                    <ActionButtons>
+                      <EditButton onClick={handleEditStart}>
+                        Edit Details
+                      </EditButton>
+                      <EditButton onClick={handlePasswordEditStart}>
+                        Change Password
+                      </EditButton>
+                    </ActionButtons>
+                  )}
                 </Row>
                 {customerInfo && (
                   <Row>
                     <Column>
-                      <DetailGroup>
-                        <Label>FULL NAME</Label>
-                        <Detail>{customerInfo.fullName}</Detail>
-                      </DetailGroup>
-                      <DetailGroup>
-                        <Label>EMAIL</Label>
-                        <Detail>{customerInfo.email}</Detail>
-                      </DetailGroup>
-                      <DetailGroup>
-                        <Label>PHONE</Label>
-                        <Detail>{customerInfo.phone}</Detail>
-                      </DetailGroup>
-                      <DetailGroup>
-                        <Label>ROLE</Label>
-                        <Detail>{customerInfo.roleName}</Detail>
-                      </DetailGroup>
-                      <DetailGroup>
-                        <Label>ACTIVE</Label>
-                        <Detail>{customerInfo.isActive ? 'Yes' : 'No'}</Detail>
-                      </DetailGroup>
+                      {message && (
+                        <MessageBox type={message.type}>
+                          {message.text}
+                        </MessageBox>
+                      )}
+                      
+                      {isEditing ? (
+                        <form onSubmit={handleAccountSubmit}>
+                          <DetailGroup>
+                            <Label>NAME</Label>
+                            <InlineEditContainer>
+                              <InlineInput
+                                type="text"
+                                name="name"
+                                value={tempAccount.name}
+                                onChange={handleAccountChange}
+                                disabled={isLoading}
+                                placeholder="Name"
+                              />
+                            </InlineEditContainer>
+                                                         {(accountErrors.name) && (
+                               <ErrorText>{accountErrors.name}</ErrorText>
+                             )}
+                          </DetailGroup>
+
+                          <DetailGroup>
+                            <Label>EMAIL</Label>
+                            <InlineInput
+                              type="email"
+                              name="email"
+                              value={tempAccount.email}
+                              onChange={handleAccountChange}
+                              disabled={isLoading}
+                              placeholder="Email address"
+                            />
+                            {accountErrors.email && <ErrorText>{accountErrors.email}</ErrorText>}
+                            {!validateEmail(tempAccount.email) && (
+                              <ErrorText>Invalid email format</ErrorText>
+                            )}
+                          </DetailGroup>
+
+                          <DetailGroup>
+                            <Label>PHONE</Label>
+                            <InlineInput
+                              type="text"
+                              name="phone"
+                              value={tempAccount.phone}
+                              onChange={handlePhoneChange}
+                              disabled={isLoading}
+                              placeholder="Phone number"
+                            />
+                            {accountErrors.phone && <ErrorText>{accountErrors.phone}</ErrorText>}
+                          </DetailGroup>
+
+                          <InlineActions>
+                            <ActionButton type="submit" disabled={isLoading} className="save-button">
+                              {isLoading ? 'Saving...' : 'Save Changes'}
+                            </ActionButton>
+                            <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
+                              Cancel
+                            </ActionButton>
+                          </InlineActions>
+                        </form>
+                      ) : isPasswordEditing ? (
+                        <form onSubmit={handlePasswordSubmit}>
+                          <DetailGroup>
+                            <Label>CURRENT PASSWORD</Label>
+                            <InlineInput
+                              type="password"
+                              name="currentPassword"
+                              value={tempPassword.currentPassword}
+                              onChange={handlePasswordChange}
+                              disabled={isLoading}
+                              placeholder="Current password"
+                            />
+                            {passwordErrors.currentPassword && (
+                              <ErrorText>{passwordErrors.currentPassword}</ErrorText>
+                            )}
+                          </DetailGroup>
+
+                          <DetailGroup>
+                            <Label>NEW PASSWORD</Label>
+                            <InlineInput
+                              type="password"
+                              name="newPassword"
+                              value={tempPassword.newPassword}
+                              onChange={handlePasswordChange}
+                              disabled={isLoading}
+                              placeholder="New password"
+                            />
+                            {passwordErrors.newPassword && (
+                              <ErrorText>{passwordErrors.newPassword}</ErrorText>
+                            )}
+                          </DetailGroup>
+
+                          <DetailGroup>
+                            <Label>CONFIRM NEW PASSWORD</Label>
+                            <InlineInput
+                              type="password"
+                              name="confirmPassword"
+                              value={tempPassword.confirmPassword}
+                              onChange={handlePasswordChange}
+                              disabled={isLoading}
+                              placeholder="Confirm new password"
+                            />
+                            {passwordErrors.confirmPassword && (
+                              <ErrorText>{passwordErrors.confirmPassword}</ErrorText>
+                            )}
+                          </DetailGroup>
+
+                          <InlineActions>
+                            <ActionButton type="submit" disabled={isLoading} className="save-button">
+                              {isLoading ? 'Changing...' : 'Change Password'}
+                            </ActionButton>
+                            <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
+                              Cancel
+                            </ActionButton>
+                          </InlineActions>
+                        </form>
+                      ) : (
+                        <DataGrid>
+                          <DataColumn>
+                            <DetailGroup>
+                              <Label>NAME</Label>
+                              <Detail>{customerInfo.fullName}</Detail>
+                            </DetailGroup>
+                            <DetailGroup>
+                              <Label>EMAIL</Label>
+                              <Detail>{customerInfo.email}</Detail>
+                            </DetailGroup>
+                            <DetailGroup>
+                              <Label>PHONE</Label>
+                              <Detail>{customerInfo.phone}</Detail>
+                            </DetailGroup>
+                          </DataColumn>
+                          <DataColumn>
+                            <DetailGroup>
+                              <Label>ROLE</Label>
+                              <Detail>{customerInfo.roleName}</Detail>
+                            </DetailGroup>
+                            <DetailGroup>
+                              <Label>ACTIVE</Label>
+                              <Detail>{customerInfo.isActive ? 'Yes' : 'No'}</Detail>
+                            </DetailGroup>
+                            <DetailGroup>
+                              <Label>CREATED AT</Label>
+                              <Detail>{customerInfo.createdAt ? formatDate(customerInfo.createdAt) : 'N/A'}</Detail>
+                            </DetailGroup>
+                          </DataColumn>
+                        </DataGrid>
+                      )}
                     </Column>
                   </Row>
                 )}
@@ -280,153 +453,6 @@ const Account = () => {
           </InfoSection>
         </Section>
       </MainContainer>
-
-      {isAddressModalOpen && (
-        <Modal>
-          <ModalContent ref={modalRef}>
-            <h2>Edit Address Delivery</h2>
-            <form onSubmit={handleAddressSubmit}>
-              <label>
-                Street Address:
-                <input
-                  type="text"
-                  name="street"
-                  value={tempAddress.street}
-                  onChange={handleAddressChange}
-                />
-                {addressErrors.street && <Error>{addressErrors.street}</Error>}
-              </label>
-              <label>
-                City:
-                <input
-                  type="text"
-                  name="city"
-                  value={tempAddress.city}
-                  onChange={handleAddressChange}
-                />
-                {addressErrors.city && <Error>{addressErrors.city}</Error>}
-              </label>
-              <label>
-                District:
-                <input
-                  type="text"
-                  name="country"
-                  value={tempAddress.district}
-                  onChange={handleAddressChange}
-                />
-                {/* {tempAccount.country.length < 2 && <Error>Country must be at least 2 characters.</Error>} */}
-                {addressErrors.district && (
-                  <Error>{addressErrors.district}</Error>
-                )}
-              </label>
-              <label>
-                Ward:
-                <input
-                  type="text"
-                  name="ward"
-                  value={tempAddress.ward}
-                  onChange={handleAddressChange}
-                />
-                {addressErrors.ward && <Error>{addressErrors.ward}</Error>}
-              </label>
-              <ModalActions>
-                <button className="save-button" type="submit">
-                  Save
-                </button>
-                <button
-                  className="cancel-button"
-                  type="button"
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-              </ModalActions>
-            </form>
-          </ModalContent>
-        </Modal>
-      )}
-
-      {isAccountModalOpen && (
-        <Modal>
-          <ModalContent ref={modalRef}>
-            <h2>Edit Account Details</h2>
-            <form onSubmit={handleAccountSubmit}>
-              <label>
-                First Name:
-                <input
-                  type="text"
-                  name="firstName"
-                  value={tempAccount.firstName}
-                  onChange={handleAccountChange}
-                />
-                {accountErrors.firstName && (
-                  <Error>{accountErrors.firstName}</Error>
-                )}
-              </label>
-              <label>
-                Last Name:
-                <input
-                  type="text"
-                  name="lastName"
-                  value={tempAccount.lastName}
-                  onChange={handleAccountChange}
-                />
-                {accountErrors.lastName && (
-                  <Error>{accountErrors.lastName}</Error>
-                )}
-              </label>
-              <label>
-                Phone:
-                <input
-                  type="text"
-                  name="phone"
-                  value={tempAccount.phone}
-                  onChange={handlePhoneChange}
-                />
-                {accountErrors.phone && <Error>{accountErrors.phone}</Error>}
-                {/* {tempAccount.phone.length < 10 && <Error>Phone number must be at least 10 digits.</Error>} */}
-              </label>
-              <label>
-                Email:
-                <input
-                  type="text"
-                  name="email"
-                  value={tempAccount.email}
-                  onChange={handleAccountChange}
-                />
-                {accountErrors.email && <Error>{accountErrors.email}</Error>}
-                {!validateEmail(tempAccount.email) && (
-                  <Error>Invalid email format. Example: 0Hb7W@gmail.com</Error>
-                )}
-              </label>
-              <label>
-                Current Password:
-                <input
-                  type="password"
-                  name="password"
-                  value={tempAccount.password}
-                  onChange={handleAccountChange}
-                />
-                {accountErrors.password && (
-                  <Error>{accountErrors.password}</Error>
-                )}
-              </label>
-              <ModalActions>
-                <button className="save-button" type="submit">
-                  Save
-                </button>
-                <button
-                  className="cancel-button"
-                  type="button"
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-              </ModalActions>
-            </form>
-          </ModalContent>
-        </Modal>
-      )}
     </div>
   );
 };
@@ -434,8 +460,61 @@ const Account = () => {
 const Row = styled.div`
   display: flex;
   justify-content: space-between;
-  gap: 50px;
-  margin-bottom: 2rem;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+`;
+
+const EditButton = styled.button`
+  font-size: 14px;
+  padding: 12px 24px;
+  background-color: #fff9f7;
+  color: #151542;
+  border: 1px solid #151542;
+  cursor: pointer;
+  transition: all 0.45s ease;
+  font-family: "Gantari", sans-serif;
+  font-weight: 600;
+  border-radius: 2
+  px;
+
+  &:hover {
+    background-color: #102c57;
+    color: #fff;
+    transition: all 0.45s ease;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+`;
+
+const MessageBox = styled.div<{ type: 'success' | 'error' }>`
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: ${props => props.type === 'success' ? '#d4edda' : '#f8d7da'};
+  color: ${props => props.type === 'success' ? '#155724' : '#721c24'};
+  border: 1px solid ${props => props.type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: ${props => props.type === 'success' ? '"✓"' : '"✕"'};
+    font-weight: bold;
+  }
 `;
 
 const MainContainer = styled.div`
@@ -443,228 +522,209 @@ const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 100vh;
+  padding: 20px 0;
 `;
 
 const Section = styled.section`
-  border-color: rgba(0, 0, 0, 1);
   background-color: #fff;
   color: #000;
-  justify-content: center;
-  margin: 0 auto;
   font: 400 15px / 150% "Crimson Text", sans-serif;
-  margin-bottom: 150px;
-  width: 1400px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0 20px 0 30px;
-  }
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 `;
 
 const ProfileTitle = styled.div`
   position: relative;
-  margin: 15px 0 87px;
+  margin: 15px 0 50px;
   font: 600 32px "Crimson Text", sans-serif;
-  display: flex;
-  justify-content: space-around;
-  @media (max-width: 991px) {
-    margin-bottom: 40px;
-  }
+  text-align: center;
+  color: #151542;
 `;
 
 const InfoSection = styled.section`
   width: 100%;
-  max-width: 1400px;
+  max-width: 1000px;
   margin: 0 auto;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 40px;
-  }
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 50px;
 `;
 
 const InfoContainer = styled.div`
   display: flex;
-  gap: 215px;
-  @media (max-width: 991px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0px;
-  }
+  flex-direction: column;
+  width: 100%;
 `;
 
 const Column = styled.div`
   display: flex;
   flex-direction: column;
-  line-height: normal;
-  width: 50%;
-  @media (max-width: 991px) {
-    width: 100%;
-    &:not(:last-child) {
-      margin-bottom: 40px;
-    }
-  }
+  width: 100%;
 `;
 
 const InfoTitle = styled.div`
   font-family: "Crimson Text", sans-serif;
-  font-size: 25px;
+  font-size: 28px;
   font-weight: 600;
-
-  /* margin: 0 0 25px; */
+  color: #151542;
 `;
 
 const DetailGroup = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 35px;
+  margin-bottom: 30px;
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #151542;
 `;
 
 const Detail = styled.span`
   font-family: "Poppins", sans-serif;
-  font-weight: 400;
-  letter-spacing: 0.75px;
-  margin-top: 6px;
-  color: rgb(0 0 10 / 55%);
-  line-height: 30px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+  color: #151542;
+  line-height: 1.6;
+  font-size: 16px;
 `;
 
 const Label = styled.label`
   font-family: "Poppins", sans-serif;
-  padding-top: 22px;
-  font-size: 17px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 `;
 
-// const EditButton = styled.button`
-//   font-size: 12px;
-//   padding: 10px 20px;
-//   background-color: #fff9f7;
-//   color: #151542;
-//   border: none;
-//   border: 1px solid #151542;
-//   cursor: pointer;
-//   transition: background-color 0.3s ease;
-//   font-family: "Gantari", sans-serif;
-//   font-weight: 600;
-//   align-self: flex-end;
-//   transition: all 0.45s ease;
-//   cursor: pointer;
-//   transition: background-color 0.3s ease, color 0.3s ease;
+const InlineEditContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+  margin-top: 8px;
 
-//   &:hover {
-//     background-color: #102c57;
-//     color: #fff;
-//     transition: all 0.45s ease;
-//   }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
 
-//   @media (max-width: 991px) {
-//     padding: 6px 20px;
-//     width: auto;
-//   }
-// `;
-
-const Modal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
+const InlineInput = styled.input`
   width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-`;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #fff;
 
-const ModalContent = styled.div`
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
-  form {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    gap: 20px;
+  &:focus {
+    outline: none;
+    border-color: #151542;
+    box-shadow: 0 0 0 3px rgba(21, 21, 66, 0.1);
   }
 
-  label {
-    display: block;
-    font-family: "Poppins", sans-serif;
-    margin-bottom: 5px;
+  &:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
   }
 
-  input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-    margin-top: 5px;
-  }
-  h2 {
-    display: flex;
-    justify-content: space-around;
-    padding-bottom: 10px;
+  &::placeholder {
+    color: #adb5bd;
   }
 `;
 
-const ModalActions = styled.div`
+const InlineActions = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-  align-content: center;
-  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e5e9;
+  justify-content: flex-end;
 
-  .save-button {
-    font-size: 12px;
-    padding: 10px 20px;
-    background-color: #28a745;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const ActionButton = styled.button`
+  font-size: 14px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Gantari", sans-serif;
+  font-weight: 600;
+  min-width: 120px;
+
+  &.save-button {
+    background-color: #151542;
     color: #fff;
-    border: none;
-    border: 1px solid #151542;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-family: "Gantari", sans-serif;
-    font-weight: 600;
-    transition: all 0.45s ease;
-    width: 100%;
 
     &:hover {
-      background-color: #218838;
-      color: #fff;
-      transition: all 0.45s ease;
+      background-color: #0f0f2e;
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+      transform: none;
     }
   }
-  .cancel-button {
-    font-size: 12px;
-    padding: 10px 20px;
-    background-color: #ff4757;
-    color: #fff;
-    border: none;
-    border: 1px solid #151542;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-family: "Gantari", sans-serif;
-    font-weight: 600;
-    transition: all 0.45s ease;
-    width: 100%;
+
+  &.cancel-button {
+    background-color: #fff;
+    color: #151542;
+    border: 2px solid #151542;
 
     &:hover {
-      background-color: #c0392b;
+      background-color: #151542;
       color: #fff;
-      transition: all 0.45s ease;
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      background-color: #f8f9fa;
+      color: #6c757d;
+      border-color: #6c757d;
+      cursor: not-allowed;
+      transform: none;
     }
   }
 `;
 
-const Error = styled.span`
+const ErrorText = styled.span`
   color: red;
   font-size: 12px;
   margin-top: 5px;
   display: block;
+`;
+
+const DataGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+`;
+
+const DataColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 `;
 
 export default Account;

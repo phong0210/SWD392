@@ -1,4 +1,4 @@
-namespace DiamondShopSystem.BLL.Handlers.Auth
+namespace DiamondShopSystem.BLL.Handlers.Auth.DTOs
 {
     public class LoginRequestDto
     {

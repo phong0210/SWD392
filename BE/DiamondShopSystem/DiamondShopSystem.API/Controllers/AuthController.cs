@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
-using DiamondShopSystem.BLL.Handlers.Auth;
+using DiamondShopSystem.BLL.Handlers.Auth.DTOs;
+using DiamondShopSystem.BLL.Handlers.Auth.Commands.Login;
 using DiamondShopSystem.API.Policies;
 using System.Threading.Tasks;
 

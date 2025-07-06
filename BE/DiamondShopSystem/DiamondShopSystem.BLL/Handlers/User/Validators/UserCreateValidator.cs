@@ -1,6 +1,7 @@
 using FluentValidation;
+using DiamondShopSystem.BLL.Handlers.User.DTOs;
 
-namespace DiamondShopSystem.BLL.Handlers.User
+namespace DiamondShopSystem.BLL.Handlers.User.Validators
 {
     public class UserCreateValidator : AbstractValidator<UserCreateDto>
     {

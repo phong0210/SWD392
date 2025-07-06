@@ -5,10 +5,10 @@ using MediatR;
 using AutoMapper;
 using DiamondShopSystem.DAL.Repositories;
 using DiamondShopSystem.DAL.Entities;
-using System.Security.Cryptography;
-using System.Text;
+using DiamondShopSystem.BLL.Handlers.User.DTOs;
+using DiamondShopSystem.BLL.Services;
 
-namespace DiamondShopSystem.BLL.Handlers.User
+namespace DiamondShopSystem.BLL.Handlers.User.Commands.Create
 {
     public class UserCreateCommandHandler : IRequestHandler<UserCreateCommand, UserCreateResponseDto>
     {
@@ -44,15 +44,11 @@ namespace DiamondShopSystem.BLL.Handlers.User
             };
         }
 
-        // Simple SHA256 hash for demonstration (replace with BCrypt or similar in production)
         private string HashPassword(string password)
         {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(password);
-                var hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(hashedBytes);
         }
     }
 } 

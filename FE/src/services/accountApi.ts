@@ -9,7 +9,7 @@ import { get } from "./apiCaller";
 // }
 
 export const getCustomer = (id: number) => {
-    return get(`/api/users/${id}`);
+    return get(`/api/user/detail/${id}`);
 }
 
 export const getAccountDetail = (id: number) => {
