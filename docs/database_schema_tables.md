@@ -11,6 +11,7 @@
 
 **Relationships:**
 - Many-to-One with Products (via product_id)
+- One-to-Many with Products (via inverse relationship)
 
 ---
 
@@ -19,6 +20,7 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
+| category_id | guid | Foreign Key → Categories.id | Yes | No |
 | name | nvarchar | | Yes | No |
 | sku | nvarchar | | Yes | No |
 | description | nvarchar | | No | No |
@@ -32,7 +34,7 @@
 | is_hidden | bool | | Yes | No |
 
 **Relationships:**
-- One-to-Many with Categories
+- Many-to-One with Categories (via category_id)
 - One-to-Many with OrderDetail
 - One-to-Many with Warranties
 - One-to-Many with Promotions
@@ -81,7 +83,8 @@
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
 | order_id | guid | Foreign Key 1 → Order.id | Yes | No |
-| delivery_staff_id | guid | Foreign Key 2 → StaffProfiles.id | Yes | No |
+| user_id | guid | Foreign Key 2 → User.id | Yes | No |
+| delivery_staff_id | guid | Foreign Key 3 → StaffProfiles.id | Yes | No |
 | dispatch_time | DATE | | No | No |
 | delivery_time | DATE | | No | No |
 | shipping_address | nvarchar | | Yes | No |
@@ -89,6 +92,7 @@
 
 **Relationships:**
 - Many-to-One with Order (via order_id)
+- Many-to-One with User (via user_id)
 - Many-to-One with StaffProfiles (via delivery_staff_id)
 
 ---
@@ -127,6 +131,7 @@
 - One-to-Many with Order
 - One-to-Many with LoyaltyPoints
 - One-to-Many with Vip
+- One-to-Many with Deliveries
 
 ---
 

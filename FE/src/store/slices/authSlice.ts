@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { login as loginAPI } from '@/services/authAPI';
-import { Role } from '@/utils/enum';
+import cookieUtils from '@/services/cookieUtils';
 
 interface AuthState {
   user: any;
@@ -22,14 +22,21 @@ export const login = createAsyncThunk(
     try {
       const { data } = await loginAPI(credentials);
       if (!data || !data.token) throw new Error('Invalid response');
-      const mappedRole = Role[data.role] || data.role;
+      
+      // Store token in cookies
+      cookieUtils.setToken(data.token);
+      
+      // Decode token to get user info
+      const decoded = cookieUtils.decodeJwt() as any;
+      const role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Customer';
+      
       return {
         token: data.token,
         user: {
-          email: data.email,
-          fullName: data.fullName,
-          role: mappedRole,
-          userId: data.userId,
+          email: decoded.sub,
+          fullName: data.user?.name || decoded.sub,
+          role: role,
+          userId: decoded.AccountID,
         }
       };
     } catch (err: any) {
@@ -46,6 +53,28 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
+    },
+    initializeAuth(state) {
+      const token = cookieUtils.getToken();
+      if (token) {
+        try {
+          const decoded = cookieUtils.decodeJwt() as any;
+          if (decoded && decoded.exp > Date.now() / 1000) {
+            state.token = token;
+            state.user = {
+              email: decoded.sub,
+              fullName: decoded.sub, // You might want to get this from API
+              role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Customer',
+              userId: decoded.AccountID,
+            };
+          } else {
+            cookieUtils.clear();
+          }
+        } catch (error) {
+          // Token is invalid, clear it
+          cookieUtils.clear();
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -67,5 +96,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, initializeAuth } = authSlice.actions;
 export { authSlice }; 

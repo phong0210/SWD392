@@ -25,7 +25,7 @@ interface Account {
 const fetchCustomerInfo = async (AccountID: number) => {
   try {
     const { data } = await getCustomer(AccountID);
-    console.log(data);
+    console.log("data for getCustomer:", data);
     return data;
   } catch (error) {
     console.log("Error fetching customer info:", error);

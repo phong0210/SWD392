@@ -17,6 +17,9 @@ namespace DiamondShopSystem.DAL.Entities
         [StringLength(255)]
         public string Description { get; set; } = string.Empty;
 
+        public Guid ProductId { get; set; }
+        public Product Product { get; set; } = default!;
+
         [InverseProperty("Category")]
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }

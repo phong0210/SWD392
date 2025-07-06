@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
+
 namespace DiamondShopSystem.API.Policies
 {
     public static class AuthorizationPolicies
@@ -51,8 +52,8 @@ namespace DiamondShopSystem.API.Policies
                             "https://localhost:3000",
                             "https://localhost:5173"
                         )
-                        .AllowHeaders("Authorization", "Content-Type", "Accept")
-                        .AllowMethods("POST", "OPTIONS")
+                        .WithHeaders("Authorization", "Content-Type", "Accept")
+                        .WithMethods("POST", "OPTIONS")
                         .AllowCredentials());
 
                 // User endpoints policy - for user management
@@ -64,8 +65,8 @@ namespace DiamondShopSystem.API.Policies
                             "https://localhost:3000",
                             "https://localhost:5173"
                         )
-                        .AllowHeaders("Authorization", "Content-Type", "Accept")
-                        .AllowMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .WithHeaders("Authorization", "Content-Type", "Accept")
+                        .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .AllowCredentials());
 
                 // Admin endpoints policy - for admin operations
@@ -79,8 +80,8 @@ namespace DiamondShopSystem.API.Policies
                             "https://localhost:3001",
                             "https://localhost:5173"
                         )
-                        .AllowHeaders("Authorization", "Content-Type", "Accept")
-                        .AllowMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .WithHeaders("Authorization", "Content-Type", "Accept")
+                        .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .AllowCredentials());
 
                 // Production policy - specific origins only

@@ -14,7 +14,6 @@ using DiamondShopSystem.BLL.Handlers;
 using DiamondShopSystem.API.Policies;
 using DiamondShopSystem.BLL.Handlers.User;
 using DiamondShopSystem.BLL.Services;
-using DiamondShopSystem.API.Policies;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -116,7 +115,7 @@ void ConfigureAuthentication()
                 ValidateLifetime = true,
                 ValidIssuer = jwtIssuer,
                 ValidAudience = jwtAudience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret ?? throw new InvalidOperationException("JWT_KEY environment variable is not set"))),
             };
 
             options.Events = new JwtBearerEvents

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Cors;
 using MediatR;
 using DiamondShopSystem.BLL.Handlers.Auth;
 using DiamondShopSystem.API.Policies;
@@ -9,7 +8,6 @@ namespace DiamondShopSystem.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [EnableCors(AuthorizationPolicies.AuthEndpoints)]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -20,7 +18,6 @@ namespace DiamondShopSystem.API.Controllers
         }
 
         [HttpPost("login")]
-        [EnableCors(AuthorizationPolicies.AuthEndpoints)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var result = await _mediator.Send(new LoginCommand(request));
