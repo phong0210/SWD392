@@ -72,11 +72,11 @@ namespace DiamondShopSystem.DAL
                 .WithOne(p => p.Category)
                 .HasForeignKey(p => p.CategoryId);
 
-            // Product-OrderDetail (OrderDetail 1:N Products)
-            modelBuilder.Entity<OrderDetail>()
-                .HasMany(od => od.Products)
-                .WithOne(p => p.OrderDetail)
-                .HasForeignKey(p => p.OrderDetailId);
+            // Product-OrderDetail (N:1)
+            modelBuilder.Entity<Product>()
+                .HasMany(p => p.OrderDetails)
+                .WithOne(od => od.Product)
+                .HasForeignKey(od => od.ProductId);
 
             // Product-Warranty (1:1)
             modelBuilder.Entity<Product>()
@@ -125,12 +125,6 @@ namespace DiamondShopSystem.DAL
                 .HasOne(u => u.StaffProfile)
                 .WithOne(sp => sp.User)
                 .HasForeignKey<StaffProfile>(sp => sp.UserId);
-
-            // StaffProfile-Delivery
-            modelBuilder.Entity<StaffProfile>()
-                .HasMany(sp => sp.Deliveries)
-                .WithOne(d => d.DeliveryStaff)
-                .HasForeignKey(d => d.DeliveryStaffId);
 
             // Role-StaffProfile
             modelBuilder.Entity<Role>()

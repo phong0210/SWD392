@@ -13,6 +13,5 @@ namespace DiamondShopSystem.DAL.Entities
         public Role Role { get; set; } = default!;
         public double Salary { get; set; }
         public DateTime HireDate { get; set; }
-        public ICollection<Delivery> Deliveries { get; set; } = new List<Delivery>();
     }
 } 

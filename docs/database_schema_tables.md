@@ -19,7 +19,6 @@
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
 | category_id | guid | Foreign Key → Categories.id | Yes | No |
-| order_detail_id | guid | Foreign Key → OrderDetail.id | No | No |
 | name | nvarchar | | Yes | No |
 | sku | nvarchar | | Yes | No |
 | description | nvarchar | | No | No |
@@ -34,7 +33,7 @@
 
 **Relationships:**
 - Many-to-One with Categories (via category_id)
-- Many-to-One with OrderDetail (via order_detail_id)
+- One-to-Many with OrderDetail
 - One-to-One with Warranties
 - Many-to-One with Promotions
 
@@ -45,12 +44,13 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
-| order_id | guid | Foreign Key → Order.id | Yes | No |
+| product_id | guid | Foreign Key 1 → Products.id | Yes | No |
+| order_id | guid | Foreign Key 2 → Order.id | Yes | No |
 | unit_price | nvarchar | | Yes | No |
 | quantity | int | | Yes | No |
 
 **Relationships:**
-- One-to-Many with Products (via order_detail_id)
+- Many-to-One with Products (via product_id)
 - Many-to-One with Order (via order_id)
 
 ---
@@ -80,8 +80,7 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
-| order_id | guid | Foreign Key 1 → Order.id | Yes | No |
-| delivery_staff_id | guid | Foreign Key 2 → StaffProfiles.id | Yes | No |
+| order_id | guid | Foreign Key → Order.id | Yes | No |
 | dispatch_time | DATE | | No | No |
 | delivery_time | DATE | | No | No |
 | shipping_address | nvarchar | | Yes | No |
@@ -89,7 +88,6 @@
 
 **Relationships:**
 - Many-to-One with Order (via order_id)
-- Many-to-One with StaffProfiles (via delivery_staff_id)
 
 ---
 
@@ -174,7 +172,6 @@
 **Relationships:**
 - Many-to-One with User (via user_id)
 - Many-to-One with Role (via role_id)
-- One-to-Many with Deliveries
 
 ---
 
@@ -229,5 +226,5 @@
 - **Products** is central to the schema, connected to Categories, OrderDetail, Warranties, and Promotions
 - **Order** connects Users to Products through OrderDetail, and manages Deliveries and Payments
 - **User** has associated LoyaltyPoints and Vip status
-- **StaffProfiles** are linked to Roles and handle Deliveries
+- **StaffProfiles** are linked to Roles
 - The schema supports a jewelry e-commerce system with VIP programs, loyalty points, staff management, and comprehensive order tracking
