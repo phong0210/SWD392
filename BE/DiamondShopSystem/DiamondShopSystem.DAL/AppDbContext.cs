@@ -72,11 +72,11 @@ namespace DiamondShopSystem.DAL
                 .WithOne(p => p.Category)
                 .HasForeignKey(p => p.CategoryId);
 
-            // Product-OrderDetail (N:1)
-            modelBuilder.Entity<Product>()
-                .HasMany(p => p.OrderDetails)
-                .WithOne(od => od.Product)
-                .HasForeignKey(od => od.ProductId);
+            // Product-OrderDetail (1:N - OrderDetail has many Products)
+            modelBuilder.Entity<OrderDetail>()
+                .HasMany(od => od.Products)
+                .WithOne(p => p.OrderDetail)
+                .HasForeignKey(p => p.OrderDetailId);
 
             // Product-Warranty (1:1)
             modelBuilder.Entity<Product>()

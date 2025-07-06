@@ -44,8 +44,8 @@ namespace DiamondShopSystem.DAL.Entities
         public Guid CategoryId { get; set; }
         public Category Category { get; set; } = default!;
 
-        [InverseProperty("Product")]
-        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public Guid? OrderDetailId { get; set; }
+        public OrderDetail? OrderDetail { get; set; }
 
         public Warranty? Warranty { get; set; }
     }

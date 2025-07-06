@@ -19,6 +19,7 @@
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
 | category_id | guid | Foreign Key → Categories.id | Yes | No |
+| order_detail_id | guid | Foreign Key → OrderDetail.id | No | No |
 | name | nvarchar | | Yes | No |
 | sku | nvarchar | | Yes | No |
 | description | nvarchar | | No | No |
@@ -33,7 +34,7 @@
 
 **Relationships:**
 - Many-to-One with Categories (via category_id)
-- One-to-Many with OrderDetail
+- Many-to-One with OrderDetail (via order_detail_id)
 - One-to-One with Warranties
 - Many-to-One with Promotions
 
@@ -44,13 +45,12 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
-| product_id | guid | Foreign Key 1 → Products.id | Yes | No |
-| order_id | guid | Foreign Key 2 → Order.id | Yes | No |
+| order_id | guid | Foreign Key → Order.id | Yes | No |
 | unit_price | nvarchar | | Yes | No |
 | quantity | int | | Yes | No |
 
 **Relationships:**
-- Many-to-One with Products (via product_id)
+- One-to-Many with Products (via order_detail_id)
 - Many-to-One with Order (via order_id)
 
 ---
