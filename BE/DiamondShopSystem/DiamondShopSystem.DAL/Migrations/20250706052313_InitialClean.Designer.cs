@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DiamondShopSystem.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250703111206_AddGuidDefaultValues")]
-    partial class AddGuidDefaultValues
+    [Migration("20250706052313_InitialClean")]
+    partial class InitialClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,9 +55,6 @@ namespace DiamondShopSystem.DAL.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("DeliveryStaffId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("DeliveryTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -77,9 +74,8 @@ namespace DiamondShopSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeliveryStaffId");
-
-                    b.HasIndex("OrderId");
+                    b.HasIndex("OrderId")
+                        .IsUnique();
 
                     b.ToTable("Deliveries");
                 });
@@ -105,7 +101,8 @@ namespace DiamondShopSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("LoyaltyPoints");
                 });
@@ -154,9 +151,6 @@ namespace DiamondShopSystem.DAL.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -166,8 +160,6 @@ namespace DiamondShopSystem.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -249,6 +241,9 @@ namespace DiamondShopSystem.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("OrderDetailId")
+                        .HasColumnType("uuid");
+
                     b.Property<double>("Price")
                         .HasColumnType("double precision");
 
@@ -264,6 +259,8 @@ namespace DiamondShopSystem.DAL.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("OrderDetailId");
+
                     b.ToTable("Products");
                 });
 
@@ -274,7 +271,7 @@ namespace DiamondShopSystem.DAL.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("AppliesToProductId")
+                    b.Property<Guid?>("AppliesToProductId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Description")
@@ -343,9 +340,15 @@ namespace DiamondShopSystem.DAL.Migrations
                     b.Property<double>("Salary")
                         .HasColumnType("double precision");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("StaffProfiles");
                 });
@@ -414,12 +417,13 @@ namespace DiamondShopSystem.DAL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("VipId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Vips");
                 });
@@ -450,26 +454,19 @@ namespace DiamondShopSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductId")
+                        .IsUnique();
 
                     b.ToTable("Warranties");
                 });
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Delivery", b =>
                 {
-                    b.HasOne("DiamondShopSystem.DAL.Entities.StaffProfile", "DeliveryStaff")
-                        .WithMany("Deliveries")
-                        .HasForeignKey("DeliveryStaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DiamondShopSystem.DAL.Entities.Order", "Order")
-                        .WithMany("Deliveries")
-                        .HasForeignKey("OrderId")
+                        .WithOne("Delivery")
+                        .HasForeignKey("DiamondShopSystem.DAL.Entities.Delivery", "OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("DeliveryStaff");
 
                     b.Navigation("Order");
                 });
@@ -477,8 +474,8 @@ namespace DiamondShopSystem.DAL.Migrations
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.LoyaltyPoints", b =>
                 {
                     b.HasOne("DiamondShopSystem.DAL.Entities.User", "User")
-                        .WithMany("LoyaltyPoints")
-                        .HasForeignKey("UserId")
+                        .WithOne("LoyaltyPoints")
+                        .HasForeignKey("DiamondShopSystem.DAL.Entities.LoyaltyPoints", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -504,15 +501,7 @@ namespace DiamondShopSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DiamondShopSystem.DAL.Entities.Product", "Product")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Order");
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Payment", b =>
@@ -534,16 +523,20 @@ namespace DiamondShopSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DiamondShopSystem.DAL.Entities.OrderDetail", "OrderDetail")
+                        .WithMany("Products")
+                        .HasForeignKey("OrderDetailId");
+
                     b.Navigation("Category");
+
+                    b.Navigation("OrderDetail");
                 });
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Promotion", b =>
                 {
                     b.HasOne("DiamondShopSystem.DAL.Entities.Product", "Product")
-                        .WithMany("Promotions")
-                        .HasForeignKey("AppliesToProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("AppliesToProductId");
 
                     b.Navigation("Product");
                 });
@@ -556,16 +549,20 @@ namespace DiamondShopSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DiamondShopSystem.DAL.Entities.User", "User")
+                        .WithOne("StaffProfile")
+                        .HasForeignKey("DiamondShopSystem.DAL.Entities.StaffProfile", "UserId");
+
                     b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Vip", b =>
                 {
                     b.HasOne("DiamondShopSystem.DAL.Entities.User", "User")
-                        .WithMany("Vips")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithOne("Vip")
+                        .HasForeignKey("DiamondShopSystem.DAL.Entities.Vip", "UserId");
 
                     b.Navigation("User");
                 });
@@ -573,8 +570,8 @@ namespace DiamondShopSystem.DAL.Migrations
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Warranty", b =>
                 {
                     b.HasOne("DiamondShopSystem.DAL.Entities.Product", "Product")
-                        .WithMany("Warranties")
-                        .HasForeignKey("ProductId")
+                        .WithOne("Warranty")
+                        .HasForeignKey("DiamondShopSystem.DAL.Entities.Warranty", "ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -588,30 +585,26 @@ namespace DiamondShopSystem.DAL.Migrations
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Order", b =>
                 {
-                    b.Navigation("Deliveries");
+                    b.Navigation("Delivery");
 
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Payments");
                 });
 
+            modelBuilder.Entity("DiamondShopSystem.DAL.Entities.OrderDetail", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Product", b =>
                 {
-                    b.Navigation("OrderDetails");
-
-                    b.Navigation("Promotions");
-
-                    b.Navigation("Warranties");
+                    b.Navigation("Warranty");
                 });
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Role", b =>
                 {
                     b.Navigation("StaffProfiles");
-                });
-
-            modelBuilder.Entity("DiamondShopSystem.DAL.Entities.StaffProfile", b =>
-                {
-                    b.Navigation("Deliveries");
                 });
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.User", b =>
@@ -620,7 +613,9 @@ namespace DiamondShopSystem.DAL.Migrations
 
                     b.Navigation("Orders");
 
-                    b.Navigation("Vips");
+                    b.Navigation("StaffProfile");
+
+                    b.Navigation("Vip");
                 });
 #pragma warning restore 612, 618
         }
