@@ -137,6 +137,23 @@ namespace DiamondShopSystem.DAL
                 .HasMany(r => r.StaffProfiles)
                 .WithOne(sp => sp.Role)
                 .HasForeignKey(sp => sp.RoleId);
+
+            // Unique indexes for 1:1 relationships (ERD)
+            modelBuilder.Entity<Delivery>()
+                .HasIndex(d => d.OrderId)
+                .IsUnique();
+            modelBuilder.Entity<LoyaltyPoints>()
+                .HasIndex(lp => lp.UserId)
+                .IsUnique();
+            modelBuilder.Entity<StaffProfile>()
+                .HasIndex(sp => sp.UserId)
+                .IsUnique();
+            modelBuilder.Entity<Vip>()
+                .HasIndex(v => v.UserId)
+                .IsUnique();
+            modelBuilder.Entity<Warranty>()
+                .HasIndex(w => w.ProductId)
+                .IsUnique();
         }
     }
 } 

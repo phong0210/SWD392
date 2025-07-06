@@ -21,6 +21,7 @@ namespace DiamondShopSystem.DAL.Entities
         [StringLength(255)]
         public string Description { get; set; } = string.Empty;
 
+        [Required]
         public double Price { get; set; }
         public int? Carat { get; set; }
 
@@ -33,13 +34,16 @@ namespace DiamondShopSystem.DAL.Entities
         [StringLength(50)]
         public string Cut { get; set; } = string.Empty;
 
+        [Required]
         public int StockQuantity { get; set; }
 
         [StringLength(100)]
         public string GIACertNumber { get; set; } = string.Empty;
 
+        [Required]
         public bool IsHidden { get; set; }
 
+        [Required]
         [ForeignKey("Category")]
         public Guid CategoryId { get; set; }
         public Category Category { get; set; } = default!;

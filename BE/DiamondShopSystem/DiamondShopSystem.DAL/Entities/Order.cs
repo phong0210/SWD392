@@ -10,15 +10,21 @@ namespace DiamondShopSystem.DAL.Entities
         [Key]
         public Guid Id { get; set; }
 
+        [Required]
         [ForeignKey("User")]
         public Guid UserId { get; set; }
         public User User { get; set; } = default!;
 
+        [Required]
         public double TotalPrice { get; set; }
+        [Required]
         public DateTime OrderDate { get; set; }
+        [Required]
         public bool VipApplied { get; set; }
+        [Required]
         public int Status { get; set; }
 
+        [Required]
         [StringLength(100)]
         public string SaleStaff { get; set; } = string.Empty;
 

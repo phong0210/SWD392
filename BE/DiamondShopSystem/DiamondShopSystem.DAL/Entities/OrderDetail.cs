@@ -10,11 +10,14 @@ namespace DiamondShopSystem.DAL.Entities
         [Key]
         public Guid Id { get; set; }
 
+        [Required]
         [ForeignKey("Order")]
         public Guid OrderId { get; set; }
         public Order Order { get; set; } = default!;
 
+        [Required]
         public double UnitPrice { get; set; }
+        [Required]
         public int Quantity { get; set; }
 
         public ICollection<Product> Products { get; set; } = new List<Product>();

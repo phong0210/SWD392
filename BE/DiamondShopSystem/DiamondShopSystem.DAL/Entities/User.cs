@@ -6,6 +6,7 @@ namespace DiamondShopSystem.DAL.Entities
 {
     public class User
     {
+        [Key]
         public Guid Id { get; set; }
 
         [Required]
@@ -27,7 +28,9 @@ namespace DiamondShopSystem.DAL.Entities
         public string Address { get; set; } = string.Empty;
 
         public Guid? GoogleId { get; set; }
+        [Required]
         public DateTime CreatedAt { get; set; }
+        [Required]
         public bool Status { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public LoyaltyPoints? LoyaltyPoints { get; set; }

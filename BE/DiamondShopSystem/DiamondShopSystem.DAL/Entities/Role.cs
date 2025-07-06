@@ -6,6 +6,7 @@ namespace DiamondShopSystem.DAL.Entities
 {
     public class Role
     {
+        [Key]
         public Guid Id { get; set; }
 
         [Required]
