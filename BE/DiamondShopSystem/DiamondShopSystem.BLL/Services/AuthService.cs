@@ -22,7 +22,6 @@ namespace DiamondShopSystem.BLL.Services
         public async Task<AuthResult> AuthenticateUserAsync(string email, string password)
         {
             var user = await _dbContext.Users
-                .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Email == email);
                 
             if (user == null)
@@ -31,12 +30,8 @@ namespace DiamondShopSystem.BLL.Services
             if (!VerifyPassword(password, user.PasswordHash))
                 return AuthResult.Failure("Invalid credentials");
 
-            // Determine role: User role, then default to Customer
+            // Default role to Customer since User no longer has a direct Role relationship
             string role = "Customer";
-            if (user.Role != null)
-            {
-                role = user.Role.Name;
-            }
 
             var token = _jwtUtil.GenerateJwtToken(user, role);
             return AuthResult.Success(token, user);

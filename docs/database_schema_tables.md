@@ -5,12 +5,10 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
-| product_id | guid | Foreign Key → Products.id | Yes | No |
 | description | nvarchar | | No | No |
 | name | nvarchar | | Yes | No |
 
 **Relationships:**
-- Many-to-One with Products (via product_id)
 - One-to-Many with Products (via inverse relationship)
 
 ---
@@ -21,6 +19,7 @@
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
 | category_id | guid | Foreign Key → Categories.id | Yes | No |
+| order_detail_id | guid | Foreign Key → OrderDetail.id | No | No |
 | name | nvarchar | | Yes | No |
 | sku | nvarchar | | Yes | No |
 | description | nvarchar | | No | No |
@@ -35,9 +34,9 @@
 
 **Relationships:**
 - Many-to-One with Categories (via category_id)
-- One-to-Many with OrderDetail
-- One-to-Many with Warranties
-- One-to-Many with Promotions
+- Many-to-One with OrderDetail (via order_detail_id)
+- One-to-One with Warranties
+- Many-to-One with Promotions
 
 ---
 
@@ -46,13 +45,12 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
-| product_id | guid | Foreign Key 1 → Products.id | Yes | No |
-| order_id | guid | Foreign Key 2 → Order.id | Yes | No |
+| order_id | guid | Foreign Key → Order.id | Yes | No |
 | unit_price | nvarchar | | Yes | No |
 | quantity | int | | Yes | No |
 
 **Relationships:**
-- Many-to-One with Products (via product_id)
+- One-to-Many with Products (via order_detail_id)
 - Many-to-One with Order (via order_id)
 
 ---
@@ -72,7 +70,7 @@
 **Relationships:**
 - Many-to-One with User (via user_id)
 - One-to-Many with OrderDetail
-- One-to-Many with Deliveries
+- One-to-One with Deliveries
 - One-to-Many with Payment
 
 ---
@@ -83,8 +81,7 @@
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
 | order_id | guid | Foreign Key 1 → Order.id | Yes | No |
-| user_id | guid | Foreign Key 2 → User.id | Yes | No |
-| delivery_staff_id | guid | Foreign Key 3 → StaffProfiles.id | Yes | No |
+| delivery_staff_id | guid | Foreign Key 2 → StaffProfiles.id | Yes | No |
 | dispatch_time | DATE | | No | No |
 | delivery_time | DATE | | No | No |
 | shipping_address | nvarchar | | Yes | No |
@@ -92,7 +89,6 @@
 
 **Relationships:**
 - Many-to-One with Order (via order_id)
-- Many-to-One with User (via user_id)
 - Many-to-One with StaffProfiles (via delivery_staff_id)
 
 ---
@@ -129,9 +125,9 @@
 
 **Relationships:**
 - One-to-Many with Order
-- One-to-Many with LoyaltyPoints
-- One-to-Many with Vip
-- One-to-Many with Deliveries
+- One-to-One with LoyaltyPoints
+- One-to-One with Vip
+- One-to-One with StaffProfile
 
 ---
 
@@ -155,7 +151,7 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | vip_id | guid | Primary Key | Yes | Yes |
-| user_id | guid | Foreign Key → User.id | Yes | No |
+| user_id | guid | Foreign Key → User.id | No | No |
 | start_date | DATE | | Yes | No |
 | end_date | DATE | | No | No |
 | tier | nvarchar | | Yes | No |
@@ -170,11 +166,13 @@
 | Property | Data Type | Constraints | Required | Auto-Generated |
 |----------|-----------|-------------|----------|----------------|
 | id | guid | Primary Key | Yes | Yes |
+| user_id | guid | Foreign Key → User.id | No | No |
 | role_id | guid | Foreign Key → Role.id | Yes | No |
 | salary | float | | Yes | No |
 | hire_date | DATE | | Yes | No |
 
 **Relationships:**
+- Many-to-One with User (via user_id)
 - Many-to-One with Role (via role_id)
 - One-to-Many with Deliveries
 
@@ -219,7 +217,7 @@
 | end_date | DATE | | No | No |
 | discount_type | nvarchar | | Yes | No |
 | discount_value | nvarchar | | Yes | No |
-| applies_to_product_id | guid | Foreign Key → Products.id | Yes | No |
+| applies_to_product_id | guid | Foreign Key → Products.id | No | No |
 
 **Relationships:**
 - Many-to-One with Products (via applies_to_product_id)

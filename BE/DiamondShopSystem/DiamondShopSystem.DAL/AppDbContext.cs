@@ -72,23 +72,17 @@ namespace DiamondShopSystem.DAL
                 .WithOne(p => p.Category)
                 .HasForeignKey(p => p.CategoryId);
 
-            // Product-OrderDetail
-            modelBuilder.Entity<Product>()
-                .HasMany(p => p.OrderDetails)
-                .WithOne(od => od.Product)
-                .HasForeignKey(od => od.ProductId);
+            // Product-OrderDetail (OrderDetail 1:N Products)
+            modelBuilder.Entity<OrderDetail>()
+                .HasMany(od => od.Products)
+                .WithOne(p => p.OrderDetail)
+                .HasForeignKey(p => p.OrderDetailId);
 
-            // Product-Warranty
+            // Product-Warranty (1:1)
             modelBuilder.Entity<Product>()
-                .HasMany(p => p.Warranties)
+                .HasOne(p => p.Warranty)
                 .WithOne(w => w.Product)
-                .HasForeignKey(w => w.ProductId);
-
-            // Product-Promotion
-            modelBuilder.Entity<Product>()
-                .HasMany(p => p.Promotions)
-                .WithOne(pr => pr.Product)
-                .HasForeignKey(pr => pr.AppliesToProductId);
+                .HasForeignKey<Warranty>(w => w.ProductId);
 
             // Order-OrderDetail
             modelBuilder.Entity<Order>()
@@ -96,11 +90,11 @@ namespace DiamondShopSystem.DAL
                 .WithOne(od => od.Order)
                 .HasForeignKey(od => od.OrderId);
 
-            // Order-Delivery
+            // Order-Delivery (1:1)
             modelBuilder.Entity<Order>()
-                .HasMany(o => o.Deliveries)
+                .HasOne(o => o.Delivery)
                 .WithOne(d => d.Order)
-                .HasForeignKey(d => d.OrderId);
+                .HasForeignKey<Delivery>(d => d.OrderId);
 
             // Order-Payment
             modelBuilder.Entity<Order>()
@@ -114,17 +108,23 @@ namespace DiamondShopSystem.DAL
                 .WithOne(o => o.User)
                 .HasForeignKey(o => o.UserId);
 
-            // User-LoyaltyPoints
+            // User-LoyaltyPoints (1:1)
             modelBuilder.Entity<User>()
-                .HasMany(u => u.LoyaltyPoints)
+                .HasOne(u => u.LoyaltyPoints)
                 .WithOne(lp => lp.User)
-                .HasForeignKey(lp => lp.UserId);
+                .HasForeignKey<LoyaltyPoints>(lp => lp.UserId);
 
-            // User-Vip
+            // User-Vip (1:1)
             modelBuilder.Entity<User>()
-                .HasMany(u => u.Vips)
+                .HasOne(u => u.Vip)
                 .WithOne(v => v.User)
-                .HasForeignKey(v => v.UserId);
+                .HasForeignKey<Vip>(v => v.UserId);
+
+            // User-StaffProfile (1:1)
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.StaffProfile)
+                .WithOne(sp => sp.User)
+                .HasForeignKey<StaffProfile>(sp => sp.UserId);
 
             // StaffProfile-Delivery
             modelBuilder.Entity<StaffProfile>()

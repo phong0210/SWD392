@@ -29,11 +29,9 @@ namespace DiamondShopSystem.DAL.Entities
         public Guid? GoogleId { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool Status { get; set; }
-        public Guid? RoleId { get; set; }
-        public Role? Role { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public ICollection<LoyaltyPoints> LoyaltyPoints { get; set; } = new List<LoyaltyPoints>();
-        public ICollection<Vip> Vips { get; set; } = new List<Vip>();
-        public ICollection<Delivery> Deliveries { get; set; } = new List<Delivery>();
+        public LoyaltyPoints? LoyaltyPoints { get; set; }
+        public Vip? Vip { get; set; }
+        public StaffProfile? StaffProfile { get; set; }
     }
 } 

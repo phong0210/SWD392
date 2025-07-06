@@ -25,7 +25,7 @@ namespace DiamondShopSystem.DAL.Entities
         [StringLength(50)]
         public string DiscountValue { get; set; } = string.Empty;
 
-        public Guid AppliesToProductId { get; set; }
-        public Product Product { get; set; } = default!;
+        public Guid? AppliesToProductId { get; set; }
+        public Product? Product { get; set; }
     }
 } 

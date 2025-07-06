@@ -24,8 +24,7 @@ namespace DiamondShopSystem.DAL.Entities
 
         [InverseProperty("Order")]
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-        [InverseProperty("Order")]
-        public ICollection<Delivery> Deliveries { get; set; } = new List<Delivery>();
+        public Delivery? Delivery { get; set; }
         [InverseProperty("Order")]
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
