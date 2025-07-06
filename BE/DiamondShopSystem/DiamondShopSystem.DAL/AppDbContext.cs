@@ -84,6 +84,12 @@ namespace DiamondShopSystem.DAL
                 .WithOne(w => w.Product)
                 .HasForeignKey<Warranty>(w => w.ProductId);
 
+            // Product-Promotion (N:1 - Promotion has FK to Product)
+            modelBuilder.Entity<Promotion>()
+                .HasOne(p => p.Product)
+                .WithMany()
+                .HasForeignKey(p => p.AppliesToProductId);
+
             // Order-OrderDetail
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.OrderDetails)
