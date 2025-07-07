@@ -16,5 +16,8 @@ namespace DiamondShopSystem.BLL.Handlers.User.DTOs
         [Required]
         [StringLength(20)]
         public string Phone { get; set; } = string.Empty;
+
+        [StringLength(255)]
+        public string? Address { get; set; } = string.Empty;
     }
 } 

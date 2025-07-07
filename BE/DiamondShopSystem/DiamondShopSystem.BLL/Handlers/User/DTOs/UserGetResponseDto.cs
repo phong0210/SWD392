@@ -18,5 +18,6 @@ namespace DiamondShopSystem.BLL.Handlers.User.DTOs
         public string RoleName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Address { get; set; } = string.Empty;
     }
 } 

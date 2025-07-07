@@ -46,7 +46,8 @@ namespace DiamondShopSystem.BLL.Services.User
                     Phone = userEntity.Phone,
                     RoleName = roleName,
                     IsActive = userEntity.Status,
-                    CreatedAt = userEntity.CreatedAt
+                    CreatedAt = userEntity.CreatedAt,
+                    Address = userEntity.Address
                 };
 
                 return new UserGetResponseDto
@@ -98,6 +99,7 @@ namespace DiamondShopSystem.BLL.Services.User
                 userEntity.Name = updateDto.Name.Trim();
                 userEntity.Email = updateDto.Email;
                 userEntity.Phone = updateDto.Phone;
+                userEntity.Address = updateDto.Address ?? string.Empty;
 
                 userRepo.Update(userEntity);
                 await _unitOfWork.SaveChangesAsync();
@@ -114,7 +116,8 @@ namespace DiamondShopSystem.BLL.Services.User
                     Phone = updatedUser.Phone,
                     RoleName = roleName,
                     IsActive = updatedUser.Status,
-                    CreatedAt = updatedUser.CreatedAt
+                    CreatedAt = updatedUser.CreatedAt,
+                    Address = updatedUser.Address
                 };
 
                 return new UserUpdateResponseDto

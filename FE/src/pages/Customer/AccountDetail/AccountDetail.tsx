@@ -12,6 +12,7 @@ interface Account {
   phone: string;
   email: string;
   password: string;
+  address: string;
 }
 
 const fetchCustomerInfo = async (AccountID: number) => {
@@ -40,7 +41,8 @@ const updateAccountDetails = async (userId: number, accountData: Account) => {
       body: JSON.stringify({
         name: accountData.name,
         email: accountData.email,
-        phone: accountData.phone
+        phone: accountData.phone,
+        address: accountData.address
       })
     });
 
@@ -66,6 +68,7 @@ const Account = () => {
     phone: "",
     email: "",
     password: "",
+    address: "",
   });
 
   const [tempAccount, setTempAccount] = useState<Account>({ ...account });
@@ -114,6 +117,7 @@ const Account = () => {
         phone: customerInfo.phone || "",
         email: customerInfo.email || "",
         password: "",
+        address: customerInfo.address || "",
       });
     }
     setIsEditing(true);
@@ -348,6 +352,18 @@ const Account = () => {
                             {accountErrors.phone && <ErrorText>{accountErrors.phone}</ErrorText>}
                           </DetailGroup>
 
+                          <DetailGroup>
+                            <Label>ADDRESS</Label>
+                            <InlineInput
+                              type="text"
+                              name="address"
+                              value={tempAccount.address}
+                              onChange={handleAccountChange}
+                              disabled={isLoading}
+                              placeholder="Address"
+                            />
+                          </DetailGroup>
+
                           <InlineActions>
                             <ActionButton type="submit" disabled={isLoading} className="save-button">
                               {isLoading ? 'Saving...' : 'Save Changes'}
@@ -427,6 +443,10 @@ const Account = () => {
                             <DetailGroup>
                               <Label>PHONE</Label>
                               <Detail>{customerInfo.phone}</Detail>
+                            </DetailGroup>
+                            <DetailGroup>
+                              <Label>ADDRESS</Label>
+                              <Detail>{customerInfo.address}</Detail>
                             </DetailGroup>
                           </DataColumn>
                           <DataColumn>
