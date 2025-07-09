@@ -88,3 +88,34 @@ Thumbs.db
 tmp/
 
 .vite/
+
+# VS Code folders
+.vscode/
+.vs/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+*.dll
+*.exe
+*.bin
+
+# Visual Studio database and cache
+*.db
+*.sdf
+*.sqlite
+*.VC.db
+
+# Rider / VS settings
+.idea/
+
+# Backup files
+*.backup.json
+*.layout.json
+
+# Other temp files
+workspaceFileList.bin
