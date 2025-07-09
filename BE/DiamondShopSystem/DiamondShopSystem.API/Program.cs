@@ -1,22 +1,24 @@
-using System.Collections;
-using System.Text;
+using AutoMapper;
+using DiamondShopSystem.API.Policies;
+using DiamondShopSystem.BLL.Handlers;
+using DiamondShopSystem.BLL.Handlers.User;
+using DiamondShopSystem.BLL.Handlers.User.Validators;
+using DiamondShopSystem.BLL.Mapping;
+using DiamondShopSystem.BLL.Services;
+using DiamondShopSystem.BLL.Services.Auth;
+using DiamondShopSystem.BLL.Services.Product;
+using DiamondShopSystem.BLL.Services.User;
+using DiamondShopSystem.DAL;
+using DiamondShopSystem.DAL.Repositories;
 using DotNetEnv;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DiamondShopSystem.DAL;
-using DiamondShopSystem.DAL.Repositories;
-using DiamondShopSystem.BLL.Mapping;
-using MediatR;
-using AutoMapper;
-using DiamondShopSystem.BLL.Handlers;
-using DiamondShopSystem.API.Policies;
-using DiamondShopSystem.BLL.Handlers.User;
-using DiamondShopSystem.BLL.Services;
-using DiamondShopSystem.BLL.Handlers.User.Validators;
-using DiamondShopSystem.BLL.Services.Auth;
-using DiamondShopSystem.BLL.Services.User;
+using System.Collections;
+using System.Text;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -76,7 +78,10 @@ void ConfigureServices()
     builder.Services.AddSwaggerGen();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(typeof(EntityToDtoProfile).Assembly);
+    builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);
+
     builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.User.Validators.UserCreateValidator).Assembly);
+    builder.Services.AddValidatorsFromAssemblyContaining<ProductUpdateDtoValidator>();
 
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -94,6 +99,9 @@ void ConfigureServices()
     
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();
+
+    // Product Services
+    builder.Services.AddScoped<IProductService, ProductService>();
 }
 
 void ConfigureAuthentication()
