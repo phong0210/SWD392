@@ -38,7 +38,7 @@ export const orderDetail = (id: number) => {
 }
 
 export const orderRelation = (id: number) => {
-    return get(`/api/orders/${id}`);
+    return get(`/api/orders/${id}/user-info`);
 }
 
 export const createOrder = (order: object) => {

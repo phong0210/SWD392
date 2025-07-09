@@ -2,6 +2,7 @@ using AutoMapper;
 using DiamondShopSystem.DAL.Entities;
 using DiamondShopSystem.BLL.Handlers.User.DTOs;
 using DiamondShopSystem.BLL.Handlers.Auth.DTOs;
+using DiamondShopSystem.BLL.Handlers.Order.DTOs;
 
 namespace DiamondShopSystem.BLL.Mapping
 {
@@ -21,6 +22,12 @@ namespace DiamondShopSystem.BLL.Mapping
             CreateMap<User, UserAccountInfoDto>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Status));
+
+            // Order mappings
+            CreateMap<Order, OrderResponseDto>();
+            CreateMap<OrderDetail, OrderDetailResponseDto>();
+            CreateMap<Payment, PaymentResponseDto>();
+            CreateMap<Delivery, DeliveryResponseDto>();
         }
     }
 } 
