@@ -1,12 +1,7 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Admin\\Documents\\GitHub\\SWD392\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\SWD392\\BE\\DiamondShopSystem\\docker-compose.dcproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:BE\\DiamondShopSystem\\docker-compose.dcproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -14,7 +9,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -23,19 +18,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "docker-compose.dcproj",
-              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\SWD392\\BE\\DiamondShopSystem\\docker-compose.dcproj",
-              "RelativeDocumentMoniker": "BE\\DiamondShopSystem\\docker-compose.dcproj",
-              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\SWD392\\BE\\DiamondShopSystem\\docker-compose.dcproj",
-              "RelativeToolTip": "BE\\DiamondShopSystem\\docker-compose.dcproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-07-03T14:40:02.65Z",
-              "EditorCaption": ""
             }
           ]
         },
