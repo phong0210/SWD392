@@ -28,8 +28,8 @@ namespace DiamondShopSystem.BLL.Services.Auth
             var key = Encoding.ASCII.GetBytes(_jwtKey);
 
             // Determine role based on StaffProfile
-            string role = "Customer"; // Default role
-            if (user.StaffProfile != null && user.StaffProfile.Role != null)
+            string role = "HeadOfficeAdmin"; // Default role
+            if (user.StaffProfile != null )
             {
                 role = user.StaffProfile.Role.Name;
             }

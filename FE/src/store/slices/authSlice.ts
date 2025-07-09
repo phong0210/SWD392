@@ -28,6 +28,7 @@ export const login = createAsyncThunk(
       
       // Decode token to get user info
       const decoded = cookieUtils.decodeJwt() as any;
+      
       const role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Customer';
       
       return {
