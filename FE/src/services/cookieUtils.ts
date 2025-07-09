@@ -28,6 +28,7 @@ class CookieUtils {
     if (token) {
       try {
         const jwtUser = jwtDecode(token);
+        console.log("Decoded JWT User:", jwtUser);
         return jwtUser;
       } catch (err) {
         this.deleteUser();

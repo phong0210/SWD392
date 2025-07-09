@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { login as loginAPI } from '@/services/authAPI';
-import cookieUtils from '@/services/cookieUtils';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { login as loginAPI } from "@/services/authAPI";
+import cookieUtils from "@/services/cookieUtils";
 
 interface AuthState {
   user: any;
@@ -17,20 +17,20 @@ const initialState: AuthState = {
 };
 
 export const login = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (credentials: any, { rejectWithValue }) => {
     try {
       const { data } = await loginAPI(credentials);
-      if (!data || !data.token) throw new Error('Invalid response');
-      
+      if (!data || !data.token) throw new Error("Invalid response");
+
       // Store token in cookies
       cookieUtils.setToken(data.token);
-      
+
       // Decode token to get user info
       const decoded = cookieUtils.decodeJwt() as any;
-      
-      const role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Customer';
-      
+
+      const role = decoded["Role"] || "Customer";
+
       return {
         token: data.token,
         user: {
@@ -38,7 +38,7 @@ export const login = createAsyncThunk(
           fullName: data.user?.name || decoded.sub,
           role: role,
           userId: decoded.AccountID,
-        }
+        },
       };
     } catch (err: any) {
       return rejectWithValue(err.response?.data || err.message);
@@ -47,7 +47,7 @@ export const login = createAsyncThunk(
 );
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     logout(state) {
@@ -65,7 +65,10 @@ const authSlice = createSlice({
             state.user = {
               email: decoded.sub,
               fullName: decoded.sub, // You might want to get this from API
-              role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Customer',
+              role:
+                decoded[
+                  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                ] || "Customer",
               userId: decoded.AccountID,
             };
           } else {
@@ -98,4 +101,4 @@ const authSlice = createSlice({
 });
 
 export const { logout, initializeAuth } = authSlice.actions;
-export { authSlice }; 
+export { authSlice };
