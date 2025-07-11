@@ -17,6 +17,7 @@ using DiamondShopSystem.BLL.Services;
 using DiamondShopSystem.BLL.Handlers.User.Validators;
 using DiamondShopSystem.BLL.Services.Auth;
 using DiamondShopSystem.BLL.Services.User;
+using DiamondShopSystem.BLL.Services.Order;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -94,6 +95,9 @@ void ConfigureServices()
     
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();
+    
+    // Order Services
+    builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 }
 
 void ConfigureAuthentication()

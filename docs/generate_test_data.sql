@@ -219,11 +219,12 @@ BEGIN
     SELECT "Id" INTO product3_id FROM public."Products" WHERE "SKU" = 'DE002';
     SELECT "Id" INTO product4_id FROM public."Products" WHERE "SKU" = 'DN001';
     
-    INSERT INTO public."OrderDetails" ("Id", "OrderId", "UnitPrice", "Quantity") VALUES
-        (uuid_generate_v4(), order1_id, 8500.00, 1),
-        (uuid_generate_v4(), order2_id, 15000.00, 1),
-        (uuid_generate_v4(), order3_id, 4200.00, 1),
-        (uuid_generate_v4(), order4_id, 2800.00, 1);
+    INSERT INTO public."OrderDetails" ("Id", "OrderId", "ProductId", "UnitPrice", "Quantity") VALUES
+    (uuid_generate_v4(), order1_id, product1_id, 8500.00, 1),
+    (uuid_generate_v4(), order2_id, product2_id, 15000.00, 1),
+    (uuid_generate_v4(), order3_id, product3_id, 4200.00, 1),
+    (uuid_generate_v4(), order4_id, product4_id, 2800.00, 1);
+
 END $$;
 
 -- Insert Payments
