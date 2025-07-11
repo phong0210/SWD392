@@ -25,7 +25,7 @@ namespace DiamondShopSystem.BLL.Services.User
             {
                 var userRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.User>();
                 var userEntity = await userRepo.GetByIdAsync(userId);
-                
+
                 if (userEntity == null)
                 {
                     return new UserGetResponseDto
@@ -74,7 +74,7 @@ namespace DiamondShopSystem.BLL.Services.User
             {
                 var userRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.User>();
                 var userEntity = await userRepo.GetByIdAsync(userId);
-                
+
                 if (userEntity == null)
                 {
                     return new UserUpdateResponseDto
@@ -166,4 +166,4 @@ namespace DiamondShopSystem.BLL.Services.User
             }
         }
     }
-} 
+}
