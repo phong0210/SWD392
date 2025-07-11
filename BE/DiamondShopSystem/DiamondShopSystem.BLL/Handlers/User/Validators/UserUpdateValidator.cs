@@ -20,6 +20,9 @@ namespace DiamondShopSystem.BLL.Handlers.User.Validators
                 .NotEmpty().WithMessage("Phone number is required")
                 .Matches(@"^0\d{9}$").WithMessage("Phone number must be exactly 10 digits and start with 0")
                 .MaximumLength(20).WithMessage("Phone number cannot exceed 20 characters");
+
+            RuleFor(x => x.Address)
+                .MaximumLength(255).WithMessage("Address cannot exceed 255 characters");
         }
     }
 } 
