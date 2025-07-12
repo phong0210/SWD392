@@ -64,7 +64,7 @@ const authSlice = createSlice({
             state.user = {
               email: decoded.sub,
               fullName: decoded.sub, // You might want to get this from API
-              role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'Customer',
+              role: decoded['Role'] || 'Customer',
               userId: decoded.AccountID,
             };
           } else {
