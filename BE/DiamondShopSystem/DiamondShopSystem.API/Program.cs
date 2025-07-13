@@ -98,6 +98,9 @@ void ConfigureServices()
     
     // Order Services
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+
+    // Product Services
+    builder.Services.AddScoped<DiamondShopSystem.BLL.Services.Product.IProductService, DiamondShopSystem.BLL.Services.Product.ProductService>();
 }
 
 void ConfigureAuthentication()

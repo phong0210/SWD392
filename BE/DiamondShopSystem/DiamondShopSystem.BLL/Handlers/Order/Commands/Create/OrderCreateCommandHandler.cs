@@ -59,7 +59,7 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Create
                     OrderId = order.Id,
                     Quantity = itemDto.Quantity,
                     UnitPrice = itemDto.UnitPrice,
-                    Products = new List<DiamondShopSystem.DAL.Entities.Product> { product }
+                    ProductId = itemDto.ProductId,
                 };
                 order.OrderDetails.Add(orderDetail);
             }

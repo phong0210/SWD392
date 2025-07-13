@@ -16,6 +16,7 @@ namespace DiamondShopSystem.BLL.Handlers
             services.AddScoped<FluentValidation.IValidator<UserCreateDto>, UserCreateValidator>();
             services.AddScoped<FluentValidation.IValidator<UserGetCommand>, UserGetValidator>();
             services.AddScoped<FluentValidation.IValidator<UserUpdateDto>, UserUpdateValidator>();
+            services.AddScoped<FluentValidation.IValidator<DiamondShopSystem.BLL.Handlers.Product.DTOs.ProductUpdateDto>, DiamondShopSystem.BLL.Handlers.Product.Validators.ProductUpdateValidator>();
             // Add more validators here as needed
             return services;
         }
