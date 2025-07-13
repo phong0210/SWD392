@@ -5,10 +5,10 @@
 -- Clear existing test data (optional - comment out if you want to keep existing data)
 -- DELETE FROM public."Warranties";
 -- DELETE FROM public."Promotions";
--- DELETE FROM public."Products";
 -- DELETE FROM public."Deliveries";
 -- DELETE FROM public."Payments";
 -- DELETE FROM public."OrderDetails";
+-- DELETE FROM public."Products";
 -- DELETE FROM public."Orders";
 -- DELETE FROM public."Vips";
 -- DELETE FROM public."StaffProfiles";
@@ -123,7 +123,29 @@ BEGIN
         (uuid_generate_v4(), user5_id, 1200, 300, NOW());
 END $$;
 
--- Insert Products
+-- Insert Orders first (before products to get OrderDetail references)
+DO $$
+DECLARE
+    user1_id uuid;
+    user2_id uuid;
+    user3_id uuid;
+    sales1_user_id uuid;
+    sales2_user_id uuid;
+BEGIN
+    SELECT "Id" INTO user1_id FROM public."Users" WHERE "Email" = 'john.smith@email.com';
+    SELECT "Id" INTO user2_id FROM public."Users" WHERE "Email" = 'sarah.j@email.com';
+    SELECT "Id" INTO user3_id FROM public."Users" WHERE "Email" = 'michael.b@email.com';
+    SELECT "Id" INTO sales1_user_id FROM public."Users" WHERE "Email" = 'sales1@diamondshop.com';
+    SELECT "Id" INTO sales2_user_id FROM public."Users" WHERE "Email" = 'sales2@diamondshop.com';
+    
+    INSERT INTO public."Orders" ("Id", "UserId", "TotalPrice", "OrderDate", "VipApplied", "Status", "SaleStaff") VALUES
+        (uuid_generate_v4(), user1_id, 8500.00, NOW() - INTERVAL '2 weeks', true, 1, 'Sales Staff 1'),
+        (uuid_generate_v4(), user2_id, 15000.00, NOW() - INTERVAL '1 week', true, 2, 'Sales Staff 2'),
+        (uuid_generate_v4(), user3_id, 4200.00, NOW() - INTERVAL '3 days', false, 1, 'Sales Staff 1'),
+        (uuid_generate_v4(), user1_id, 2800.00, NOW() - INTERVAL '1 day', true, 3, 'Sales Staff 2');
+END $$;
+
+-- Insert Products first (without OrderDetailId references)
 DO $$
 DECLARE
     diamond_rings_id uuid;
@@ -160,43 +182,6 @@ BEGIN
         (uuid_generate_v4(), 'Loose Diamond 1.5 Carat', 'LD002', 'High-quality loose diamond', 12000.00, 15, 'E', 'VS1', 'Very Good', 3, 'GIA123465', false, loose_diamonds_id, NULL);
 END $$;
 
--- Insert Promotions
-DO $$
-DECLARE
-    product1_id uuid;
-    product2_id uuid;
-BEGIN
-    SELECT "Id" INTO product1_id FROM public."Products" WHERE "SKU" = 'DR001';
-    SELECT "Id" INTO product2_id FROM public."Products" WHERE "SKU" = 'DE001';
-    
-    INSERT INTO public."Promotions" ("Id", "Name", "Description", "StartDate", "EndDate", "DiscountType", "DiscountValue", "AppliesToProductId") VALUES
-        (uuid_generate_v4(), 'Summer Sale', '20% off all engagement rings', NOW() - INTERVAL '1 month', NOW() + INTERVAL '2 months', 'Percentage', '20', product1_id),
-        (uuid_generate_v4(), 'Holiday Special', '15% off diamond earrings', NOW() - INTERVAL '2 weeks', NOW() + INTERVAL '1 month', 'Percentage', '15', product2_id),
-        (uuid_generate_v4(), 'VIP Discount', '10% off for VIP members', NOW() - INTERVAL '1 week', NOW() + INTERVAL '3 months', 'Percentage', '10', NULL);
-END $$;
-
--- Insert Orders
-DO $$
-DECLARE
-    user1_id uuid;
-    user2_id uuid;
-    user3_id uuid;
-    sales1_user_id uuid;
-    sales2_user_id uuid;
-BEGIN
-    SELECT "Id" INTO user1_id FROM public."Users" WHERE "Email" = 'john.smith@email.com';
-    SELECT "Id" INTO user2_id FROM public."Users" WHERE "Email" = 'sarah.j@email.com';
-    SELECT "Id" INTO user3_id FROM public."Users" WHERE "Email" = 'michael.b@email.com';
-    SELECT "Id" INTO sales1_user_id FROM public."Users" WHERE "Email" = 'sales1@diamondshop.com';
-    SELECT "Id" INTO sales2_user_id FROM public."Users" WHERE "Email" = 'sales2@diamondshop.com';
-    
-    INSERT INTO public."Orders" ("Id", "UserId", "TotalPrice", "OrderDate", "VipApplied", "Status", "SaleStaff") VALUES
-        (uuid_generate_v4(), user1_id, 8500.00, NOW() - INTERVAL '2 weeks', true, 1, 'Sales Staff 1'),
-        (uuid_generate_v4(), user2_id, 15000.00, NOW() - INTERVAL '1 week', true, 2, 'Sales Staff 2'),
-        (uuid_generate_v4(), user3_id, 4200.00, NOW() - INTERVAL '3 days', false, 1, 'Sales Staff 1'),
-        (uuid_generate_v4(), user1_id, 2800.00, NOW() - INTERVAL '1 day', true, 3, 'Sales Staff 2');
-END $$;
-
 -- Insert Order Details
 DO $$
 DECLARE
@@ -220,11 +205,67 @@ BEGIN
     SELECT "Id" INTO product4_id FROM public."Products" WHERE "SKU" = 'DN001';
     
     INSERT INTO public."OrderDetails" ("Id", "OrderId", "ProductId", "UnitPrice", "Quantity") VALUES
-    (uuid_generate_v4(), order1_id, product1_id, 8500.00, 1),
-    (uuid_generate_v4(), order2_id, product2_id, 15000.00, 1),
-    (uuid_generate_v4(), order3_id, product3_id, 4200.00, 1),
-    (uuid_generate_v4(), order4_id, product4_id, 2800.00, 1);
+        (uuid_generate_v4(), order1_id, product1_id, 8500.00, 1),
+        (uuid_generate_v4(), order2_id, product2_id, 15000.00, 1),
+        (uuid_generate_v4(), order3_id, product3_id, 4200.00, 1),
+        (uuid_generate_v4(), order4_id, product4_id, 2800.00, 1);
+END $$;
 
+-- Update Products with OrderDetailId references (if needed based on your schema)
+DO $$
+DECLARE
+    product1_id uuid;
+    product2_id uuid;
+    product3_id uuid;
+    product4_id uuid;
+    order_detail1_id uuid;
+    order_detail2_id uuid;
+    order_detail3_id uuid;
+    order_detail4_id uuid;
+BEGIN
+    -- Get product IDs
+    SELECT "Id" INTO product1_id FROM public."Products" WHERE "SKU" = 'DR001';
+    SELECT "Id" INTO product2_id FROM public."Products" WHERE "SKU" = 'DN002';
+    SELECT "Id" INTO product3_id FROM public."Products" WHERE "SKU" = 'DE002';
+    SELECT "Id" INTO product4_id FROM public."Products" WHERE "SKU" = 'DN001';
+    
+    -- Get order detail IDs
+    SELECT od."Id" INTO order_detail1_id FROM public."OrderDetails" od 
+    JOIN public."Orders" o ON od."OrderId" = o."Id" 
+    WHERE od."ProductId" = product1_id AND o."TotalPrice" = 8500.00;
+    
+    SELECT od."Id" INTO order_detail2_id FROM public."OrderDetails" od 
+    JOIN public."Orders" o ON od."OrderId" = o."Id" 
+    WHERE od."ProductId" = product2_id AND o."TotalPrice" = 15000.00;
+    
+    SELECT od."Id" INTO order_detail3_id FROM public."OrderDetails" od 
+    JOIN public."Orders" o ON od."OrderId" = o."Id" 
+    WHERE od."ProductId" = product3_id AND o."TotalPrice" = 4200.00;
+    
+    SELECT od."Id" INTO order_detail4_id FROM public."OrderDetails" od 
+    JOIN public."Orders" o ON od."OrderId" = o."Id" 
+    WHERE od."ProductId" = product4_id AND o."TotalPrice" = 2800.00;
+    
+    -- Update products with OrderDetailId (only if this relationship exists in your schema)
+    UPDATE public."Products" SET "OrderDetailId" = order_detail1_id WHERE "Id" = product1_id;
+    UPDATE public."Products" SET "OrderDetailId" = order_detail2_id WHERE "Id" = product2_id;
+    UPDATE public."Products" SET "OrderDetailId" = order_detail3_id WHERE "Id" = product3_id;
+    UPDATE public."Products" SET "OrderDetailId" = order_detail4_id WHERE "Id" = product4_id;
+END $$;
+
+-- Insert Promotions
+DO $$
+DECLARE
+    product1_id uuid;
+    product2_id uuid;
+BEGIN
+    SELECT "Id" INTO product1_id FROM public."Products" WHERE "SKU" = 'DR001';
+    SELECT "Id" INTO product2_id FROM public."Products" WHERE "SKU" = 'DE001';
+    
+    INSERT INTO public."Promotions" ("Id", "Name", "Description", "StartDate", "EndDate", "DiscountType", "DiscountValue", "AppliesToProductId") VALUES
+        (uuid_generate_v4(), 'Summer Sale', '20% off all engagement rings', NOW() - INTERVAL '1 month', NOW() + INTERVAL '2 months', 'Percentage', '20', product1_id),
+        (uuid_generate_v4(), 'Holiday Special', '15% off diamond earrings', NOW() - INTERVAL '2 weeks', NOW() + INTERVAL '1 month', 'Percentage', '15', product2_id),
+        (uuid_generate_v4(), 'VIP Discount', '10% off for VIP members', NOW() - INTERVAL '1 week', NOW() + INTERVAL '3 months', 'Percentage', '10', NULL);
 END $$;
 
 -- Insert Payments
@@ -283,4 +324,5 @@ SELECT 'Test Data Generation Complete!' as status;
 SELECT COUNT(*) as total_users FROM public."Users";
 SELECT COUNT(*) as total_products FROM public."Products";
 SELECT COUNT(*) as total_orders FROM public."Orders";
-SELECT COUNT(*) as total_staff FROM public."StaffProfiles"; 
+SELECT COUNT(*) as total_order_details FROM public."OrderDetails";
+SELECT COUNT(*) as total_staff FROM public."StaffProfiles";
