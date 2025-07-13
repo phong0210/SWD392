@@ -45,5 +45,8 @@ namespace DiamondShopSystem.BLL.Handlers.Product.DTOs
 
         [Required]
         public Guid CategoryId { get; set; }
+
+        public Guid? OrderDetailId { get; set; }
+        public Guid? WarrantyId { get; set; }
     }
 }

@@ -22,6 +22,7 @@ namespace DiamondShopSystem.DAL.Entities
         public string Description { get; set; } = string.Empty;
 
         [Required]
+
         public double Price { get; set; }
         public int? Carat { get; set; }
 
@@ -53,4 +54,4 @@ namespace DiamondShopSystem.DAL.Entities
 
         public Warranty? Warranty { get; set; }
     }
-} 
+}

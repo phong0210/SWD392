@@ -24,5 +24,7 @@ namespace DiamondShopSystem.BLL.Handlers.Product.DTOs
         public string? GIACertNumber { get; set; }
         public bool IsHidden { get; set; }
         public Guid CategoryId { get; set; }
+        public Guid? OrderDetailId { get; set; }
+        public Guid? WarrantyId { get; set; }
     }
 }
