@@ -4,7 +4,7 @@ using System;
 
 namespace DiamondShopSystem.BLL.Handlers.Warranty.Commands.Update
 {
-    public class WarrantyUpdateCommand : IRequest<WarrantyInfoDto>
+    public class WarrantyUpdateCommand : IRequest<WarrantyUpdateResponseDto>
     {
         public Guid WarrantyId { get; }
         public WarrantyUpdateDto Dto { get; }
