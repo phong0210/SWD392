@@ -18,6 +18,8 @@ using DiamondShopSystem.BLL.Handlers.User.Validators;
 using DiamondShopSystem.BLL.Services.Auth;
 using DiamondShopSystem.BLL.Services.User;
 using DiamondShopSystem.BLL.Services.Order;
+using DiamondShopSystem.BLL.Services.Category;
+using DiamondShopSystem.BLL.Services.Warranty;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -101,6 +103,12 @@ void ConfigureServices()
 
     // Product Services
     builder.Services.AddScoped<DiamondShopSystem.BLL.Services.Product.IProductService, DiamondShopSystem.BLL.Services.Product.ProductService>();
+
+    // Category Services
+    builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+    // Warranty Services
+    builder.Services.AddScoped<IWarrantyService, WarrantyService>();
 }
 
 void ConfigureAuthentication()

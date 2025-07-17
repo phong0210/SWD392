@@ -40,4 +40,8 @@
     <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Handlers\Category\Validators\" />
+  </ItemGroup>
+
 </Project>
