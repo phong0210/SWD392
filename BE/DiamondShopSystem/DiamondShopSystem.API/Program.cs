@@ -18,6 +18,7 @@ using DiamondShopSystem.BLL.Handlers.User.Validators;
 using DiamondShopSystem.BLL.Services.Auth;
 using DiamondShopSystem.BLL.Services.User;
 using DiamondShopSystem.BLL.Services.Order;
+using DiamondShopSystem.DAL.Repositories.Contracts;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -101,6 +102,12 @@ void ConfigureServices()
 
     // Product Services
     builder.Services.AddScoped<DiamondShopSystem.BLL.Services.Product.IProductService, DiamondShopSystem.BLL.Services.Product.ProductService>();
+
+    // Delivery Services
+    builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+    builder.Services.AddScoped<DeliveryService>();
+
 }
 
 void ConfigureAuthentication()
@@ -240,4 +247,4 @@ void ConfigureDatabase()
             options.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
         }
     });
-} 
+}

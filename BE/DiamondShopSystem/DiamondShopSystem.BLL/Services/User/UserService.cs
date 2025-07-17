@@ -106,7 +106,7 @@ namespace DiamondShopSystem.BLL.Services.User
 
                 // Get updated user info
                 var updatedUser = await userRepo.GetByIdAsync(userId);
-                string roleName = await GetUserRoleNameAsync(updatedUser.Id);
+                string roleName = await GetUserRoleNameAsync(updatedUser!.Id);
 
                 var userAccountInfo = new UserAccountInfoDto
                 {
