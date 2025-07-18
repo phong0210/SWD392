@@ -258,43 +258,44 @@ const Home: React.FC = () => {
   const pageSize = 4;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await showAllProduct();
-        console.log("API response:", response.data.data);
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await showAllProduct();
+      console.log("API response:", response.data.data);
 
-        if (response && response.data && Array.isArray(response.data.data)) {
-          const fetchedProducts = response.data.data.map((jewelry: any) => ({
-            id: jewelry.ProductID,
-            name: jewelry.Name,
-            brand: jewelry.Brand,
-            star: jewelry.Stars,
-            totalDiamondPrice: jewelry.TotalDiamondPrice,
-            firstPrice: jewelry.FirstPrice,
-            salePrice: jewelry.SalePrice,
-            type: jewelry.JewelrySetting.jewelryType.Name,
-            jewelryType: jewelry.JewelrySetting?.jewelryType?.Name,
-            images: jewelry.UsingImage.map((image: any) => ({
-              id: image.UsingImageID,
-              url: getImage(image.UsingImageID),
-            })),
-          }));
+      if (response && response.data && Array.isArray(response.data.data)) {
+        const fetchedProducts = response.data.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          sku: item.sku,
+          description: item.description,
+          price: item.price,
+          carat: item.carat,
+          color: item.color,
+          clarity: item.clarity,
+          cut: item.cut,
+          stockQuantity: item.stockQuantity,
+          giaCertNumber: item.giaCertNumber,
+          isHidden: item.isHidden,
+          categoryId: item.categoryId,
+          orderDetailId: item.orderDetailId,
+          warrantyId: item.warrantyId,
+        }));
 
-          console.log(fetchedProducts);
-          console.log(loading);
-          setProducts(fetchedProducts);
-          setLoading(false);
-        } else {
-          console.error("Unexpected API response format:", response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
+        console.log(fetchedProducts);
+        setProducts(fetchedProducts);
+        setLoading(false);
+      } else {
+        console.error("Unexpected API response format:", response.data);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
-    fetchData();
-  }, []);
+  fetchData();
+}, []);
 
   const handlePageChange = (page: any) => {
     setCurrent(page);
