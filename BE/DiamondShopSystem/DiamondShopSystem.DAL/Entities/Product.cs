@@ -47,7 +47,7 @@ namespace DiamondShopSystem.DAL.Entities
         [Required]
         [ForeignKey("Category")]
         public Guid CategoryId { get; set; }
-        public Category Category { get; set; } = default!;
+        public Category Category { get; set; } = default!; 
 
         public Guid? OrderDetailId { get; set; }
         public OrderDetail? OrderDetail { get; set; }

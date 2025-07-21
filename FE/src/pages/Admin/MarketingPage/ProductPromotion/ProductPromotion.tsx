@@ -25,6 +25,7 @@ import {
 } from "antd";
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import MarketingMenu from "@/components/Admin/MarketingMenu/MarketingMenu";
+import { createVoucher, deleteVoucher, showAllVoucher, updateVoucher } from "@/services/voucherAPI";
 import { showAllDiscount, createDiscount, updateDiscount, deleteDiscount } from "@/services/discountAPI";
 import { showAllProduct } from "@/services/productAPI";
 import { showAllDiamond } from "@/services/diamondAPI";
@@ -125,20 +126,20 @@ const ProductPromotion = () => {
       const { data: diamondData } = responseDiamond.data;
 
       const formattedDiscounts = data.map((discount: any) => ({
-        key: discount.DiscountID,
-        discountID: discount.DiscountID,
-        discountName: discount.Name,
-        percentDiscounts: discount.PercentDiscounts,
+        key: discount.PromotionID,
+        promotionID: discount.PromotionID,
+        name: discount.Name,
+        discountValue: discount.DiscountValue,
         startDate: discount.StartDate,
         endDate: discount.EndDate,
         description: discount.Description,
       }));
 
       const formattedProducts = productData
-        .filter((product: any) => (product.DiscountID !== null))
+        .filter((product: any) => (product.PromotionID !== null))
         .map((product: any) => ({
           productName: product.Name,
-          discountID: product.DiscountID,
+          promotionID: product.PromotionID,
         }));
 
       setDiscounts(formattedDiscounts);
@@ -176,8 +177,8 @@ const ProductPromotion = () => {
   // EDIT
   const edit = (record: Partial<any> & { key: React.Key }) => {
     form.setFieldsValue({
-      discountName: "",
-      percentDiscounts: 0,
+      name: "",
+      discountValue: 0,
       startDate: "",
       endDate: "",
       description: "",
@@ -199,8 +200,8 @@ const ProductPromotion = () => {
       if (index > -1) {
         const item = newData[index];
         const updatedItem = {
-          Name: row.discountName,
-          PercentDiscounts: row.percentDiscounts,
+          Name: row.name,
+          PercentDiscounts: row.discountValue,
           StartDate: row.startDate,
           EndDate: row.endDate,
           Description: row.description,
@@ -211,7 +212,7 @@ const ProductPromotion = () => {
           ...row,
         });
         setDiscounts(newData);
-        await updateDiscount(item.discountID, updatedItem);
+        await updateDiscount(item.promotionID, updatedItem);
         openNotification("success", "Update", "");
       } else {
         newData.push(row);
@@ -238,23 +239,23 @@ const ProductPromotion = () => {
   const columns = [
     {
       title: "Promotion ID",
-      dataIndex: "discountID",
+      dataIndex: "promotionID",
       sorter: (a: any, b: any) =>
-        parseInt(a.discountID) - parseInt(b.discountID),
+        parseInt(a.promotionID) - parseInt(b.discountID),
     },
     {
       title: "Promotion Name",
-      dataIndex: "discountName",
+      dataIndex: "name",
       editable: true,
       sorter: (a: any, b: any) =>
-        a.discountName.length - b.discountName.length,
+        a.name.length - b.name.length,
     },
     {
       title: "% discount",
-      dataIndex: "percentDiscounts",
+      dataIndex: "discountValue",
       editable: true,
       sorter: (a: any, b: any) =>
-        a.percentDiscounts - b.percentDiscounts,
+        a.discountValue - b.discountValue,
     },
     {
       title: "Start Date",
@@ -281,9 +282,9 @@ const ProductPromotion = () => {
     },
     {
       title: "Product Quantity",
-      dataIndex: "discountID",
+      dataIndex: "prouctID",
       render: (_: any, record: any) => {
-        const count = products.filter(product => product.discountID === record.discountID).length;
+        const count = products.filter(product => product.id === record.id).length;
         return count;
       },
       sorter: (a: any, b: any) => a.count.length - b.count.length,
@@ -358,7 +359,7 @@ const ProductPromotion = () => {
       ...col,
       onCell: (record: any) => ({
         record,
-        inputType: col.dataIndex === "percentDiscounts" ? "number" : "text",
+        inputType: col.dataIndex === "discountValue" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -427,7 +428,7 @@ const ProductPromotion = () => {
           ...discountValues,
         };
 
-        const { data } = await createDiscount(newDiscount);
+        const { data } = await createVoucher(newDiscount);
         if (data.statusCode !== 200) throw new Error(data.message);
         fetchData();
         setIsAdding(false);
@@ -532,10 +533,23 @@ const ProductPromotion = () => {
                     <Styled.FormItem>
                       <Form.Item
                         label="% discount"
-                        name="PercentDiscounts"
+                        name="DiscountValue"
                         rules={[{ required: true }]}
                       >
-                        <InputNumber className="formItem" placeholder="15" />
+                        {/* <InputNumber className="formItem" placeholder="15" />
+                         */}
+                           <Input className="formItem" placeholder="15" />
+                      </Form.Item>
+                    </Styled.FormItem>
+                    <Styled.FormItem>
+                      <Form.Item
+                        label="Discount Type"
+                        name="DiscountType"
+                        rules={[{ required: true }]}
+                      >
+                        {/* <InputNumber className="formItem" placeholder="15" />
+                         */}
+                           <Input className="formItem" placeholder="Percentage" />
                       </Form.Item>
                     </Styled.FormItem>
                     <Styled.FormItem>

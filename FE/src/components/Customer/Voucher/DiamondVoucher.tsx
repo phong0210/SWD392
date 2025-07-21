@@ -4,14 +4,25 @@ import "font-awesome/css/font-awesome.min.css";
 import { showAllVoucher } from "@/services/voucherAPI";
 import { Pagination } from "antd";
 
-interface Voucher {
-  VoucherID: number;
-  VoucherCode: string;
-  Description: string;
-  StartDate: string;
-  EndDate: string;
-  PercentDiscounts: string;
-}
+// interface Voucher {
+//   VoucherID: number;
+//   VoucherCode: string;
+//   Description: string;
+//   StartDate: string;
+//   EndDate: string;
+//   PercentDiscounts: string;
+// }
+
+  interface Voucher {
+    buttonLabel: string | null;
+    PromotionID: string;
+    Name: string;
+    Description: string;
+    StartDate: string;
+    EndDate: string;
+    DiscountType : string;
+    DiscountValue: string;
+  }
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -68,7 +79,7 @@ const App = () => {
     <div>
     <Container>
     {currentItems.map((voucher) => (
-      <GigItem key={voucher.VoucherID} {...voucher} />
+      <GigItem key={voucher.PromotionID} {...voucher} />
     ))}
    
   </Container>
@@ -84,24 +95,23 @@ const App = () => {
 };
 
 interface GigProps {
-  VoucherCode: string;
+  Name: string;
   Description: string;
   StartDate: string;
   EndDate: string;
-  PercentDiscounts: string;
-  
+  DiscountValue: string;
 }
 
 const GigItem: React.FC<GigProps> = ({
-  VoucherCode,
+  Name,
   Description,
   StartDate,
   EndDate,
-  PercentDiscounts,
+  DiscountValue,
 }) => (
   <Item>
     <ItemRight>
-      <Number>{formatPercent(PercentDiscounts)}</Number>
+      <Number>{formatPercent(DiscountValue)}</Number>
       <Character>%</Character>
       <UpBorder />
       <DownBorder />
@@ -124,7 +134,7 @@ const GigItem: React.FC<GigProps> = ({
       </Location> */}
       <Fix />
       <Row>
-        <Buttons>{VoucherCode}</Buttons>
+        <Buttons>{Name}</Buttons>
       </Row>
     </ItemLeft>
   </Item>

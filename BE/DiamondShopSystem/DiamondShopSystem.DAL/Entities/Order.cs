@@ -13,7 +13,7 @@ namespace DiamondShopSystem.DAL.Entities
         [Required]
         [ForeignKey("User")]
         public Guid UserId { get; set; }
-        public User User { get; set; } = default!;
+        public User User { get; set; } = default!; 
 
         [Required]
         public double TotalPrice { get; set; }

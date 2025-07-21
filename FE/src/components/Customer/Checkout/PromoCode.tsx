@@ -7,7 +7,7 @@ import { showAllVoucher } from "@/services/voucherAPI";
 import { useAppDispatch } from "@/hooks";
 import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
 interface PromoCodeSectionProps {
-  onApplyVoucher: (discount: number, voucherID: number) => void;
+  onApplyVoucher: (discount: number, voucherID: string) => void;
 }
 
 const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
@@ -27,12 +27,13 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
 
   interface Voucher {
     buttonLabel: string | null;
-    VoucherID: number;
-    VoucherCode: string;
+    PromotionID: string;
+    Name: string;
     Description: string;
     StartDate: string;
     EndDate: string;
-    PercentDiscounts: string;
+    DiscountType : string;
+    DiscountValue: string;
   }
 
   const toggleCollapse = () => {
@@ -63,17 +64,17 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
 
   const handleApplyClick = () => {
     if (selectedVoucher) {
-      const discount = parseFloat(selectedVoucher.PercentDiscounts);
+      const discount = parseFloat(selectedVoucher.DiscountValue);
       console.log("Selected Voucher:", selectedVoucher);
-      console.log("VoucherID", selectedVoucher.VoucherID);
+      console.log("VoucherID", selectedVoucher.PromotionID);
       console.log("Discount Value:", discount);
 
       localStorage.removeItem("selectedVoucher");
 
-      dispatch(orderSlice.actions.setVoucherID(selectedVoucher.VoucherID));
+      dispatch(orderSlice.actions.setVoucherID(selectedVoucher.PromotionID));
 
       if (!isNaN(discount) && discount > 0) {
-        onApplyVoucher(discount, selectedVoucher.VoucherID);
+        onApplyVoucher(discount, selectedVoucher.PromotionID);
         setError("");
         localStorage.setItem(
           "selectedVoucher",
@@ -85,7 +86,7 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
     } else {
       setError("Please select a valid promo code");
       localStorage.removeItem("selectedVoucher");
-      onApplyVoucher(0, 0);
+      onApplyVoucher(0, "");
     }
   };
 
@@ -110,14 +111,14 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
               setSelectedVoucher(voucher || null);
               if (!voucher) {
                 setError("");
-                onApplyVoucher(0, 0);
+                onApplyVoucher(0, "");
                 localStorage.removeItem("selectedVoucher");
               }
             }}
           >
             {availableVouchers.map((voucher) => (
               <Select.Option
-                key={voucher.VoucherID}
+                key={voucher.PromotionID}
                 value={voucher.Description}
               >
                 {voucher.Description}
