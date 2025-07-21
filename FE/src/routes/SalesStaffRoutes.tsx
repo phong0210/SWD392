@@ -1,9 +1,9 @@
-import config from "@/config"
+import config from "@/config";
 import { Navigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
-import StaffLayout from "@/layouts/StaffLayout"
+import StaffLayout from "@/layouts/StaffLayout";
 
 import Order from "@/pages/Staff/SalesStaff/OrderPage/Order";
 import PendingOrder from "@/pages/Staff/SalesStaff/OrderPage/Pending/Pending";
@@ -17,12 +17,11 @@ import CancelledOrder from "@/pages/Staff/SalesStaff/OrderPage/Cancelled/Cancell
 
 import Diamond from "@/pages/Staff/SalesStaff/ProductPage/Diamond/Diamond";
 import DiamondDetail from "@/pages/Staff/SalesStaff/ProductPage/Detail/DiamondDetail";
-import Jewelry from "@/pages/Staff/SalesStaff/ProductPage/Jewelry/Jewelry";
+
 import JewelryDetail from "@/pages/Staff/SalesStaff/ProductPage/Detail/JewelryDetail";
-import RingSetting from "@/pages/Staff/SalesStaff/ProductPage/Jewelry Setting/RingSetting";
+
 import JewelrySettingDetail from "@/pages/Staff/SalesStaff/ProductPage/Detail/SettingDetail";
-import ProductType from "@/pages/Staff/SalesStaff/ProductPage/JewelryType/JewelryType";
-import Material from "@/pages/Staff/SalesStaff/ProductPage/Material/Material";
+
 import Collection from "@/pages/Staff/SalesStaff/MarketingPage/Collection/Collection";
 import CollectionDetail from "@/pages/Staff/SalesStaff/MarketingPage/Detail/CollectionDetail";
 import ProductPromotion from "@/pages/Staff/SalesStaff/MarketingPage/ProductPromotion/ProductPromotion";
@@ -34,47 +33,65 @@ import FeedbackCompleted from "@/pages/Staff/SalesStaff/ClientCaringPage/Feedbac
 
 import { Role } from "@/utils/enum";
 
-
 const SalesStaffRouter = () => {
-    const { user } = useSelector((state: RootState) => state.auth);
-    const role = user?.role || null;
-    return role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
-}
+  const { user } = useSelector((state: RootState) => state.auth);
+  const role = user?.role || null;
+  return role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
+};
 
 const salesStaffRoutes = [
-    { path: config.routes.salesStaff.order, element: <Order /> },
-    { path: config.routes.salesStaff.pendingOrder, element: <PendingOrder /> },
-    { path: config.routes.salesStaff.acceptedOrder, element: <AcceptedOrder /> },
-    { path: config.routes.salesStaff.assignedOrder, element: <AssignedOrder /> },
-    { path: config.routes.salesStaff.deliveringOrder, element: <DeliveringOrder /> },
-    { path: config.routes.salesStaff.deliveredOrder, element: <DeliveredOrder /> },
-    { path: config.routes.salesStaff.completedOrder, element: <CompletedOrder /> },
-    { path: config.routes.salesStaff.cancelledOrder, element: <CancelledOrder /> },
-    { path: config.routes.salesStaff.orderDetail, element: <OrderDetail /> },
+  { path: config.routes.salesStaff.order, element: <Order /> },
+  { path: config.routes.salesStaff.pendingOrder, element: <PendingOrder /> },
+  { path: config.routes.salesStaff.acceptedOrder, element: <AcceptedOrder /> },
+  { path: config.routes.salesStaff.assignedOrder, element: <AssignedOrder /> },
+  {
+    path: config.routes.salesStaff.deliveringOrder,
+    element: <DeliveringOrder />,
+  },
+  {
+    path: config.routes.salesStaff.deliveredOrder,
+    element: <DeliveredOrder />,
+  },
+  {
+    path: config.routes.salesStaff.completedOrder,
+    element: <CompletedOrder />,
+  },
+  {
+    path: config.routes.salesStaff.cancelledOrder,
+    element: <CancelledOrder />,
+  },
+  { path: config.routes.salesStaff.orderDetail, element: <OrderDetail /> },
 
-    { path: config.routes.salesStaff.diamond, element: <Diamond /> },
-    { path: config.routes.salesStaff.diamondDetail, element: <DiamondDetail /> },
-    { path: config.routes.salesStaff.jewelry, element: <Jewelry /> },
-    { path: config.routes.salesStaff.jewelryDetail, element: <JewelryDetail /> },
-    { path: config.routes.salesStaff.ringSettingProduct, element: <RingSetting /> },
-    { path: config.routes.salesStaff.ringSettingDetail, element: <JewelrySettingDetail /> },
-    { path: config.routes.salesStaff.jewelryTypeProduct, element: <ProductType /> },
-    { path: config.routes.salesStaff.materialProduct, element: <Material /> },
-
-    { path: config.routes.salesStaff.collection, element: <Collection /> },
-    { path: config.routes.salesStaff.collectionDetail, element: <CollectionDetail /> },
-    { path: config.routes.salesStaff.discount, element: <ProductPromotion /> },
-    { path: config.routes.salesStaff.discountDetail, element: <ProductPromotionDetail /> },
-    { path: config.routes.salesStaff.voucher, element: <BillPromotion /> },
-    { path: config.routes.salesStaff.clientCaring, element: <Messages /> },
-    { path: config.routes.salesStaff.feedback, element: <FeedbackSale /> },
-    { path: config.routes.salesStaff.feedbackCompleted, element: <FeedbackCompleted /> },
+  { path: config.routes.salesStaff.diamond, element: <Diamond /> },
+  { path: config.routes.salesStaff.diamondDetail, element: <DiamondDetail /> },
+  { path: config.routes.salesStaff.jewelryDetail, element: <JewelryDetail /> },
+  {
+    path: config.routes.salesStaff.ringSettingDetail,
+    element: <JewelrySettingDetail />,
+  },
+  { path: config.routes.salesStaff.collection, element: <Collection /> },
+  {
+    path: config.routes.salesStaff.collectionDetail,
+    element: <CollectionDetail />,
+  },
+  { path: config.routes.salesStaff.discount, element: <ProductPromotion /> },
+  {
+    path: config.routes.salesStaff.discountDetail,
+    element: <ProductPromotionDetail />,
+  },
+  { path: config.routes.salesStaff.voucher, element: <BillPromotion /> },
+  { path: config.routes.salesStaff.clientCaring, element: <Messages /> },
+  { path: config.routes.salesStaff.feedback, element: <FeedbackSale /> },
+  {
+    path: config.routes.salesStaff.feedbackCompleted,
+    element: <FeedbackCompleted />,
+  },
 ];
 
 const SalesStaffRoutes = {
-    path: config.routes.salesStaff.dashboard,
-    element: <SalesStaffRouter />,
-    children: salesStaffRoutes,
-}
+  path: config.routes.salesStaff.dashboard,
+  element: <SalesStaffRouter />,
+  children: salesStaffRoutes,
+};
 
 export default SalesStaffRoutes;

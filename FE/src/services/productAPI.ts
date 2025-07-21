@@ -19,11 +19,11 @@ export const getProductDetails = (id: UUID) => {
   return get(`/api/Product/detail/${id}`);
 };
 
-export const updateDiamond = (id: number, diamond: object) => {
-  return put(`/api/Product/update/${id}`, diamond);
+export const updateProduct = (id: UUID, product: object) => {
+  return put(`/api/Product/update/${id}`, product);
 };
 
-export const deleteDiamond = (id: number) => {
+export const deleteProduct = (id: UUID) => {
   return remove(`/api/Product/${id}`);
 };
 

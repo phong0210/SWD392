@@ -1,28 +1,17 @@
 import * as Styled from "./Diamond.styled";
 import React, { useEffect, useState } from "react";
 // import { Link } from "react-router-dom";
-import {
-  Table,
-  Input,
-  Space,
-  notification,
-} from "antd";
-import {
-  SearchOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
-import type {
-  TableColumnsType,
-  TableProps,
-} from "antd";
+import { Table, Input, Space, notification } from "antd";
+import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
+import type { TableColumnsType, TableProps } from "antd";
 import { Link } from "react-router-dom";
-import { showAllDiamond } from "@/services/diamondAPI";
+
 import { ColorType, ShapeType } from "./Diamond.type";
-import { getImage } from "@/services/imageAPI";
+
 import { useDocumentTitle } from "@/hooks";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import ProductMenu from "@/components/Staff/SalesStaff/ProductMenu/ProductMenu";
-
+import { showAllProduct } from "@/services/productAPI";
 
 const onChange: TableProps<any>["onChange"] = (
   pagination,
@@ -34,7 +23,7 @@ const onChange: TableProps<any>["onChange"] = (
 };
 
 const Diamond = () => {
-  useDocumentTitle('Diamond | Aphromas Diamond');
+  useDocumentTitle("Diamond | Aphromas Diamond");
 
   const [searchText, setSearchText] = useState("");
   const [currency] = useState<"VND" | "USD">("USD");
@@ -43,36 +32,37 @@ const Diamond = () => {
 
   const fetchData = async () => {
     try {
-      const response = await showAllDiamond();
-      console.log('API response:', response);
+      const response = await showAllProduct();
+      console.log("API response:", response);
       const { data } = response.data;
       const formattedDiamonds = data
-      .filter((diamond: any) => (diamond.IsActive && diamond.ProductID === null))
-      .map((diamond: any) => ({
-        diamondID: diamond.DiamondID,
-        diamondName: diamond.Name,
-        price: diamond.Price,
-        color: diamond.Color,
-        shape: diamond.Shape,
-        polish: diamond.Polish,
-        cut: diamond.Cut,
-        lengthOnWidthRatio: diamond.LengthOnWidthRatio,
-        clarity: diamond.Clarity,
-        symmetry: diamond.Symmetry,
-        weightCarat: diamond.WeightCarat,
-        percentTable: diamond.PercentTable,
-        percentDepth: diamond.PercentDepth,
-        fluorescence: diamond.Fluorescence,
-        description: diamond.Description,
-        exchangeRate: 1,
-        chargeRate: diamond.ChargeRate,
-        images: diamond.usingImage.map((image: any) => ({
-          id: image.UsingImageID,
-          name: image.Name,
-          url: getImage(image.UsingImageID),
-        })),
-      }));
-      console.log('Formatted Diamonds:', formattedDiamonds); // Log formatted diamonds
+        .filter(
+          (diamond: any) => diamond.IsActive && diamond.ProductID === null
+        )
+        .map((diamond: any) => ({
+          diamondID: diamond.DiamondID,
+          diamondName: diamond.Name,
+          price: diamond.Price,
+          color: diamond.Color,
+          shape: diamond.Shape,
+          polish: diamond.Polish,
+          cut: diamond.Cut,
+          lengthOnWidthRatio: diamond.LengthOnWidthRatio,
+          clarity: diamond.Clarity,
+          symmetry: diamond.Symmetry,
+          weightCarat: diamond.WeightCarat,
+          percentTable: diamond.PercentTable,
+          percentDepth: diamond.PercentDepth,
+          fluorescence: diamond.Fluorescence,
+          description: diamond.Description,
+          exchangeRate: 1,
+          chargeRate: diamond.ChargeRate,
+          images: diamond.usingImage.map((image: any) => ({
+            id: image.UsingImageID,
+            name: image.Name,
+          })),
+        }));
+      console.log("Formatted Diamonds:", formattedDiamonds); // Log formatted diamonds
       setDiamonds(formattedDiamonds);
     } catch (error) {
       console.error("Failed to fetch diamonds:", error);
@@ -83,8 +73,7 @@ const Diamond = () => {
     fetchData();
   }, []);
 
-
-  // SEARCH 
+  // SEARCH
   const handleSearch = (value: any) => {
     console.log("Search:", value);
   };
@@ -94,7 +83,6 @@ const Diamond = () => {
       handleSearch(searchText);
     }
   };
-
 
   // Change Currency
   // const handleCurrencyChange = (value: "VND" | "USD") => {
@@ -130,7 +118,11 @@ const Diamond = () => {
       render: (_, record) => (
         <a href="#" target="_blank" rel="noopener noreferrer">
           <img
-            src={record.images && record.images[0] ? record.images[0].url : "default-image-url"} 
+            src={
+              record.images && record.images[0]
+                ? record.images[0].url
+                : "default-image-url"
+            }
             alt={record.diamondName}
             style={{ width: "50px", height: "50px" }}
           />
@@ -169,7 +161,10 @@ const Diamond = () => {
       title: `Selling Price (${currency})`,
       key: "sellingPrice",
       render: (_, record) => {
-        const price = sellingPrice(convertPrice(record.price, record.exchangeRate, currency), record.chargeRate);
+        const price = sellingPrice(
+          convertPrice(record.price, record.exchangeRate, currency),
+          record.chargeRate
+        );
         return `${price.toFixed(2)} ${currency}`;
       },
     },
@@ -205,8 +200,6 @@ const Diamond = () => {
     },
   ];
 
-
-
   return (
     <>
       {contextHolder}
@@ -220,30 +213,30 @@ const Diamond = () => {
 
           <Styled.AdPageContent>
             <Styled.AdPageContent_Head>
-                  <Styled.AdPageContent_HeadLeft>
-                    <Styled.SearchArea>
-                      <Input
-                        className="searchInput"
-                        type="text"
-                        // size="large"
-                        placeholder="Search here..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        prefix={<SearchOutlined className="searchIcon" />}
-                      />
-                    </Styled.SearchArea>
-                  </Styled.AdPageContent_HeadLeft>
+              <Styled.AdPageContent_HeadLeft>
+                <Styled.SearchArea>
+                  <Input
+                    className="searchInput"
+                    type="text"
+                    // size="large"
+                    placeholder="Search here..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    prefix={<SearchOutlined className="searchIcon" />}
+                  />
+                </Styled.SearchArea>
+              </Styled.AdPageContent_HeadLeft>
             </Styled.AdPageContent_Head>
 
             <Styled.AdminTable>
-                <Table
-                  className="table"
-                  columns={columns}
-                  dataSource={diamonds}
-                  onChange={onChange}
-                  pagination={{ pageSize: 6 }}
-                />
+              <Table
+                className="table"
+                columns={columns}
+                dataSource={diamonds}
+                onChange={onChange}
+                pagination={{ pageSize: 6 }}
+              />
             </Styled.AdminTable>
           </Styled.AdPageContent>
         </Styled.AdminPage>

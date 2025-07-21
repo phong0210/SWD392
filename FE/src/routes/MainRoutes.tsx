@@ -23,8 +23,8 @@ import RingGuide from "@/pages/Home/RingGuilde/RingGuide";
 
 // import OrderDetails from "@/pages/Customer/OrderDetails/OrderDetails";
 import AllDiamond from "@/pages/Home/AllDiamond/AllDiamond";
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { Role } from "@/utils/enum";
 import AllCollection from "@/pages/Home/AllCollection/AllCollection";
 import CollectionInformation from "@/pages/Home/CollectionInformation/CollectionInfomation";
@@ -60,12 +60,10 @@ import AllEngagementRing from "@/pages/Home/AllEngagementRing/AllEngagementRing"
 import MenEngagementRing from "@/pages/Home/List/MenEngagementRing/MenEngagementRing";
 import EngagementDesignerList from "@/pages/Home/List/EngagementDesignerList/EngagementDesignerList";
 import AllWeddingRing from "@/pages/Home/AllWeddingRing/AllWeddingRing";
-import WeddingList from "@/pages/Home/List/WeddingList/WeddingList";
-import MenWeddingRing from "@/pages/Home/List/MenWeddingRing/MenWeddingRing";
-import WeddingDesignerList from "@/pages/Home/List/WeddingDesignerList/WeddingDesignerList";
-import SaleJewelryPage from "@/pages/Home/SaleJewelryPage/SaleJewelryPage";
-import ReviewFB from "@/pages/Customer/ReviewFB/ReviewFB";
 
+import MenWeddingRing from "@/pages/Home/List/MenWeddingRing/MenWeddingRing";
+
+import ReviewFB from "@/pages/Customer/ReviewFB/ReviewFB";
 
 const MainRouter = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -85,7 +83,11 @@ const MainRouter = () => {
 const CustomerRouter = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const role = user?.role || null;
-  return role === Role.Customer ? <Outlet /> : <Navigate to={config.routes.public.login} />;
+  return role === Role.Customer ? (
+    <Outlet />
+  ) : (
+    <Navigate to={config.routes.public.login} />
+  );
 };
 
 const publicRoutes = {
@@ -102,13 +104,22 @@ const publicRoutes = {
     { path: config.routes.public.designerList, element: <DesignerList /> },
     { path: config.routes.public.firmList, element: <FirmList /> },
     { path: config.routes.public.cutterList, element: <CutterList /> },
-    { path: config.routes.public.allEngagement, element: <AllEngagementRing /> },
+    {
+      path: config.routes.public.allEngagement,
+      element: <AllEngagementRing />,
+    },
     { path: config.routes.public.allWedding, element: <AllWeddingRing /> },
     { path: config.routes.public.engagementShape, element: <EngagementList /> },
-    { path: config.routes.public.weddingShape, element: <WeddingList /> },
-    { path: config.routes.public.engagementDesigner, element: <EngagementDesignerList /> },
-    { path: config.routes.public.weddingDesigner, element: <WeddingDesignerList /> },
-    { path: config.routes.public.menEngagement, element: <MenEngagementRing /> },
+
+    {
+      path: config.routes.public.engagementDesigner,
+      element: <EngagementDesignerList />,
+    },
+
+    {
+      path: config.routes.public.menEngagement,
+      element: <MenEngagementRing />,
+    },
     { path: config.routes.public.menWedding, element: <MenWeddingRing /> },
     { path: config.routes.public.allProduct, element: <AllProduct /> },
     { path: config.routes.public.about, element: <About /> },
@@ -137,7 +148,6 @@ const publicRoutes = {
     { path: config.routes.public.success, element: <ThankPageSuccess /> },
     { path: config.routes.public.fail, element: <ThankPageFail /> },
     { path: config.routes.public.brand, element: <BrandList /> },
-    { path: config.routes.public.sale, element: <SaleJewelryPage /> },
     { path: config.routes.public.wish, element: <WishListPage /> },
   ],
 };

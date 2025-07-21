@@ -4,15 +4,16 @@ import { Modal, notification } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import ProductMenu from "@/components/Staff/SalesStaff/ProductMenu/ProductMenu";
+
 import {
-  getDiamondDetails,
-  updateDiamond,
-} from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
-import { ColorType_Option, ShapeType_Option } from "@/pages/Admin/ProductPage/Diamond/Diamond.type";
+  ColorType_Option,
+  ShapeType_Option,
+} from "@/pages/Admin/ProductPage/Diamond/Diamond.type";
+import { getProductDetails, updateProduct } from "@/services/productAPI";
+import { UUID } from "crypto";
 
 const DiamondDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: UUID }>();
   const navigate = useNavigate();
   const [activeDiamond, setActiveDiamond] = useState<any | null>(null);
   const [isModalVisibleGIA, setIsModalVisibleGIA] = useState(false);
@@ -38,7 +39,7 @@ const DiamondDetail = () => {
   useEffect(() => {
     const fetchDiamond = async () => {
       try {
-        const response = await getDiamondDetails(Number(id));
+        const response = await getProductDetails(id);
         console.log("API Response:", response.data.data);
         const diamondData = response.data.data;
         setActiveDiamond(diamondData);
@@ -75,7 +76,7 @@ const DiamondDetail = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await updateDiamond(activeDiamond.DiamondID, {
+      const response = await updateProduct(activeDiamond.DiamondID, {
         IsActive: false,
       });
       console.log("Delete Response:", response.data);
@@ -117,150 +118,160 @@ const DiamondDetail = () => {
           <Styled.PageContent>
             {activeDiamond ? (
               <>
-                    <Styled.PageContent_Mid>
-                      <Styled.PageDetail_Title>
-                        <p>Diamond Detail</p>
-                      </Styled.PageDetail_Title>
-                      <Styled.PageDetail_Infor>
-                        <Styled.ImageContainer>
-                          <Styled.OuterThumb>
-                            <Styled.ThumbnailImage>
-                              {activeDiamond.usingImage?.map((image: any, index: any) => {
-                                if (image.CertificateID == null) {
-                                  const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
-                                  return (
-                                    <Styled.Item
+                <Styled.PageContent_Mid>
+                  <Styled.PageDetail_Title>
+                    <p>Diamond Detail</p>
+                  </Styled.PageDetail_Title>
+                  <Styled.PageDetail_Infor>
+                    <Styled.ImageContainer>
+                      <Styled.OuterThumb>
+                        <Styled.ThumbnailImage>
+                          {activeDiamond.usingImage?.map(
+                            (image: any, index: any) => {
+                              if (image.CertificateID == null) {
+                                const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
+                                return (
+                                  <Styled.Item
+                                    key={index}
+                                    className={
+                                      index === diamondSelectedThumb
+                                        ? "selected"
+                                        : ""
+                                    }
+                                    onClick={() =>
+                                      changeDiamondImage(imageUrl, index)
+                                    }
+                                  >
+                                    <img
                                       key={index}
-                                      className={index === diamondSelectedThumb ? "selected" : ""}
-                                      onClick={() => changeDiamondImage(imageUrl, index)}
-                                    >
-                                      <img
-                                        key={index}
-                                        src={imageUrl}
-                                        alt={`Diamond Thumbnail ${index}`}
-                                      />
-                                    </Styled.Item>
-                                  );
-                                }
-                                return null;
-                              })}
-                            </Styled.ThumbnailImage>
-                          </Styled.OuterThumb>
-                          <Styled.OuterMain>
-                            <Styled.MainImage>
-                              <img
-                                id="mainImage"
-                                src={diamondMainImage}
-                                alt="Main"
-                              />
-                              <img
-                                className="GIAExport"
-                                src="https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Admin%2FProduct%2Fgia-logo.svg?alt=media&token=223f8b08-36c3-401b-ae25-a35f4c930631"
-                                alt="GIA Certificate"
-                                onClick={showModalGIA}
-                                style={{ cursor: "pointer" }}
-                              />
-                            </Styled.MainImage>
-                          </Styled.OuterMain>
-                        </Styled.ImageContainer>
-                        <Styled.ProductContent>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Diamond ID</p>
-                            <span>{activeDiamond.DiamondID}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Diamond Name</p>
-                            <span>{activeDiamond.Name}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Price</p>
-                            <span>{activeDiamond.Price}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Discount Price</p>
-                            <span>{activeDiamond.DiscountPrice}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Charge Rate (%)</p>
-                            <span>{activeDiamond.ChargeRate}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Shape</p>
-                            <span>
-                              {ShapeType_Option.find(
-                                (option: any) => option.value === activeDiamond.Shape
-                              )?.label ?? "N/A"}
-                            </span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Color</p>
-                            <span>
-                              {ColorType_Option.find(
-                                (option: any) => option.value === activeDiamond.Color
-                              )?.label ?? "N/A"}
-                            </span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Weight (Carat)</p>
-                            <span>{activeDiamond.WeightCarat}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Polish</p>
-                            <span>{activeDiamond.Polish}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Cut</p>
-                            <span>{activeDiamond.Cut}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Length/Width Ratio</p>
-                            <span>{activeDiamond.LengthOnWidthRatio}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Clarity</p>
-                            <span>{activeDiamond.Clarity}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Symmetry</p>
-                            <span>{activeDiamond.Symmetry}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Fluorescence</p>
-                            <span>{activeDiamond.Fluorescence}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">% Depth</p>
-                            <span>{activeDiamond.PercentDepth}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">% Table</p>
-                            <span>{activeDiamond.PercentTable}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Designer</p>
-                            <span>{activeDiamond.Designer}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Cutter</p>
-                            <span>{activeDiamond.Cutter}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine_Descrip>
-                            <p className="InforLine_Title">Description</p>
-                            <span>{activeDiamond.Description}</span>
-                          </Styled.InforLine_Descrip>
+                                      src={imageUrl}
+                                      alt={`Diamond Thumbnail ${index}`}
+                                    />
+                                  </Styled.Item>
+                                );
+                              }
+                              return null;
+                            }
+                          )}
+                        </Styled.ThumbnailImage>
+                      </Styled.OuterThumb>
+                      <Styled.OuterMain>
+                        <Styled.MainImage>
+                          <img
+                            id="mainImage"
+                            src={diamondMainImage}
+                            alt="Main"
+                          />
+                          <img
+                            className="GIAExport"
+                            src="https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Admin%2FProduct%2Fgia-logo.svg?alt=media&token=223f8b08-36c3-401b-ae25-a35f4c930631"
+                            alt="GIA Certificate"
+                            onClick={showModalGIA}
+                            style={{ cursor: "pointer" }}
+                          />
+                        </Styled.MainImage>
+                      </Styled.OuterMain>
+                    </Styled.ImageContainer>
+                    <Styled.ProductContent>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Diamond ID</p>
+                        <span>{activeDiamond.DiamondID}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Diamond Name</p>
+                        <span>{activeDiamond.Name}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Price</p>
+                        <span>{activeDiamond.Price}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Discount Price</p>
+                        <span>{activeDiamond.DiscountPrice}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Charge Rate (%)</p>
+                        <span>{activeDiamond.ChargeRate}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Shape</p>
+                        <span>
+                          {ShapeType_Option.find(
+                            (option: any) =>
+                              option.value === activeDiamond.Shape
+                          )?.label ?? "N/A"}
+                        </span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Color</p>
+                        <span>
+                          {ColorType_Option.find(
+                            (option: any) =>
+                              option.value === activeDiamond.Color
+                          )?.label ?? "N/A"}
+                        </span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Weight (Carat)</p>
+                        <span>{activeDiamond.WeightCarat}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Polish</p>
+                        <span>{activeDiamond.Polish}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Cut</p>
+                        <span>{activeDiamond.Cut}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Length/Width Ratio</p>
+                        <span>{activeDiamond.LengthOnWidthRatio}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Clarity</p>
+                        <span>{activeDiamond.Clarity}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Symmetry</p>
+                        <span>{activeDiamond.Symmetry}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Fluorescence</p>
+                        <span>{activeDiamond.Fluorescence}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">% Depth</p>
+                        <span>{activeDiamond.PercentDepth}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">% Table</p>
+                        <span>{activeDiamond.PercentTable}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Designer</p>
+                        <span>{activeDiamond.Designer}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine>
+                        <p className="InforLine_Title">Cutter</p>
+                        <span>{activeDiamond.Cutter}</span>
+                      </Styled.InforLine>
+                      <Styled.InforLine_Descrip>
+                        <p className="InforLine_Title">Description</p>
+                        <span>{activeDiamond.Description}</span>
+                      </Styled.InforLine_Descrip>
 
-                          <Modal
-                            title="Confirm Deletion"
-                            visible={isModalVisible}
-                            onOk={handleDelete}
-                            onCancel={handleCancel}
-                          >
-                            <p>Are you sure you want to delete this diamond?</p>
-                          </Modal>
-                        </Styled.ProductContent>
-                      </Styled.PageDetail_Infor>
-                    </Styled.PageContent_Mid>
-                    {/* <Styled.ActionBtn>
+                      <Modal
+                        title="Confirm Deletion"
+                        visible={isModalVisible}
+                        onOk={handleDelete}
+                        onCancel={handleCancel}
+                      >
+                        <p>Are you sure you want to delete this diamond?</p>
+                      </Modal>
+                    </Styled.ProductContent>
+                  </Styled.PageDetail_Infor>
+                </Styled.PageContent_Mid>
+                {/* <Styled.ActionBtn>
                       <Styled.ActionBtn_Left>
                         <Button
                           type="primary"
@@ -285,10 +296,11 @@ const DiamondDetail = () => {
                   onCancel={handleCancelGIA}
                 >
                   <img
-                    src={getImage(
-                      activeDiamond?.certificate?.[activeDiamond.certificate.length - 1]?.usingImages[0]
-                        ?.UsingImageID
-                    )}
+                    // src={getImage(
+                    //   activeDiamond?.certificate?.[
+                    //     activeDiamond.certificate.length - 1
+                    //   ]?.usingImages[0]?.UsingImageID
+                    // )}
                     alt="GIA Certificate"
                     style={{ width: "100%" }}
                   />

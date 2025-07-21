@@ -11,10 +11,7 @@ import {
   FluorescenceType_Option,
   ShapeType_Option,
 } from "../Diamond/Diamond.type";
-import {
-  getDiamondDetails,
-  updateDiamond,
-} from "@/services/diamondAPI";
+import { getDiamondDetails, updateDiamond } from "@/services/diamondAPI";
 import { getImage } from "@/services/imageAPI";
 
 const DiamondDetail = () => {
@@ -210,25 +207,36 @@ const DiamondDetail = () => {
                             <Styled.ImageContainer>
                               <Styled.OuterThumb>
                                 <Styled.ThumbnailImage>
-                                {activeDiamond.usingImage?.map((image: any, index: any) => {
-                                if (image.CertificateID == null) {
-                                  const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
-                                  return (
-                                    <Styled.Item
-                                      key={index}
-                                      className={index === diamondSelectedThumb ? "selected" : ""}
-                                      onClick={() => changeDiamondImage(imageUrl, index)}
-                                    >
-                                      <img
-                                        key={index}
-                                        src={imageUrl}
-                                        alt={`Diamond Thumbnail ${index}`}
-                                      />
-                                    </Styled.Item>
-                                  );
-                                }
-                                return null;
-                              })}
+                                  {activeDiamond.usingImage?.map(
+                                    (image: any, index: any) => {
+                                      if (image.CertificateID == null) {
+                                        const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
+                                        return (
+                                          <Styled.Item
+                                            key={index}
+                                            className={
+                                              index === diamondSelectedThumb
+                                                ? "selected"
+                                                : ""
+                                            }
+                                            onClick={() =>
+                                              changeDiamondImage(
+                                                imageUrl,
+                                                index
+                                              )
+                                            }
+                                          >
+                                            <img
+                                              key={index}
+                                              src={imageUrl}
+                                              alt={`Diamond Thumbnail ${index}`}
+                                            />
+                                          </Styled.Item>
+                                        );
+                                      }
+                                      return null;
+                                    }
+                                  )}
                                 </Styled.ThumbnailImage>
                               </Styled.OuterThumb>
                               <Styled.OuterMain>
@@ -621,25 +629,33 @@ const DiamondDetail = () => {
                         <Styled.ImageContainer>
                           <Styled.OuterThumb>
                             <Styled.ThumbnailImage>
-                              {activeDiamond.usingImage?.map((image: any, index: any) => {
-                                if (image.CertificateID == null) {
-                                  const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
-                                  return (
-                                    <Styled.Item
-                                      key={index}
-                                      className={index === diamondSelectedThumb ? "selected" : ""}
-                                      onClick={() => changeDiamondImage(imageUrl, index)}
-                                    >
-                                      <img
+                              {activeDiamond.usingImage?.map(
+                                (image: any, index: any) => {
+                                  if (image.CertificateID == null) {
+                                    const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
+                                    return (
+                                      <Styled.Item
                                         key={index}
-                                        src={imageUrl}
-                                        alt={`Diamond Thumbnail ${index}`}
-                                      />
-                                    </Styled.Item>
-                                  );
+                                        className={
+                                          index === diamondSelectedThumb
+                                            ? "selected"
+                                            : ""
+                                        }
+                                        onClick={() =>
+                                          changeDiamondImage(imageUrl, index)
+                                        }
+                                      >
+                                        <img
+                                          key={index}
+                                          src={imageUrl}
+                                          alt={`Diamond Thumbnail ${index}`}
+                                        />
+                                      </Styled.Item>
+                                    );
+                                  }
+                                  return null;
                                 }
-                                return null;
-                              })}
+                              )}
                             </Styled.ThumbnailImage>
                           </Styled.OuterThumb>
                           <Styled.OuterMain>
@@ -709,7 +725,9 @@ const DiamondDetail = () => {
                             <span>{activeDiamond.Cut}</span>
                           </Styled.InforLine>
                           <Styled.InforLine>
-                            <p className="InforLine_Title">Length/Width Ratio</p>
+                            <p className="InforLine_Title">
+                              Length/Width Ratio
+                            </p>
                             <span>{activeDiamond.LengthOnWidthRatio}</span>
                           </Styled.InforLine>
                           <Styled.InforLine>
@@ -784,8 +802,9 @@ const DiamondDetail = () => {
                 >
                   <img
                     src={getImage(
-                      activeDiamond?.certificate?.[activeDiamond.certificate.length - 1]?.usingImages[0]
-                        ?.UsingImageID
+                      activeDiamond?.certificate?.[
+                        activeDiamond.certificate.length - 1
+                      ]?.usingImages[0]?.UsingImageID
                     )}
                     alt="GIA Certificate"
                     style={{ width: "100%" }}

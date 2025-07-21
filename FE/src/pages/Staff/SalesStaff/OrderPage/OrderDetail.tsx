@@ -6,11 +6,10 @@ import { Button, Empty, Modal, Tag } from "antd";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import { orderDetail } from "@/services/orderAPI";
-import paypal from '@/assets/logo/payment/paypal.png';
-import cod from '@/assets/logo/payment/cod.jpg';
+import paypal from "@/assets/logo/payment/paypal.png";
+import cod from "@/assets/logo/payment/cod.jpg";
 import { showAllOrderLineForAdmin } from "@/services/orderLineAPI";
-import { getDiamondDetails } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
+import { getProductDetails } from "@/services/productAPI";
 import { PaymentMethodEnum } from "@/utils/enum";
 
 // const { Option } = Select;
@@ -52,7 +51,9 @@ const OrderDetail = () => {
   const [activeOrder, setActiveOrder] = useState<any>(null);
 
   const [orderStatus, setOrderStatus] = useState(activeOrder?.status || "");
-  const [diamondDetails, setDiamondDetails] = useState<{ [key: string]: any }>({});
+  const [diamondDetails, setDiamondDetails] = useState<{ [key: string]: any }>(
+    {}
+  );
 
   const fetchData = async () => {
     const orderResponse = await orderDetail(Number(id));
@@ -86,7 +87,7 @@ const OrderDetail = () => {
       const details: { [key: string]: any } = {};
       for (const order of orders) {
         if (order.DiamondID) {
-          const res = await getDiamondDetails(order.DiamondID);
+          const res = await getProductDetails(order.DiamondID);
           const diamond = res.data.data;
 
           let diamondImage = "https://via.placeholder.com/150";
@@ -95,8 +96,8 @@ const OrderDetail = () => {
             const imageIDPromises = diamond.usingImage.map(
               async (image: any) => {
                 try {
-                  const imageRes = getImage(image.UsingImageID);
-                  return imageRes || image.url;
+                  // const imageRes = getImage(image.UsingImageID);
+                  // return imageRes || image.url;
                 } catch (error) {
                   console.error("Error fetching image:", error);
                   return image.url;
@@ -166,7 +167,10 @@ const OrderDetail = () => {
                       <Styled.OrderDate>
                         <p>Invoice Date:</p>
                         <p className="orderDate">
-                          {activeOrder.OrderDate.replace("T", " ").replace(".000Z", "")}
+                          {activeOrder.OrderDate.replace("T", " ").replace(
+                            ".000Z",
+                            ""
+                          )}
                         </p>
                       </Styled.OrderDate>
                       <Styled.OrderStatus>
@@ -208,7 +212,9 @@ const OrderDetail = () => {
                                 alt="Image placeholder"
                                 /*style={{ width: "60px", height: "50px" }}*/ className="productImg"
                               />
-                              <div className="productName">{line.diamond.Name}</div>
+                              <div className="productName">
+                                {line.diamond.Name}
+                              </div>
                               <div className="productQuant">
                                 {line.Quantity}
                               </div>
@@ -224,18 +230,29 @@ const OrderDetail = () => {
                       <Styled.Payment>
                         <p>Payment method</p>
                         {activeOrder.PaymentID === PaymentMethodEnum.PAYPAL && (
-                          <img src={paypal} 
-                          alt="Paypal" style={{ width: "100px", height: "auto" }} />
+                          <img
+                            src={paypal}
+                            alt="Paypal"
+                            style={{ width: "100px", height: "auto" }}
+                          />
                         )}
                         {activeOrder.PaymentID === PaymentMethodEnum.COD && (
-                          <img src={cod}
-                          alt="COD" style={{ width: "100px", height: "auto" }} />
+                          <img
+                            src={cod}
+                            alt="COD"
+                            style={{ width: "100px", height: "auto" }}
+                          />
                         )}
                       </Styled.Payment>
                       <Styled.Amount>
                         <Styled.OtherCosts>
                           <p>% discount</p>
-                          <p>- {formatPrice(activeOrder.Price - activeOrder.VoucherPrice)}</p>
+                          <p>
+                            -{" "}
+                            {formatPrice(
+                              activeOrder.Price - activeOrder.VoucherPrice
+                            )}
+                          </p>
                         </Styled.OtherCosts>
                         <Styled.OtherCosts>
                           <p>Shipping fee</p>

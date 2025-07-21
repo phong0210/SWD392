@@ -10,6 +10,7 @@ import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import Banner from "@/components/Banner/Banner";
 import { showAllProduct } from "@/services/productAPI";
 import { getImage } from "@/services/imageAPI";
+import { Product } from "@/models/Entities/Product";
 
 const ProductList: React.FC = () => {
   const { jewelryType } = useParams<{ jewelryType: string }>();
@@ -265,7 +266,7 @@ const ProductList: React.FC = () => {
         <Row gutter={[16, 16]}>
           {currentJewelryData.products
             .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-            .map((product: any) => (
+            .map((product: Product) => (
               <Col key={product.id} span={6}>
                 <Card
                   key={product.id}
@@ -293,7 +294,7 @@ const ProductList: React.FC = () => {
                             }
                           />
                         </Link>
-                        {product.discountFirstPrice && (
+                        {product.price && (
                           <div className="sale-badge">SALE</div>
                         )}
                       </>
@@ -320,10 +321,10 @@ const ProductList: React.FC = () => {
                       )}
                     </Title>
                     <div className="price-container">
-                      {product.discountFirstPrice ? (
+                      {product.price ? (
                         <>
                           <Text className="product-price">
-                            ${product.discountFirstPrice}
+                            ${product.price}
                           </Text>
                           <Text delete className="product-sale-price">
                             ${product.firstPrice}

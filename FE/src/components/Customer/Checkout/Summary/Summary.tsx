@@ -6,13 +6,11 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import PromoCodeSection from "../../../Customer/Checkout/PromoCode";
 import { showAllOrderLineForAdmin } from "@/services/orderLineAPI";
-import { showAllDiamond } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
-import { showAllProduct } from "@/services/jewelryAPI";
 import useAuth from "@/hooks/useAuth";
 import { getCustomer } from "@/services/accountApi";
 import { useAppDispatch } from "@/hooks";
 import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
+import { showAllProduct } from "@/services/productAPI";
 interface CartItemProps {
   name: string;
   image: string;
@@ -43,12 +41,15 @@ const Summary: React.FC = () => {
   const [productList, setProductList] = useState<any[]>([]);
   const { AccountID } = useAuth();
   const [customer, setCustomer] = useState<any>();
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const onApplyVoucher = (discount: number, voucherID: number) => {
     setDiscount(discount);
     setVoucherID(voucherID);
-    localStorage.setItem("selectedVoucher", JSON.stringify({ discount, voucherID }));
+    localStorage.setItem(
+      "selectedVoucher",
+      JSON.stringify({ discount, voucherID })
+    );
   };
   console.log(discount);
   console.log(voucherID);
@@ -61,22 +62,21 @@ const Summary: React.FC = () => {
       const { data } = await showAllOrderLineForAdmin();
       if (data.statusCode !== 200) throw new Error();
 
-      const getOrderLineItems = data.data.filter((
-        OrderLineItem: {
-          CustomerID: number,
-          OrderID: number | null
-          DiamondID: number | null,
-          ProductID: number | null
-        }
-      ) => (
-        OrderLineItem.CustomerID === customer?.CustomerID
-        && OrderLineItem.OrderID === null
-        && (OrderLineItem.DiamondID !== null || OrderLineItem.ProductID !== null)
-      ));
+      const getOrderLineItems = data.data.filter(
+        (OrderLineItem: {
+          CustomerID: number;
+          OrderID: number | null;
+          DiamondID: number | null;
+          ProductID: number | null;
+        }) =>
+          OrderLineItem.CustomerID === customer?.CustomerID &&
+          OrderLineItem.OrderID === null &&
+          (OrderLineItem.DiamondID !== null || OrderLineItem.ProductID !== null)
+      );
       setOrderLineItems(getOrderLineItems);
 
       //Get diamond list
-      const response = await showAllDiamond();
+      const response = await showAllProduct();
       setDiamondList(response.data.data);
 
       //Get product list
@@ -84,7 +84,7 @@ const Summary: React.FC = () => {
       setProductList(productResponse.data.data);
 
       //Display result
-      console.log('Cart: ', orderLineItems);
+      console.log("Cart: ", orderLineItems);
     } catch (error: any) {
       console.error(error);
     }
@@ -112,11 +112,15 @@ const Summary: React.FC = () => {
     let temp = 0;
     orderLineItems.map(async (item) => {
       temp += item.DiscountPrice;
-    })
+    });
     return temp;
-  }
+  };
 
-  const total = calculateTotal(subtotalNumber(), discount, shippingCost).toFixed(2);
+  const total = calculateTotal(
+    subtotalNumber(),
+    discount,
+    shippingCost
+  ).toFixed(2);
   dispatch(orderSlice.actions.setTotal(Number(total)));
   return (
     <SummarySection>
@@ -136,26 +140,36 @@ const Summary: React.FC = () => {
       </ItemNumber>
       {orderLineItems.map((item: any, index: any) => {
         if (item?.DiamondID) {
-          const diamond = diamondList.find(d => d && d.DiamondID === item.DiamondID);
+          const diamond = diamondList.find(
+            (d) => d && d.DiamondID === item.DiamondID
+          );
           return (
             <CartItem
               key={index}
               name={diamond ? diamond.Name : item.name}
-              image={diamond ? getImage(diamond.usingImage[0]?.UsingImageID) : item.image}
+              image={
+                diamond
+                  ? getImage(diamond.usingImage[0]?.UsingImageID)
+                  : item.image
+              }
               sku={item.sku}
               price={diamond ? diamond.Price : 0}
             />
           );
         } else {
-          const product = productList.find(p => p && p.ProductID === item.ProductID);
+          const product = productList.find(
+            (p) => p && p.ProductID === item.ProductID
+          );
           return (
             <CartItem
               key={index}
               name={product ? product.Name : ""}
-              image={product ? getImage(product.UsingImage[0]?.UsingImageID) : ""}
+              image={
+                product ? getImage(product.UsingImage[0]?.UsingImageID) : ""
+              }
               price={item.DiscountPrice}
             />
-          )
+          );
         }
       })}
       <EditTotal>
@@ -163,7 +177,7 @@ const Summary: React.FC = () => {
         {discount > 0 && (
           <>
             <p>Discount {`(${discount}%)`}: </p>
-            <p>{`-$${(subtotalNumber() * discount / 100).toFixed(2)}`}</p>
+            <p>{`-$${((subtotalNumber() * discount) / 100).toFixed(2)}`}</p>
           </>
         )}
       </EditTotal>

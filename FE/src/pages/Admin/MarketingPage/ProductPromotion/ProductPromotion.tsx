@@ -5,11 +5,7 @@ import {
   PlusCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
-import type {
-  TableProps,
-  FormInstance,
-  DatePickerProps,
-} from "antd";
+import type { TableProps, FormInstance, DatePickerProps } from "antd";
 import {
   Form,
   Input,
@@ -25,10 +21,19 @@ import {
 } from "antd";
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import MarketingMenu from "@/components/Admin/MarketingMenu/MarketingMenu";
-import { createVoucher, deleteVoucher, showAllVoucher, updateVoucher } from "@/services/voucherAPI";
-import { showAllDiscount, createDiscount, updateDiscount, deleteDiscount } from "@/services/discountAPI";
+import {
+  createVoucher,
+  deleteVoucher,
+  showAllVoucher,
+  updateVoucher,
+} from "@/services/voucherAPI";
+import {
+  showAllDiscount,
+  createDiscount,
+  updateDiscount,
+  deleteDiscount,
+} from "@/services/discountAPI";
 import { showAllProduct } from "@/services/productAPI";
-import { showAllDiamond } from "@/services/diamondAPI";
 // import { setSelectedDiamond } from "@/layouts/MainLayout/slice/customRingSlice";
 
 interface EditableCellProps {
@@ -72,18 +77,15 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   );
 };
 
-
 // DATE PICK
 const onChangeDate: DatePickerProps["onChange"] = (date, dateString) => {
   console.log(date, dateString);
 };
 
-
 // MULTI JEWELRY PICK
 // const handleChange = (value: string[]) => {
 //   console.log(`selected ${value}`);
 // };
-
 
 const ProductPromotion = () => {
   const [form] = Form.useForm();
@@ -99,7 +101,6 @@ const ProductPromotion = () => {
 
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedDiamonds, setSelectedDiamonds] = useState([]);
-
 
   type NotificationType = "success" | "info" | "warning" | "error";
 
@@ -119,11 +120,9 @@ const ProductPromotion = () => {
     try {
       const response = await showAllDiscount();
       const responseProduct = await showAllProduct();
-      const responseDiamond = await showAllDiamond();
 
       const { data } = response.data;
       const { data: productData } = responseProduct.data;
-      const { data: diamondData } = responseDiamond.data;
 
       const formattedDiscounts = data.map((discount: any) => ({
         key: discount.PromotionID,
@@ -136,7 +135,7 @@ const ProductPromotion = () => {
       }));
 
       const formattedProducts = productData
-        .filter((product: any) => (product.PromotionID !== null))
+        .filter((product: any) => product.PromotionID !== null)
         .map((product: any) => ({
           productName: product.Name,
           promotionID: product.PromotionID,
@@ -145,13 +144,12 @@ const ProductPromotion = () => {
       setDiscounts(formattedDiscounts);
       setProducts(formattedProducts);
       setProductUpdate(productData);
-      setDiamondUpdate(diamondData);
-      console.log("Product data: ", productData)
+
+      console.log("Product data: ", productData);
     } catch (error) {
       console.error("Failed to fetch types:", error);
     }
   };
-
 
   useEffect(() => {
     fetchData();
@@ -159,14 +157,14 @@ const ProductPromotion = () => {
 
   const handleChangeProduct = (value: any) => {
     setSelectedProducts(value);
-  }
+  };
   const handleChangeDiamond = (value: any) => {
     setSelectedDiamonds(value);
-  }
+  };
   // useEffect(()=>{
   //   const fetchData = async ()=> {
   //     try{
-  //       const dataProduct = 
+  //       const dataProduct =
   //     }
   //     catch(error){
   //       console.log(error)
@@ -247,15 +245,13 @@ const ProductPromotion = () => {
       title: "Promotion Name",
       dataIndex: "name",
       editable: true,
-      sorter: (a: any, b: any) =>
-        a.name.length - b.name.length,
+      sorter: (a: any, b: any) => a.name.length - b.name.length,
     },
     {
       title: "% discount",
       dataIndex: "discountValue",
       editable: true,
-      sorter: (a: any, b: any) =>
-        a.discountValue - b.discountValue,
+      sorter: (a: any, b: any) => a.discountValue - b.discountValue,
     },
     {
       title: "Start Date",
@@ -263,11 +259,9 @@ const ProductPromotion = () => {
       // editable: true,
       onChange: { onChangeDate },
       render: (_: any, { startDate }: any) => {
-        return <>{startDate.replace("T", " ").replace(".000Z", " ")}</>
+        return <>{startDate.replace("T", " ").replace(".000Z", " ")}</>;
       },
-      sorter: (a: any, b: any) =>
-        a.startDate.length - b.startDate.length,
-      
+      sorter: (a: any, b: any) => a.startDate.length - b.startDate.length,
     },
     {
       title: "End Date",
@@ -275,16 +269,17 @@ const ProductPromotion = () => {
       // editable: true,
       onChange: { onChangeDate },
       render: (_: any, { endDate }: any) => {
-        return <>{endDate.replace("T", " ").replace(".000Z", " ")}</>
+        return <>{endDate.replace("T", " ").replace(".000Z", " ")}</>;
       },
-      sorter: (a: any, b: any) =>
-        a.endDate.length - b.endDate.length,
+      sorter: (a: any, b: any) => a.endDate.length - b.endDate.length,
     },
     {
       title: "Product Quantity",
       dataIndex: "prouctID",
       render: (_: any, record: any) => {
-        const count = products.filter(product => product.id === record.id).length;
+        const count = products.filter(
+          (product) => product.id === record.id
+        ).length;
         return count;
       },
       sorter: (a: any, b: any) => a.count.length - b.count.length,
@@ -376,7 +371,6 @@ const ProductPromotion = () => {
     console.log("params", pagination, filters, sorter, extra);
   };
 
-
   // SEARCH AREA
 
   const onSearch = (value: string) => {
@@ -389,7 +383,6 @@ const ProductPromotion = () => {
     }
   };
 
-
   // MOVE ADD NEW
   const handleAddNew = () => {
     setIsAdding(true);
@@ -399,7 +392,6 @@ const ProductPromotion = () => {
   const handleCancel = () => {
     setIsAdding(false);
   };
-
 
   // SUBMIT FORM
   interface SubmitButtonProps {
@@ -450,7 +442,6 @@ const ProductPromotion = () => {
     );
   };
 
-
   return (
     <>
       {contextHolder}
@@ -486,12 +477,12 @@ const ProductPromotion = () => {
                   </Styled.AddButton>
                 </>
               )) || (
-                  <>
-                    <Styled.AddContent_Title>
-                      <p>Add Collection</p>
-                    </Styled.AddContent_Title>
-                  </>
-                )}
+                <>
+                  <Styled.AddContent_Title>
+                    <p>Add Collection</p>
+                  </Styled.AddContent_Title>
+                </>
+              )}
             </Styled.AdPageContent_Head>
 
             <Styled.AdminTable>
@@ -501,7 +492,7 @@ const ProductPromotion = () => {
                     form={form}
                     layout="vertical"
                     className="AdPageContent_Content"
-                  // autoComplete="off"
+                    // autoComplete="off"
                   >
                     <Styled.FormItem>
                       <Form.Item
@@ -538,7 +529,7 @@ const ProductPromotion = () => {
                       >
                         {/* <InputNumber className="formItem" placeholder="15" />
                          */}
-                           <Input className="formItem" placeholder="15" />
+                        <Input className="formItem" placeholder="15" />
                       </Form.Item>
                     </Styled.FormItem>
                     <Styled.FormItem>
@@ -549,7 +540,7 @@ const ProductPromotion = () => {
                       >
                         {/* <InputNumber className="formItem" placeholder="15" />
                          */}
-                           <Input className="formItem" placeholder="Percentage" />
+                        <Input className="formItem" placeholder="Percentage" />
                       </Form.Item>
                     </Styled.FormItem>
                     <Styled.FormItem>
@@ -598,8 +589,7 @@ const ProductPromotion = () => {
                             placeholder="Select Product"
                             options={productUpdate.map((product) => ({
                               value: product.ProductID,
-                              label:
-                                product.ProductID + ": " + product.Name,
+                              label: product.ProductID + ": " + product.Name,
                             }))}
                             // Ensure the value is bound to state
                             onChange={handleChangeProduct}
@@ -620,8 +610,7 @@ const ProductPromotion = () => {
                             placeholder="Select Diamond"
                             options={diamondUpdate.map((diamond) => ({
                               value: diamond.DiamondID,
-                              label:
-                                diamond.DiamondID + ": " + diamond.Name,
+                              label: diamond.DiamondID + ": " + diamond.Name,
                             }))}
                             // Ensure the value is bound to state
                             onChange={handleChangeDiamond}
