@@ -21,7 +21,7 @@ const ProductList: React.FC = () => {
     "Men Wedding Ring",
   ];
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {

@@ -1,33 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Typography, Pagination } from "antd";
-import { HeartOutlined, HeartFilled } from "@ant-design/icons";
+// import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 const { Title, Text } = Typography;
-
-interface Product {
-          id: number;
-          name: string;
-          sku: string;
-          description: string;
-          price: number;
-          carat: number;
-          color: string;
-          clarity: string;
-          cut: string;
-          stockQuantity: number;
-          giaCertNumber: string;
-          isHidden: boolean;
-          categoryId: number;
-          orderDetailId: number;
-          warrantyId: number;
-          salePrice?: number;
-          firstPrice?: number;
-          totalDiamondPrice?: number;
-          star?: number;
-          type?: string;
-          images: { url: string }[];
-          
-        }
-        
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
 import {
   Body,
   Categories,
@@ -76,9 +51,8 @@ import { Carousel } from "antd";
 import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
 import { showAllProduct } from "@/services/productAPI";
+
 // import { getImage } from "@/services/imageAPI";
-
-
 
 const categories = [
   {
@@ -285,57 +259,57 @@ const Home: React.FC = () => {
   const pageSize = 4;
   const navigate = useNavigate();
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await showAllProduct();
-      console.log("API response:", response.data.data);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await showAllProduct();
+        console.log("API response:", response.data);
 
-      if (response && response.data && Array.isArray(response.data.data)) {
-        
-        const fetchedProducts = response.data.data.map((item: Product) => ({
-          id: item.id,
-          name: item.name,
-          sku: item.sku,
-          description: item.description,
-          price: item.price,
-          carat: item.carat,
-          color: item.color,
-          clarity: item.clarity,
-          cut: item.cut,
-          stockQuantity: item.stockQuantity,
-          giaCertNumber: item.giaCertNumber,
-          isHidden: item.isHidden,
-          categoryId: item.categoryId,
-          orderDetailId: item.orderDetailId,
-          warrantyId: item.warrantyId,
-          // Thêm các optional properties nếu có
-          salePrice: item.salePrice,
-          firstPrice: item.firstPrice,
-          totalDiamondPrice: item.totalDiamondPrice,
-          star: item.star,
-          type: item.type,
-          // Xử lý images - kiểm tra xem API có trả về images không
-          images: item.images && Array.isArray(item.images) 
-            ? item.images 
-            : [] // Nếu không có images từ API, gán array rỗng
-        }));
+        if (response && Array.isArray(response.data)) {
+          const fetchedProducts = (
+            response.data as ProductApiResponseItem[]
+          ).map((item) => {
+            const product = item.product;
 
-        console.log(fetchedProducts);
-        setProducts(fetchedProducts);
-        setLoading(false);
-      } else {
-        console.error("Unexpected API response format:", response.data);
+            return {
+              id: product.id,
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: product.categoryId,
+              orderDetailId: product.orderDetailId,
+              warrantyId: product.warrantyId,
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images) ? product.images : [],
+            };
+          });
+
+          setProducts(fetchedProducts);
+        } else {
+          console.error("Unexpected API format", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
         setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
+
   const handlePageChange = (page: number) => {
     setCurrent(page);
   };
@@ -514,77 +488,73 @@ useEffect(() => {
                 justifyContent: "center",
               }}
             >
-              {paginatedProducts.slice(0, 2).map((product, index) => (
-                <div
-                  key={product.id}
-                  className="card-wrapper"
-                  style={{ marginBottom: index === 0 ? "16px" : "0" }}
-                >
-                  <StyledCard
-                    style={{ borderRadius: "0", height: "100%" }}
-                    hoverable
-                    className="product-card"
-                    cover={
-                      product.images.length > 0 ? (
-                        <>
-                          <Link to={`/product/${product.id}`}>
-                            <img
-                              style={{ borderRadius: "0" }}
-                              src={product.images[0]?.url || ""}
-                              alt={product.name}
-                              className="product-image"
-                              onMouseOver={(e) =>
-                                (e.currentTarget.src =
-                                  product.images[1]?.url ||
-                                  product.images[0]?.url ||
-                                  "")
-                              }
-                              onMouseOut={(e) =>
-                                (e.currentTarget.src =
-                                  product.images[0]?.url || "")
-                              }
-                            />
-                          </Link>
-                          {product.salePrice && (
-                            <div className="sale-badge">SALE</div>
-                          )}
-                        </>
-                      ) : (
-                        <div>No Image Available</div>
-                      )
-                    }
+              {paginatedProducts.slice(0, 2).map((product, index) => {
+                const key = product.id || `${index}-${product.name}`;
+                console.log("Rendering product with id:", key);
+
+                return (
+                  <div
+                    key={key}
+                    className="card-wrapper"
+                    style={{ marginBottom: index === 0 ? "16px" : "0" }}
                   >
-                    <div className="product-info">
-                      <Title level={4} className="product-name">
-                        <Link to={`/product/${product.id}`}>
-                          <div>{product.name}</div>
-                        </Link>
-                        {wishList.includes(product.id) ? (
-                          <HeartFilled
-                            className="wishlist-icon"
-                            // onClick={() => toggleWishList(product.id)}
-                          />
+                    <StyledCard
+                      style={{ borderRadius: "0", height: "100%" }}
+                      hoverable
+                      className="product-card"
+                      cover={
+                        product.images.length > 0 ? (
+                          <>
+                            <Link to={`/product/${product.id}`}>
+                              <img
+                                style={{ borderRadius: "0" }}
+                                src={product.images[0]?.url || ""}
+                                alt={product.name}
+                                className="product-image"
+                                onMouseOver={(e) =>
+                                  (e.currentTarget.src =
+                                    product.images[1]?.url ||
+                                    product.images[0]?.url ||
+                                    "")
+                                }
+                                onMouseOut={(e) =>
+                                  (e.currentTarget.src =
+                                    product.images[0]?.url || "")
+                                }
+                              />
+                            </Link>
+                            {product.salePrice && (
+                              <div className="sale-badge">SALE</div>
+                            )}
+                          </>
                         ) : (
-                          <HeartOutlined
-                            className="wishlist-icon"
-                            // onClick={() => toggleWishList(product.id)}
-                          />
-                        )}
-                      </Title>
-                      <div className="price-container">
-                        <Text className="product-price">
-                          ${(product.firstPrice || 0) + (product.totalDiamondPrice || 0)}
-                        </Text>
-                        {product.salePrice && (
-                          <Text delete className="product-sale-price">
-                            ${product.totalDiamondPrice}
+                          <div>No Image Available</div>
+                        )
+                      }
+                    >
+                      <div className="product-info">
+                        <Title level={4} className="product-name">
+                          <Link to={`/product/${product.id}`}>
+                            <div>{product.name}</div>
+                          </Link>
+                        </Title>
+                        <div className="price-container">
+                          <Text className="product-price">
+                            $
+                            {(product.firstPrice || 0) +
+                              (product.totalDiamondPrice || 0)}
                           </Text>
-                        )}
+                          {product.salePrice && (
+                            <Text delete className="product-sale-price">
+                              ${product.totalDiamondPrice}
+                            </Text>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </StyledCard>
-                </div>
-              ))}
+                    </StyledCard>
+                  </div>
+                );
+              })}
             </Col>
 
             <Col
@@ -595,52 +565,56 @@ useEffect(() => {
                 justifyContent: "center",
               }}
             >
-              {paginatedProducts.slice(2, 4).map((product, index) => (
-                <div
-                  key={product.id}
-                  className="card-wrapper"
-                  style={{ marginBottom: index === 0 ? "16px" : "0" }}
-                >
-                  <StyledCard
-                    style={{ borderRadius: "0", height: "100%" }}
-                    hoverable
-                    className="product-card"
-                    cover={
-                      product.images.length > 0 ? (
-                        <>
-                          <Link to={`/product/${product.id}`}>
-                            <img
-                              style={{ borderRadius: "0" }}
-                              src={product.images[0]?.url || ""}
-                              alt={product.name}
-                              className="product-image"
-                              onMouseOver={(e) =>
-                                (e.currentTarget.src =
-                                  product.images[1]?.url ||
-                                  product.images[0]?.url ||
-                                  "")
-                              }
-                              onMouseOut={(e) =>
-                                (e.currentTarget.src =
-                                  product.images[0]?.url || "")
-                              }
-                            />
-                          </Link>
-                          {product.salePrice && (
-                            <div className="sale-badge">SALE</div>
-                          )}
-                        </>
-                      ) : (
-                        <div>No Image Available</div>
-                      )
-                    }
+              {paginatedProducts.slice(0, 2).map((product, index) => {
+                const key = product.id || `${index}-${product.name}`;
+                console.log("Rendering product with id:", key);
+
+                return (
+                  <div
+                    key={key}
+                    className="card-wrapper"
+                    style={{ marginBottom: index === 0 ? "16px" : "0" }}
                   >
-                    <div className="product-info">
-                      <Title level={4} className="product-name">
-                        <Link to={`/product/${product.id}`}>
-                          <div>{product.name}</div>
-                        </Link>
-                        {wishList.includes(product.id) ? (
+                    <StyledCard
+                      style={{ borderRadius: "0", height: "100%" }}
+                      hoverable
+                      className="product-card"
+                      cover={
+                        product.images.length > 0 ? (
+                          <>
+                            <Link to={`/product/${product.id}`}>
+                              <img
+                                style={{ borderRadius: "0" }}
+                                src={product.images[0]?.url || ""}
+                                alt={product.name}
+                                className="product-image"
+                                onMouseOver={(e) =>
+                                  (e.currentTarget.src =
+                                    product.images[1]?.url ||
+                                    product.images[0]?.url ||
+                                    "")
+                                }
+                                onMouseOut={(e) =>
+                                  (e.currentTarget.src =
+                                    product.images[0]?.url || "")
+                                }
+                              />
+                            </Link>
+                            {product.salePrice && (
+                              <div className="sale-badge">SALE</div>
+                            )}
+                          </>
+                        ) : (
+                          <div>No Image Available</div>
+                        )
+                      }
+                    >
+                      <div className="product-info">
+                        <Title level={4} className="product-name">
+                          <Link to={`/product/${product.id}`}>
+                            <div>{product.name}</div>
+                          </Link>
+                          {/* {wishList.includes(product.id) ? (
                           <HeartFilled
                             className="wishlist-icon"
                             // onClick={() => toggleWishList(product.id)}
@@ -650,22 +624,25 @@ useEffect(() => {
                             className="wishlist-icon"
                             // onClick={() => toggleWishList(product.id)}
                           />
-                        )}
-                      </Title>
-                      <div className="price-container">
-                        <Text className="product-price">
-                          ${(product.firstPrice || 0) + (product.totalDiamondPrice || 0)}
-                        </Text>
-                        {product.salePrice && (
-                          <Text delete className="product-sale-price">
-                            ${product.totalDiamondPrice}
+                        )} */}
+                        </Title>
+                        <div className="price-container">
+                          <Text className="product-price">
+                            $
+                            {(product.firstPrice || 0) +
+                              (product.totalDiamondPrice || 0)}
                           </Text>
-                        )}
+                          {product.salePrice && (
+                            <Text delete className="product-sale-price">
+                              ${product.totalDiamondPrice}
+                            </Text>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </StyledCard>
-                </div>
-              ))}
+                    </StyledCard>
+                  </div>
+                );
+              })}
             </Col>
             <Col span={8} style={{ paddingLeft: "16px" }}>
               <div className="custom-cover">
@@ -710,9 +687,7 @@ useEffect(() => {
               truly unforgettable.
             </h6>
             <Button>
-              <button
-                onClick={() => navigate(config.routes.public.allProduct)}
-              >
+              <button onClick={() => navigate(config.routes.public.allProduct)}>
                 SHOPPING NOW!
               </button>
               <button onClick={() => navigate(config.routes.public.sale)}>
