@@ -1,10 +1,16 @@
 import { UUID } from "crypto";
 import { get, post, put, remove } from "./apiCaller";
+import axios from "axios";
 
-export const showAllProduct = () => {
-  return get(`/api/Product`);
+export const showAllProduct = async () => {
+  try {
+    const response = await axios.get("/api/Product");
+    return response;
+  } catch (error) {
+    console.error("Error calling API:", error);
+    throw error;
+  }
 };
-
 export const createProduct = (product: object) => {
   return post(`/api/Product`, product);
 };

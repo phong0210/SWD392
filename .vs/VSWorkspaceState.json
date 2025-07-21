@@ -4,13 +4,11 @@
     "\\BE",
     "\\BE\\DiamondShopSystem",
     "\\BE\\DiamondShopSystem\\DiamondShopSystem.API",
-    "\\BE\\DiamondShopSystem\\DiamondShopSystem.BLL",
+    "\\BE\\DiamondShopSystem\\DiamondShopSystem.API\\Controllers",
     "\\BE\\DiamondShopSystem\\DiamondShopSystem.BLL\\Handlers",
-    "\\BE\\DiamondShopSystem\\DiamondShopSystem.BLL\\Handlers\\Product",
     "\\BE\\DiamondShopSystem\\DiamondShopSystem.BLL\\Handlers\\Product\\DTOs",
-    "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL",
-    "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL\\Repositories"
+    "\\BE\\DiamondShopSystem\\DiamondShopSystem.DAL"
   ],
-  "SelectedNode": "\\BE\\DiamondShopSystem\\DiamondShopSystem.BLL\\Handlers\\Product\\DTOs\\ProductGetResponseDto.cs",
+  "SelectedNode": "\\BE\\DiamondShopSystem\\DiamondShopSystem.API\\Controllers\\WarrantyController.cs",
   "PreviewInSolutionExplorer": false
 }

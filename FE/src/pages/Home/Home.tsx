@@ -3,6 +3,31 @@ import { Row, Col, Typography, Pagination } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 const { Title, Text } = Typography;
 
+interface Product {
+          id: number;
+          name: string;
+          sku: string;
+          description: string;
+          price: number;
+          carat: number;
+          color: string;
+          clarity: string;
+          cut: string;
+          stockQuantity: number;
+          giaCertNumber: string;
+          isHidden: boolean;
+          categoryId: number;
+          orderDetailId: number;
+          warrantyId: number;
+          salePrice?: number;
+          firstPrice?: number;
+          totalDiamondPrice?: number;
+          star?: number;
+          type?: string;
+          images: { url: string }[];
+          
+        }
+        
 import {
   Body,
   Categories,
@@ -51,7 +76,9 @@ import { Carousel } from "antd";
 import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
 import { showAllProduct } from "@/services/productAPI";
-import { getImage } from "@/services/imageAPI";
+// import { getImage } from "@/services/imageAPI";
+
+
 
 const categories = [
   {
@@ -251,21 +278,22 @@ const Home: React.FC = () => {
   //   );
   // };
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [current, setCurrent] = useState(1);
   const pageSize = 4;
   const navigate = useNavigate();
 
- useEffect(() => {
+useEffect(() => {
   const fetchData = async () => {
     try {
       const response = await showAllProduct();
       console.log("API response:", response.data.data);
 
       if (response && response.data && Array.isArray(response.data.data)) {
-        const fetchedProducts = response.data.data.map((item: any) => ({
+        
+        const fetchedProducts = response.data.data.map((item: Product) => ({
           id: item.id,
           name: item.name,
           sku: item.sku,
@@ -281,6 +309,16 @@ const Home: React.FC = () => {
           categoryId: item.categoryId,
           orderDetailId: item.orderDetailId,
           warrantyId: item.warrantyId,
+          // Thêm các optional properties nếu có
+          salePrice: item.salePrice,
+          firstPrice: item.firstPrice,
+          totalDiamondPrice: item.totalDiamondPrice,
+          star: item.star,
+          type: item.type,
+          // Xử lý images - kiểm tra xem API có trả về images không
+          images: item.images && Array.isArray(item.images) 
+            ? item.images 
+            : [] // Nếu không có images từ API, gán array rỗng
         }));
 
         console.log(fetchedProducts);
@@ -288,16 +326,17 @@ const Home: React.FC = () => {
         setLoading(false);
       } else {
         console.error("Unexpected API response format:", response.data);
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching products:", error);
+      setLoading(false);
     }
   };
 
   fetchData();
 }, []);
-
-  const handlePageChange = (page: any) => {
+  const handlePageChange = (page: number) => {
     setCurrent(page);
   };
 
@@ -310,11 +349,11 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     const filtered = products.filter(
-      (product) => !excludedCategories.includes(product.type)
+      (product) => !excludedCategories.includes(product.type || "")
     );
 
     const sortedAndLimited = filtered
-      .sort((a, b) => b.star - a.star)
+      .sort((a, b) => (b.star || 0) - (a.star || 0))
       .slice(0, 8);
 
     setFilteredProducts(sortedAndLimited);
@@ -520,7 +559,7 @@ const Home: React.FC = () => {
                         <Link to={`/product/${product.id}`}>
                           <div>{product.name}</div>
                         </Link>
-                        {wishList.includes(parseInt(product.id)) ? (
+                        {wishList.includes(product.id) ? (
                           <HeartFilled
                             className="wishlist-icon"
                             // onClick={() => toggleWishList(product.id)}
@@ -534,7 +573,7 @@ const Home: React.FC = () => {
                       </Title>
                       <div className="price-container">
                         <Text className="product-price">
-                          ${product.firstPrice + product.totalDiamondPrice}
+                          ${(product.firstPrice || 0) + (product.totalDiamondPrice || 0)}
                         </Text>
                         {product.salePrice && (
                           <Text delete className="product-sale-price">
@@ -601,7 +640,7 @@ const Home: React.FC = () => {
                         <Link to={`/product/${product.id}`}>
                           <div>{product.name}</div>
                         </Link>
-                        {wishList.includes(parseInt(product.id)) ? (
+                        {wishList.includes(product.id) ? (
                           <HeartFilled
                             className="wishlist-icon"
                             // onClick={() => toggleWishList(product.id)}
@@ -615,7 +654,7 @@ const Home: React.FC = () => {
                       </Title>
                       <div className="price-container">
                         <Text className="product-price">
-                          ${product.firstPrice + product.totalDiamondPrice}
+                          ${(product.firstPrice || 0) + (product.totalDiamondPrice || 0)}
                         </Text>
                         {product.salePrice && (
                           <Text delete className="product-sale-price">
