@@ -2,14 +2,14 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 interface OrderState {
     OrderID: number;
-    VoucherID: number;
+    PromotionID: string;
     Shippingfee: number;
     Total: number;
 }
 
 const initialOrderState: OrderState = {
     OrderID: 0,
-    VoucherID: 0,
+    PromotionID: "",
     Shippingfee: 0,
     Total: 0,
 };
@@ -21,8 +21,8 @@ export const orderSlice = createSlice({
         setOrderID: (state, action: PayloadAction<number>) => {
             state.OrderID = action.payload;
         },
-        setVoucherID: (state, action: PayloadAction<number>) => {
-            state.VoucherID = action.payload;
+        setVoucherID: (state, action: PayloadAction<string>) => {
+            state.PromotionID = action.payload;
         },
         setShippingfee: (state, action: PayloadAction<number>) => {
             state.Shippingfee = action.payload;

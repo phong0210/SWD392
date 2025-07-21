@@ -71,10 +71,10 @@ const BillPromotion = () => {
       const response = await showAllVoucher();
       const { data } = response.data;
       const formattedVoucher = data.map((voucher: any) => ({
-        key: voucher.VoucherID,
-        voucherID: voucher.VoucherID,
-        voucherCode: voucher.VoucherCode,
-        percentDiscounts: voucher.PercentDiscounts,
+        key: voucher.PromotionID,
+        promotionID: voucher.PromotionID,
+        name: voucher.Name,
+        discountValue: voucher.DiscountValue,
         startDate: voucher.StartDate,
         endDate: voucher.EndDate,
         description: voucher.Description,
@@ -93,20 +93,20 @@ const BillPromotion = () => {
 
   const columns = [
     {
-      title: "Voucher ID",
-      dataIndex: "voucherID",
+      title: "VoucPromotion ID",
+      dataIndex: "promotionID",
       editable: true,
       sorter: (a: any, b: any) => parseInt(a.voucherID) - parseInt(b.voucherID),
     },
     {
-      title: "Voucher Code",
-      dataIndex: "voucherCode",
+      title: "Name",
+      dataIndex: "name",
       editable: true,
       sorter: (a: any, b: any) => a.voucherCode.length - b.voucherCode.length,
     },
     {
       title: "% discount",
-      dataIndex: "percentDiscounts",
+      dataIndex: "discountValue",
       editable: true,
       sorter: (a: any, b: any) => a.percentDiscounts - b.percentDiscounts,
     },
@@ -148,7 +148,7 @@ const BillPromotion = () => {
       ...col,
       onCell: (record: any) => ({
         record,
-        inputType: col.dataIndex === "percentDiscounts" ? "number" : "text",
+        inputType: col.dataIndex === "discountValue" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),

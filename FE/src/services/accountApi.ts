@@ -13,7 +13,7 @@ export const getCustomer = (id: number) => {
 }
 
 export const getAccountDetail = (id: number) => {
-    return get(`/api/users/${id}`);
+    return get(`/api/User/detail/${id}`);
 }
 
 // Deprecated legacy endpoints (commented out)

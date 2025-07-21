@@ -3,6 +3,7 @@ using DiamondShopSystem.DAL.Entities;
 using DiamondShopSystem.BLL.Handlers.User.DTOs;
 using DiamondShopSystem.BLL.Handlers.Auth.DTOs;
 using DiamondShopSystem.BLL.Handlers.Order.DTOs;
+using DiamondShopSystem.BLL.Handlers.Promotion.DTOs;
 
 namespace DiamondShopSystem.BLL.Mapping
 {
@@ -28,6 +29,11 @@ namespace DiamondShopSystem.BLL.Mapping
             CreateMap<OrderDetail, OrderDetailResponseDto>();
             CreateMap<Payment, PaymentResponseDto>();
             CreateMap<Delivery, DeliveryResponseDto>();
+
+            // Promotion mappings
+            CreateMap<Promotion, PromotionDto>();
+            CreateMap<PromotionCreateDto, Promotion>();
+            CreateMap<PromotionUpdateDto, Promotion>();
         }
     }
 } 
