@@ -1,23 +1,27 @@
-using System.Collections;
-using System.Text;
+﻿using AutoMapper;
+using DiamondShopSystem.API.Policies;
+using DiamondShopSystem.BLL.Handlers;
+using DiamondShopSystem.BLL.Handlers.User;
+using DiamondShopSystem.BLL.Handlers.User.Validators;
+using DiamondShopSystem.BLL.Mapping;
+using DiamondShopSystem.BLL.Services;
+using DiamondShopSystem.BLL.Services.Auth;
+using DiamondShopSystem.BLL.Services.Category;
+using DiamondShopSystem.BLL.Services.Order;
+using DiamondShopSystem.BLL.Services.User;
+using DiamondShopSystem.BLL.Services.Warranty;
+using DiamondShopSystem.DAL;
+using DiamondShopSystem.DAL.Repositories;
 using DotNetEnv;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DiamondShopSystem.DAL;
-using DiamondShopSystem.DAL.Repositories;
-using DiamondShopSystem.BLL.Mapping;
-using MediatR;
-using AutoMapper;
-using DiamondShopSystem.BLL.Handlers;
-using DiamondShopSystem.API.Policies;
-using DiamondShopSystem.BLL.Handlers.User;
-using DiamondShopSystem.BLL.Services;
-using DiamondShopSystem.BLL.Handlers.User.Validators;
-using DiamondShopSystem.BLL.Services.Auth;
-using DiamondShopSystem.BLL.Services.User;
-using DiamondShopSystem.BLL.Services.Order;
+using System.Collections;
+using System.Text;
+using DiamondShopSystem.DAL.Repositories.Contracts;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -78,7 +82,7 @@ void ConfigureServices()
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(typeof(EntityToDtoProfile).Assembly);
     builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.User.Validators.UserCreateValidator).Assembly);
-
+   
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
@@ -101,6 +105,21 @@ void ConfigureServices()
 
     // Product Services
     builder.Services.AddScoped<DiamondShopSystem.BLL.Services.Product.IProductService, DiamondShopSystem.BLL.Services.Product.ProductService>();
+
+    // Category Services
+    builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+    // Warranty Services
+    builder.Services.AddScoped<IWarrantyService, WarrantyService>();
+
+   
+    
+
+    // Delivery Services
+    builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+    builder.Services.AddScoped<DeliveryService>();
+
 }
 
 void ConfigureAuthentication()
@@ -240,4 +259,4 @@ void ConfigureDatabase()
             options.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
         }
     });
-} 
+}

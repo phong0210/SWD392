@@ -23,7 +23,7 @@ namespace DiamondShopSystem.BLL.Services.Product
         {
             var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
             var productEntity = productRepo.GetByIdAsync(productId);
-            if (productEntity == null)
+            if (productEntity.Result == null)
             {
                 return Task.FromResult(new ProductUpdateResponseDto
                 {

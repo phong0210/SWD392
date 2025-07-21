@@ -1,16 +1,31 @@
-import { get, post, put, remove } from "./apiCaller"
+import { UUID } from "crypto";
+import { get, post, put, remove } from "./apiCaller";
+import axios from "axios";
 
-export const showAllProduct = () => {
-    return get(`/api/products`);
-}
-
-export const getProductDetails = (id: number) => {
-    return get(`/api/products/${id}`)
-}
-
+export const showAllProduct = async () => {
+  try {
+    const response = await axios.get("/api/Product");
+    return response;
+  } catch (error) {
+    console.error("Error calling API:", error);
+    throw error;
+  }
+};
 export const createProduct = (product: object) => {
-    return post(`/api/products`, product);
-}
+  return post(`/api/Product`, product);
+};
+
+export const getProductDetails = (id: UUID) => {
+  return get(`/api/Product/detail/${id}`);
+};
+
+export const updateDiamond = (id: number, diamond: object) => {
+  return put(`/api/Product/update/${id}`, diamond);
+};
+
+export const deleteDiamond = (id: number) => {
+  return remove(`/api/Product/${id}`);
+};
 
 // TEMPORARY: Commented out until backend image endpoint is available
 // export const getImageProduct = (id: number) => {
@@ -30,12 +45,3 @@ export const createProduct = (product: object) => {
 // export const getCategories = () => {
 //     return get(`/api/categories`);
 // }
-
-export const updateDiamond = (id: number, diamond: object) => {
-    return put(`/api/diamonds/${id}`, diamond);
-}
-
-export const deleteDiamond = (id: number) => {
-    return remove(`/api/diamonds/${id}`);
-}
-

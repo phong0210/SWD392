@@ -5,6 +5,8 @@ using DiamondShopSystem.BLL.Handlers.Auth.Validators;
 using DiamondShopSystem.BLL.Handlers.User.DTOs;
 using DiamondShopSystem.BLL.Handlers.User.Commands.Get;
 using DiamondShopSystem.BLL.Handlers.User.Validators;
+using DiamondShopSystem.BLL.Handlers.Product.Validators;
+using DiamondShopSystem.BLL.Handlers.Warranty.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers
 {
@@ -17,6 +19,7 @@ namespace DiamondShopSystem.BLL.Handlers
             services.AddScoped<FluentValidation.IValidator<UserGetCommand>, UserGetValidator>();
             services.AddScoped<FluentValidation.IValidator<UserUpdateDto>, UserUpdateValidator>();
             services.AddScoped<FluentValidation.IValidator<DiamondShopSystem.BLL.Handlers.Product.DTOs.ProductUpdateDto>, DiamondShopSystem.BLL.Handlers.Product.Validators.ProductUpdateValidator>();
+            services.AddScoped<FluentValidation.IValidator<WarrantyUpdateDto>, WarrantyUpdateValidator>();
             // Add more validators here as needed
             return services;
         }
