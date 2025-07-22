@@ -19,7 +19,6 @@ const fetchCustomerInfo = async (AccountID: number) => {
 
 const AccountCus = () => {
   const { AccountID } = useAuth();
-  console.log("AccountID check", AccountID);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {

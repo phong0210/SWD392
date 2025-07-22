@@ -3,7 +3,7 @@ using DiamondShopSystem.BLL.Handlers.User.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers.User.Validators
 {
-    public class UserCreateValidator : AbstractValidator<UserCreateDto>
+    public class UserCreateValidator : AbstractValidator<UserRegisterDto>
     {
         public UserCreateValidator()
         {

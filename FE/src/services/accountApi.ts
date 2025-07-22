@@ -1,19 +1,11 @@
-import { get } from "./apiCaller";
-
-// interface UpdateAccount {
-//     fullName: string;
-//     phoneNumber: string;
-//     role: string;
-//     email: string;
-//     address: string;
-// }
+import { get, post } from "./apiCaller";
 
 export const getCustomer = (id: number) => {
-    return get(`/api/user/detail/${id}`);
+    return get(`/api/User/detail/${id}`);
 }
 
-export const getAccountDetail = (id: number) => {
-    return get(`/api/User/detail/${id}`);
+export const promoteToStaff = (email: string, roleName: string, salary: number, hireDate: string) => {
+    return post('/api/User/promote-to-staff', { email, roleName, salary, hireDate });
 }
 
 // Deprecated legacy endpoints (commented out)

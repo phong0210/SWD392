@@ -22,12 +22,10 @@ const theme: DefaultTheme = createStyledBreakpointsTheme({
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
     <ThemeProvider theme={theme}>
       <Provider store={store}>
         <App />
       </Provider>
       <GlobalStyles />
     </ThemeProvider>
-  </React.StrictMode>,
 )

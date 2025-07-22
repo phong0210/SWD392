@@ -1,6 +1,5 @@
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { theme } from "../../../../themes";
-import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyle = createGlobalStyle`
   html, body {
@@ -16,7 +15,6 @@ export const AdminArea = styled.section`
   display: inline-flex;
   background-color: #f1f1f1;
   font-family: "Poppins", sans-serif;
-  /* height: 100%; */
   width: 100%;
 `;
 
@@ -35,14 +33,14 @@ export const AdPageContent = styled.div`
   background-color: #ffffff;
   border-radius: 16px;
   margin-top: 28px;
-  padding-top: 25px;
-  padding-bottom: 20px;
+  padding: 25px 40px 30px 40px; /* Consistent padding */
 `;
 
 export const AdPageContent_Head = styled.div`
-  margin: 0px 40px 30px 40px;
+  margin-bottom: 30px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 `;
 
 export const SearchArea = styled.div`
@@ -50,15 +48,13 @@ export const SearchArea = styled.div`
 
   display: flex;
   align-items: center;
-  //
-  border-radius: 16px;
 
   .searchInputContainer {
     display: flex;
     align-items: center;
     border-radius: 4px;
     padding: 4px 8px;
-    width: calc(100% - 46px); // Adjust width to fit the layout
+    width: 100%; // Full width within SearchArea
   }
   .searchIcon {
     margin: 0px 10px 0px 10px;
@@ -68,18 +64,13 @@ export const SearchArea = styled.div`
     border: none;
     outline: none;
     flex-grow: 1;
-    // font-size: 16px;
     background-color: #f8f9fb;
-    padding: 0px;
-    border-radius: 10px;
     padding: 4px 8px;
     border: 1px solid rgba(203, 210, 220, 0.5);
     color: #151542;
     background-color: #f8f9fb;
     height: 45px;
-  }
-
-  .searchInput:focus {
+    width: 100%; // Ensure input takes full space
   }
 `;
 
@@ -95,6 +86,9 @@ export const AddButton = styled.div`
     padding: 10px 15px 10px 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   button:hover {
@@ -119,7 +113,6 @@ export const AdminTable = styled.div`
   th,
   td {
     padding: 15px 0px 10px 0px;
-    // padding: 8px;
     text-align: left;
     font-size: 16px;
     color: ${theme.color.primary};
@@ -158,7 +151,6 @@ export const AdminTable = styled.div`
     border-radius: 100px;
     padding: 7px 17px 7px 17px;
     box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.08);
-    /* font-size: 12px; */
     color: ${theme.color.secondary};
     border: none;
   }
@@ -166,43 +158,29 @@ export const AdminTable = styled.div`
     cursor: pointer;
   }
 
-  
-  // --------------------------
-
   .AdPageContent_Content {
     display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    label {
-      color: #727272;
-      // font-size: 16px;
-      font-weight: 500;
-    }
+    flex-direction: column; /* Stack vertically */
+    gap: 24px; /* Consistent spacing between items */
+    width: 100%; /* Ensure full width */
+    padding: 0 0 20px 0; /* Add bottom padding for spacing */
   }
 `;
 
-
-
-
-// ------------------------- ADD AREA
-
 export const AddContent_Title = styled.div`
-width: 100%;
+  width: 100%;
   background-color: #ffffff;
   color: ${theme.color.primary};
-  padding: 0px 0px 0px 0px;
+  padding: 0px 0px 15px 0px; /* Add bottom padding for spacing */
   font-weight: 600;
   font-size: 18px;
 `;
 
 export const FormItem = styled.div`
   width: 100%;
-  height: 57px;
-  margin-bottom: 30px;
-  
 
-  .formItem {
-    width: 100%;
+  .ant-form-item {
+    margin-bottom: 0 !important; /* Let FormItem handle spacing */
   }
 `;
 
@@ -214,9 +192,8 @@ export const FormDescript = styled.div`
 `;
 
 export const UploadFile = styled.div`
-width: 48%;
+  width: 48%;
 `;
-
 
 export const ActionBtn = styled.div`
   margin-top: 25px;
@@ -230,5 +207,4 @@ export const ActionBtn = styled.div`
     color: #92929d;
     border: 0px;
   }
-
 `;

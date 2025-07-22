@@ -24,11 +24,9 @@ class CookieUtils {
 
   decodeJwt() {
     const token = this.getItem(config.cookies.token);
-    console.log("Decoded JWT:", token);
     if (token) {
       try {
         const jwtUser = jwtDecode(token);
-        console.log("Decoded JWT User:", jwtUser);
         return jwtUser;
       } catch (err) {
         this.deleteUser();

@@ -14,17 +14,19 @@ import {
   Table,
   Button,
   notification,
+  Select,
+  DatePicker,
+  AutoComplete,
 } from "antd";
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import StaffMenu from "@/components/Admin/SalesStaffMenu/StaffMenu";
 import { SortOrder } from "antd/es/table/interface";
 import {
   deleteAccount,
-  register,
-  showAllAccounts,
   updateAccount,
 } from "@/services/authAPI";
-import { Role } from "@/utils/enum";
+import { promoteToStaff } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 
 interface EditableCellProps {
   editing: boolean;
@@ -71,10 +73,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const SalesStaff = () => {
   const [form] = Form.useForm();
   const [staffs, setStaffs] = useState<any[]>([]);
-  // const [editingName, setEditingName] = useState<string>("");
-  const [isAdding, setIsAdding] = useState(false);
+  const [nonStaffUsers, setNonStaffUsers] = useState<any[]>([]);
+  const [isPromoting, setIsPromoting] = useState(false);
   const [api, contextHolder] = notification.useNotification();
   const [searchText, setSearchText] = useState("");
+  const [emailOptions, setEmailOptions] = useState<any[]>([]);
+  const [selectedUserInfo, setSelectedUserInfo] = useState<any>(null);
 
   type NotificationType = "success" | "info" | "warning" | "error";
 
@@ -86,30 +90,63 @@ const SalesStaff = () => {
     api[type]({
       message: type === "success" ? "Notification" : "Error",
       description:
-        type === "success" ? `${method} manager successfully` : error,
+        type === "success" ? `${method} user successfully` : error,
     });
   };
 
   const fetchData = async () => {
     try {
       const response = await showAllAccounts();
-      const { data } = response.data;
-      const filteredManagers = data.filter(
-        (customer: any) => customer.Role === Role.SALE_STAFF
-      );
+      console.log("API Response:", response);
+      
+      let allUsers;
+      if (response.data && Array.isArray(response.data)) {
+        allUsers = response.data;
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        allUsers = response.data.data;
+      } else if (Array.isArray(response)) {
+        allUsers = response;
+      } else {
+        throw new Error("Invalid API response format");
+      }
 
-      const formattedStaffs = filteredManagers.map((manager: any) => ({
-        key: manager.AccountID,
-        staffID: manager.AccountID,
-        staffName: manager.Name,
-        phoneNumber: manager.PhoneNumber,
-        email: manager.Email,
-        password: manager.Password,
-        role: manager.Role,
+      const salesStaff = allUsers.filter(
+        (user: any) => user.roleName === "SaleStaff" 
+      ).map((staff: any) => ({
+        key: staff.id || staff.AccountID,
+        staffID: staff.id || staff.AccountID,
+        staffName: staff.name || staff.Name || "",
+        phoneNumber: staff.phone || staff.PhoneNumber || "",
+        email: staff.email || staff.Email || "",
+        password: staff.password || staff.Password || "",
+        role: staff.roleName || staff.Role,
+        address: staff.address || "",
       }));
-      setStaffs(formattedStaffs);
+
+      const nonStaff = allUsers.filter(
+        (user: any) => user.roleName !== "SaleStaff" && user.roleName !== "Manager" && user.roleName !== "HeadOfficeAdmin" && user.roleName !== "DeliveryStaff"
+      ).map((user: any) => ({
+        key: user.id || user.AccountID,
+        email: user.email || user.Email || "",
+        name: user.name || user.Name || "",
+        phone: user.phone || user.PhoneNumber || "",
+      }));
+      
+      console.log("Sales Staff:", salesStaff);
+      console.log("Non-Staff Users:", nonStaff);
+      setStaffs(salesStaff);
+      setNonStaffUsers(nonStaff);
+      
+      // Prepare email options for autocomplete
+      const options = nonStaff.map((user: any) => ({
+        value: user.email,
+        label: `${user.email} (${user.name})`,
+        user: user
+      }));
+      setEmailOptions(options);
     } catch (error) {
-      console.error("Failed to fetch types:", error);
+      console.error("Failed to fetch user data:", error);
+      openNotification("error", "Fetch", "Failed to load user data");
     }
   };
 
@@ -117,65 +154,14 @@ const SalesStaff = () => {
     fetchData();
   }, []);
 
-  // EDIT
-  // const isEditing = (record: any) => record.staffName === editingName;
-
-  // const edit = (record: Partial<any> & { staffName: string }) => {
-  //   form.setFieldsValue({
-  //     // staffName: "",
-  //     email: "",
-  //     ...record,
-  //   });
-  //   setEditingName(record.staffName);
-  // };
-
-  // const cancel = () => {
-  //   setEditingName("");
-  // };
-
-  // const save = async (staffName: string) => {
-  //   try {
-  //     const row = (await form.validateFields()) as any;
-  //     const newData = [...staffs];
-  //     const index = newData.findIndex(
-  //       (item) => staffName === item.staffName
-  //     );
-
-  //     if (index > -1) {
-  //       const item = newData[index];
-  //       const updatedItem = {
-  //         Name: row.staffName,
-  //         Email: row.email,
-  //         PhoneNumber: item.phoneNumber,
-  //         CustomerID: item.CustomerID,
-  //         Role: item.role,
-  //       };
-  //       newData.splice(index, 1, {
-  //         ...item,
-  //         ...row,
-  //       });
-  //       setStaffs(newData);
-  //       await updateAccount(item.staffName, updatedItem);
-  //       openNotification("success", "Update", "");
-  //     } else {
-  //       newData.push(row);
-  //       setStaffs(newData);
-  //       openNotification("error", "Update", "Failed to update manager");
-  //     }
-  //     setEditingName("");
-  //   } catch (errInfo) {
-  //     console.log("Validate Failed:", errInfo);
-  //   }
-  // };
-
-  const handleDelete = async (staffID: number) => {
+  const handleDelete = async (staffID: string | number) => {
     try {
       await deleteAccount(staffID);
       openNotification("success", "Delete", "");
       fetchData();
     } catch (error: any) {
-      console.error("Failed to delete material:", error);
-      openNotification("error", "Delete", error.message);
+      console.error("Failed to delete staff:", error);
+      openNotification("error", "Delete", error.message || "Failed to delete staff");
     }
   };
 
@@ -202,48 +188,41 @@ const SalesStaff = () => {
       title: "Staff ID",
       dataIndex: "staffID",
       editable: true,
-      sorter: (a: any, b: any) => parseInt(a.staffID) - parseInt(b.staffID),
+      sorter: (a: any, b: any) => {
+        // Handle both string and number IDs
+        const aID = typeof a.staffID === 'string' ? a.staffID : String(a.staffID || "");
+        const bID = typeof b.staffID === 'string' ? b.staffID : String(b.staffID || "");
+        return aID.localeCompare(bID);
+      },
     },
     {
       title: "Staff Name",
       dataIndex: "staffName",
       defaultSortOrder: "descend" as SortOrder,
       editable: true,
-      sorter: (a: any, b: any) => a.staffName.length - b.staffName.length,
+      sorter: (a: any, b: any) => {
+        // Safe string sorting with null/undefined checks
+        const aName = a.staffName || "";
+        const bName = b.staffName || "";
+        return aName.length - bName.length;
+      },
+    },
+    {
+      title: "Phone Number",
+      dataIndex: "phoneNumber",
+      editable: true,
     },
     {
       title: "Email",
       dataIndex: "email",
       editable: true,
+      sorter: (a: any, b: any) => {
+        // Safe email sorting
+        const aEmail = a.email || "";
+        const bEmail = b.email || "";
+        return aEmail.localeCompare(bEmail);
+      },
     },
-    // {
-    //   title: "Edit",
-    //   dataIndex: "edit",
-    //   className: "TextAlign SmallSize",
-    //   render: (_: unknown, record: any) => {
-    //     const editable = isEditing(record);
-    //     return editable ? (
-    //       <span>
-    //         <Typography.Link
-    //           onClick={() => save(record.key)}
-    //           style={{ marginRight: 8 }}
-    //         >
-    //           Save
-    //         </Typography.Link>
-    //         <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-    //           <a>Cancel</a>
-    //         </Popconfirm>
-    //       </span>
-    //     ) : (
-    //       <Typography.Link
-    //         disabled={editingName !== ""}
-    //         onClick={() => edit(record)}
-    //       >
-    //         Edit
-    //       </Typography.Link>
-    //     );
-    //   },
-    // },
     {
       title: "Delete",
       dataIndex: "delete",
@@ -285,7 +264,6 @@ const SalesStaff = () => {
         inputType: col.dataIndex === "phoneNumber" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        // editing: isEditing(record),
       }),
     };
   });
@@ -293,7 +271,7 @@ const SalesStaff = () => {
   // SEARCH
   const onSearch = (value: string) => {
     console.log("Search:", value);
-    // Thực hiện logic tìm kiếm ở đây
+    // Implement search logic here
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -302,14 +280,40 @@ const SalesStaff = () => {
     }
   };
 
-  // MOVE ADD NEW
-
-  const handleAddNew = () => {
-    setIsAdding(true);
+  const handlePromoteNew = () => {
+    setIsPromoting(true);
+    setSelectedUserInfo(null);
+    form.resetFields();
   };
 
   const handleCancel = () => {
-    setIsAdding(false);
+    setIsPromoting(false);
+    setSelectedUserInfo(null);
+    form.resetFields();
+  };
+
+  // Handle email selection for autocomplete
+  const handleEmailSelect = (value: string) => {
+    const selectedOption = emailOptions.find(option => option.value === value);
+    if (selectedOption) {
+      setSelectedUserInfo(selectedOption.user);
+      form.setFieldsValue({ email: value });
+    }
+  };
+
+  // Filter email options based on search input
+  const handleEmailSearch = (searchText: string) => {
+    const filteredOptions = nonStaffUsers
+      .filter((user: any) => 
+        user.email.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.name.toLowerCase().includes(searchText.toLowerCase())
+      )
+      .map((user: any) => ({
+        value: user.email,
+        label: `${user.email} (${user.name})`,
+        user: user
+      }));
+    setEmailOptions(filteredOptions);
   };
 
   // SUBMIT FORM
@@ -331,23 +335,23 @@ const SalesStaff = () => {
         .catch(() => setSubmittable(false));
     }, [form, values]);
 
-    const addManager = async () => {
+    const promoteUser = async () => {
       try {
-        const managerValues = await form.validateFields();
-        const newManager = {
-          ...managerValues,
-          PhoneNumber: "",
-          CustomerID: null,
-          Role: "ROLE_SALE_STAFF",
-        };
+        const { email, salary, hireDate } = await form.validateFields();
+        const roleName = "SaleStaff"; // Hardcoded for now, can be dynamic later
 
-        const { data } = await register(newManager);
-        if (data.statusCode !== 200) throw new Error(data.message);
-        fetchData();
-        setIsAdding(false);
-        openNotification("success", "Add", "");
+        const response = await promoteToStaff(email, roleName, salary, hireDate.toISOString());
+        if (response.status === 200) {
+          openNotification("success", "Promote", "User promoted to staff successfully.");
+          fetchData();
+          setIsPromoting(false);
+          setSelectedUserInfo(null);
+          form.resetFields();
+        } else {
+          openNotification("error", "Promote", response.data?.message || "Failed to promote user.");
+        }
       } catch (error: any) {
-        openNotification("error", "", error.message);
+        openNotification("error", "Promote", error.message || "An unexpected error occurred.");
       }
     };
 
@@ -356,7 +360,7 @@ const SalesStaff = () => {
         type="primary"
         htmlType="submit"
         disabled={!submittable}
-        onClick={addManager}
+        onClick={promoteUser}
       >
         {children}
       </Button>
@@ -375,13 +379,12 @@ const SalesStaff = () => {
 
           <Styled.AdPageContent>
             <Styled.AdPageContent_Head>
-              {(!isAdding && (
+              {(!isPromoting && (
                 <>
                   <Styled.SearchArea>
                     <Input
                       className="searchInput"
                       type="text"
-                      // size="large"
                       placeholder="Search here..."
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
@@ -390,23 +393,23 @@ const SalesStaff = () => {
                     />
                   </Styled.SearchArea>
                   <Styled.AddButton>
-                    <button onClick={handleAddNew}>
+                    <button onClick={handlePromoteNew}>
                       <PlusCircleOutlined />
-                      Add New Staff
+                      Promote User to Staff
                     </button>
                   </Styled.AddButton>
                 </>
               )) || (
                 <>
                   <Styled.AddContent_Title>
-                    <p>Add Staff</p>
+                    <p>Promote User to Sales Staff</p>
                   </Styled.AddContent_Title>
                 </>
               )}
             </Styled.AdPageContent_Head>
 
             <Styled.AdminTable>
-              {isAdding ? (
+              {isPromoting ? (
                 <>
                   <Form
                     form={form}
@@ -415,50 +418,73 @@ const SalesStaff = () => {
                   >
                     <Styled.FormItem>
                       <Form.Item
-                        name="Name"
-                        label="Staff Name"
-                        rules={[{ required: true }]}
+                        name="email"
+                        label="User E-mail"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please select a user E-mail!",
+                          },
+                        ]}
                       >
-                        <Input placeholder="trang.staff" />
+                        <AutoComplete
+                          placeholder="Type to search and select user email..."
+                          onSelect={handleEmailSelect}
+                          onSearch={handleEmailSearch}
+                          options={emailOptions}
+                          filterOption={false}
+                          showSearch
+                          allowClear
+                          style={{ width: '100%', marginBottom: '16px' }}
+                          dropdownStyle={{ maxHeight: 200, overflow: 'auto', zIndex: 1000 }}
+                        />
+                      </Form.Item>
+                      
+                      {/* Display selected user info */}
+                      {selectedUserInfo && (
+                        <div style={{ 
+                          padding: '12px 16px', 
+                          backgroundColor: '#f6f6f6', 
+                          borderRadius: '4px',
+                          marginTop: '12px',
+                          marginBottom: '16px',
+                          border: '1px solid #d9d9d9',
+                          fontSize: '14px'
+                        }}>
+                          <strong>Selected User:</strong> {selectedUserInfo.name} <br />
+                          <strong>Email:</strong> {selectedUserInfo.email} <br />
+                          {selectedUserInfo.phone && (
+                            <>
+                              <strong>Phone:</strong> {selectedUserInfo.phone}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </Styled.FormItem>
+                    
+                    <Styled.FormItem>
+                      <Form.Item
+                        name="salary"
+                        label="Salary"
+                        rules={[{ required: true, message: "Please input salary!" }]}
+                      >
+                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter salary" />
                       </Form.Item>
                     </Styled.FormItem>
                     <Styled.FormItem>
                       <Form.Item
-                        name="Email"
-                        label="E-mail"
-                        rules={[
-                          {
-                            type: "email",
-                            message: "The input is not valid E-mail!",
-                          },
-                          {
-                            required: true,
-                            message: "Please input your E-mail!",
-                          },
-                        ]}
+                        name="hireDate"
+                        label="Hire Date"
+                        rules={[{ required: true, message: "Please select hire date!" }]}
                       >
-                        <Input />
-                      </Form.Item>
-                    </Styled.FormItem>
-                    <Styled.FormItem>
-                      <Form.Item
-                        label="Password"
-                        name="Password"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please input your password!",
-                          },
-                        ]}
-                      >
-                        <Input.Password />
+                        <DatePicker style={{ width: '100%' }} />
                       </Form.Item>
                     </Styled.FormItem>
 
                     <Styled.ActionBtn>
                       <SubmitButton form={form}>
                         <SaveOutlined />
-                        Save
+                        Promote
                       </SubmitButton>
                       <Button
                         onClick={handleCancel}
@@ -482,9 +508,11 @@ const SalesStaff = () => {
                     columns={mergedColumns}
                     rowClassName="editable-row"
                     pagination={{
-                      // onChange: cancel,
                       pageSize: 6,
+                      showSizeChanger: false,
+                      showQuickJumper: true,
                     }}
+                    loading={staffs.length === 0}
                   />
                 </Form>
               )}

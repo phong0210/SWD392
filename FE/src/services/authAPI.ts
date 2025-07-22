@@ -5,7 +5,19 @@ export const login = (account: object) => {
 }
 
 export const register = (account: object) => {
-    return post(`/api/user/register`, account);
+    return post(`/api/User/register`, account);
+}
+
+export const confirmRegistration = (payload: { email: string; otp: string }) => {
+    return post(`/api/User/confirm-registration`, payload);
+}
+
+export const requestPasswordReset = (payload: { email: string }) => {
+    return post(`/api/Auth/request-password-reset`, payload);
+}
+
+export const confirmPasswordReset = (payload: { email: string; otp: string; newPassword: string }) => {
+    return post(`/api/Auth/confirm-password-reset`, payload);
 }
 
 export const registerCustomer = (account: object) => {
@@ -13,12 +25,10 @@ export const registerCustomer = (account: object) => {
 }
 
 export const showAllAccounts = () => {
-    return get(`/api/users`);
+    return get(`/api/User`);
 }
 
-export const getAccountDetail = (id: number) => {
-    return get(`/api/user/detail/${id}`);
-}
+
 
 export const updateAccount = (email: string, account: object) => {
     return put(`/api/users/${email}`, account);

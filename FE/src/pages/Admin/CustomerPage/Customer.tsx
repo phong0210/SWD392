@@ -2,12 +2,10 @@ import * as Styled from "./Customer.styled";
 import React, { useEffect, useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType } from "antd";
-import { Form, Input, InputNumber, notification, Popconfirm, Table } from "antd";
 import Sidebar from "../../../components/Admin/Sidebar/Sidebar";
-// import { customerData, CustomerDataType } from "./CustomerData";
+import { Form, Input, InputNumber, notification, Popconfirm, Table, Tag } from "antd";
 import { showAllAccounts, updateAccount } from "@/services/authAPI";
 import { Role } from "@/utils/enum";
-
 
 interface EditableCellProps {
   editing: boolean;
@@ -67,35 +65,67 @@ const Customer = () => {
     api[type]({
       message: type === "success" ? "Notification" : "Error",
       description:
-        type === "success" ? `${method} manager successfully` : error,
+        type === "success" ? `${method} successfully` : error,
     });
   };
 
   const fetchData = async () => {
     try {
       const response = await showAllAccounts();
-      const { data } = response.data;
-      const filteredCustomers = data.filter((customer: any) => customer.Role === Role.CUSTOMER);
+      console.log("API Response:", response);
+      
+      if (!response.data) {
+        console.error("No data in response");
+        openNotification("error", "Fetch", "No data received from server");
+        return;
+      }
 
-      const formattedCustomers = filteredCustomers.map((customer: any) => ({
-        key: customer.AccountID,
-        accountID: customer.AccountID,
-        customerName: customer.Name,
-        phoneNumber: customer.PhoneNumber,
-        email: customer.Email,
-        role: customer.Role,
-        customerID: customer.CustomerID
+      let accountsData;
+      
+      // The API response shows data is directly in response.data (it's an array)
+      if (Array.isArray(response.data)) {
+        accountsData = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        accountsData = response.data.data;
+      } else {
+        console.error("Unexpected response structure:", response.data);
+        openNotification("error", "Fetch", "Unexpected data format");
+        return;
+      }
+
+      if (!Array.isArray(accountsData)) {
+        console.error("Expected array but got:", typeof accountsData, accountsData);
+        openNotification("error", "Fetch", "Invalid data format received");
+        return;
+      }
+
+      // Filter customers based on roleName instead of Role
+      const filteredCustomers = accountsData.filter((account: any) => 
+        account.roleName && account.roleName.toLowerCase().includes('customer')
+      );
+
+      const formattedCustomers = filteredCustomers.map((customer: any, index: number) => ({
+        key: customer.id || index,
+        accountID: customer.id,
+        customerName: customer.name || '',
+        phoneNumber: customer.phone || '',
+        email: customer.email || '',
+        role: customer.roleName || '',
+        customerID: customer.id, // Using id as customerID since there's no separate customerID field
+        isActive: customer.isActive !== undefined ? customer.isActive : true
       }));
+      
+      console.log("Filtered customers:", formattedCustomers);
       setCustomers(formattedCustomers);
     } catch (error) {
-      console.error("Failed to fetch types:", error);
+      console.error("Failed to fetch accounts:", error);
+      openNotification("error", "Fetch", "Failed to load customer data");
     }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
-
 
   const handleBan = async (email: string) => {
     try {
@@ -104,71 +134,90 @@ const Customer = () => {
       });
       console.log("Ban Response:", response.data);
       if (response.status === 200) {
-        openNotification("success", "Ban", "Staff has been banned successfully.");
+        openNotification("success", "Ban", "Customer has been banned successfully");
         fetchData();
       } else {
-        openNotification("error", "Ban", "Failed to ban staff.");
+        openNotification("error", "Ban", "Failed to ban customer");
       }
     } catch (error: any) {
-      console.error("Failed to ban staff:", error);
-      openNotification("error", "Ban", error.message);
+      console.error("Failed to ban customer:", error);
+      openNotification("error", "Ban", error.message || "Failed to ban customer");
     }
   };
 
+  // Fixed columns with proper null checks
   const columns: TableColumnsType<any> = [
     {
       title: "Customer ID",
       dataIndex: "customerID",
-      // editable: true,
-      sorter: (a, b) =>
-        parseInt(a.customerID) - parseInt(b.customerID),
+      sorter: (a, b) => {
+        const aId = a.customerID || '';
+        const bId = b.customerID || '';
+        return aId.localeCompare(bId);
+      },
     },
     {
       title: "Customer Name",
       dataIndex: "customerName",
       defaultSortOrder: "descend",
-      // editable: true,
-      sorter: (a, b) =>
-        a.customerName.length - b.customerName.length,
+      sorter: (a, b) => {
+        const aName = a.customerName || '';
+        const bName = b.customerName || '';
+        return aName.localeCompare(bName);
+      },
     },
     {
       title: "Email",
       dataIndex: "email",
-      // editable: true,
-      sorter: (a, b) => a.email.length - b.email.length,
+      sorter: (a, b) => {
+        const aEmail = a.email || '';
+        const bEmail = b.email || '';
+        return aEmail.localeCompare(bEmail);
+      },
     },
-    // {
-    //   title: "Detail",
-    //   key: "detail",
-    //   className: "TextAlign",
-    //   render: (_, { customerID }) => (
-    //     <Space size="middle">
-    //       <Link to={`/admin/customer/detail/${customerID}`}>
-    //         <EyeOutlined />
-    //       </Link>
-    //     </Space>
-    //   ),
-    // },
+    {
+      title: "Phone",
+      dataIndex: "phoneNumber",
+      sorter: (a, b) => {
+        const aPhone = a.phoneNumber || '';
+        const bPhone = b.phoneNumber || '';
+        return aPhone.localeCompare(bPhone);
+      },
+    },
     {
       title: "Ban",
       dataIndex: "ban",
       className: "TextAlign",
-      render: (_: unknown, record: any) =>
-        customers.length >= 1 ? (
-          <Popconfirm
-            title="Sure to ban?"
-            onConfirm={() => handleBan(record.email)}
-          >
-            <a>Ban</a>
-          </Popconfirm>
-        ) : null,
+      render: (_: unknown, record: any) => (
+        <Popconfirm
+          title="Sure to ban this customer?"
+          onConfirm={() => handleBan(record.email)}
+          disabled={!record.isActive} // Disable if already banned
+        >
+          <a style={{ 
+            color: !record.isActive ? '#ccc' : '#1890ff',
+            cursor: !record.isActive ? 'not-allowed' : 'pointer'
+          }}>
+            {record.isActive ? 'Ban' : 'Banned'}
+          </a>
+        </Popconfirm>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "isActive",
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? "green" : "red"}>
+          {isActive ? "Active" : "Banned"}
+        </Tag>
+      ),
     },
   ];
 
-
-  // SEARCH 
+  // SEARCH functionality
   const onSearch = (value: string) => {
     console.log("Search:", value);
+    // You can implement actual search logic here
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -183,11 +232,10 @@ const Customer = () => {
       <Styled.GlobalStyle />
       <Styled.AdminArea>
         <Sidebar />
-
         <Styled.AdminPage>
           <Styled.TitlePage>
             <h1>Customer Management</h1>
-            <p>View and manage Customer</p>
+            <p>View and manage customers</p>
           </Styled.TitlePage>
 
           <Styled.AdPageContent>
@@ -196,7 +244,6 @@ const Customer = () => {
                 <Input
                   className="searchInput"
                   type="text"
-                  // size="large"
                   placeholder="Search here..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -220,6 +267,13 @@ const Customer = () => {
                   rowClassName="editable-row"
                   pagination={{
                     pageSize: 6,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} customers`,
+                  }}
+                  locale={{
+                    emptyText: "No customers found"
                   }}
                 />
               </Form>
@@ -230,4 +284,5 @@ const Customer = () => {
     </>
   );
 };
+
 export default Customer;

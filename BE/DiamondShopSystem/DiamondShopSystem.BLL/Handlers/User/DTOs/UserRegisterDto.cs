@@ -2,7 +2,7 @@ using System;
 
 namespace DiamondShopSystem.BLL.Handlers.User.DTOs
 {
-    public class UserCreateDto
+    public class UserRegisterDto
     {
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -12,4 +12,4 @@ namespace DiamondShopSystem.BLL.Handlers.User.DTOs
         public bool Status { get; set; } = true;
         public Guid? GoogleId { get; set; }
     }
-} 
+}

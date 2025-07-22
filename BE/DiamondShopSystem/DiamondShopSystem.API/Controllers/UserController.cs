@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using DiamondShopSystem.BLL.Handlers.User.DTOs;
-using DiamondShopSystem.BLL.Handlers.User.Commands.Create;
+using DiamondShopSystem.BLL.Handlers.User.Commands.Register;
 using DiamondShopSystem.BLL.Handlers.User.Commands.Get;
 using DiamondShopSystem.BLL.Handlers.User.Commands.Update;
 using DiamondShopSystem.API.Policies;
-using System;
-using System.Threading.Tasks;
-using FluentValidation;
+using DiamondShopSystem.BLL.Handlers.User.Commands.ConfirmRegistration;
+using DiamondShopSystem.BLL.Handlers.User.Commands.PromoteUserToStaff;
+
 
 namespace DiamondShopSystem.API.Controllers
 {
@@ -33,10 +33,26 @@ namespace DiamondShopSystem.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserCreateDto userCreateDto)
+        [HttpGet]
+        public async Task<ActionResult<List<UserListDto>>> GetAllUsers()
         {
-            var result = await _mediator.Send(new UserCreateCommand(userCreateDto));
+            var users = await _mediator.Send(new GetAllUsersQuery());
+            return Ok(users);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
+        {
+            var result = await _mediator.Send(new UserRegisterCommand(userRegisterDto));
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+        }
+
+        [HttpPost("confirm-registration")]
+        public async Task<IActionResult> ConfirmRegistration([FromBody] ConfirmRegistrationDto confirmRegistrationDto)
+        {
+            var result = await _mediator.Send(new ConfirmRegistrationCommand(confirmRegistrationDto));
             if (!result.Success)
                 return BadRequest(result);
             return Ok(result);
@@ -49,6 +65,15 @@ namespace DiamondShopSystem.API.Controllers
             if (!result.Success)
                 return BadRequest(result);
             return Ok(result);
+        }
+
+        [HttpPost("promote-to-staff")]
+        public async Task<IActionResult> PromoteToStaff([FromBody] PromoteUserToStaffCommand command)
+        {
+            var success = await _mediator.Send(command);
+            if (!success)
+                return BadRequest(new { message = "Failed to promote user to staff." });
+            return Ok(new { message = "User promoted to staff successfully." });
         }
     }
 }

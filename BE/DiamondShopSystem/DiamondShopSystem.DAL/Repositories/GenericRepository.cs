@@ -33,6 +33,11 @@ namespace DiamondShopSystem.DAL.Repositories
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
+        public IQueryable<T> GetAllQueryable()
+        {
+            return _dbSet.AsQueryable();
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);

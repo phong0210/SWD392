@@ -16,12 +16,16 @@ namespace DiamondShopSystem.BLL.Mapping
             
             // User mappings
             CreateMap<User, UserDto>();
-            CreateMap<User, UserCreateDto>();
-            CreateMap<UserCreateDto, User>();
+            CreateMap<User, UserRegisterDto>();
+            CreateMap<UserRegisterDto, User>();
             
             // User Get mappings
             CreateMap<User, UserAccountInfoDto>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Status));
+
+            CreateMap<User, UserListDto>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.StaffProfile != null ? src.StaffProfile.Role.Name : "Customer"))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Status));
 
             // Order mappings

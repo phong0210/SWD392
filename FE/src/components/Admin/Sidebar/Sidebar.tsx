@@ -1,6 +1,6 @@
 import * as Styled from "./Sidebar.styled";
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ProductOutlined,
   ShoppingCartOutlined,
@@ -16,7 +16,7 @@ import {
 import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
 import useAuth from "@/hooks/useAuth";
-import { getAccountDetail } from "@/services/accountApi";
+import { getCustomer } from "@/services/accountApi";
 import { Role } from "@/utils/enum";
 
 const Sidebar = () => {
@@ -24,23 +24,33 @@ const Sidebar = () => {
   const location = useLocation();
   const [active, setActive] = useState<string>("");
   const [userInfo, setUserInfo] = useState<{ name: string | undefined, role: string | null } | null>(null);
+  const fetchingRef = useRef(false); // Add ref to track if already fetching
 
   useEffect(() => {
     const fetchUserInfo = async () => {
+      if (!AccountID || fetchingRef.current) return; // Don't fetch if no AccountID or already fetching
+      
+      fetchingRef.current = true; // Set fetching flag
+      
       try {
-        const response = await getAccountDetail(AccountID ? AccountID : 0);
-        const account = response.data.data; // Thay đổi cách lấy tài khoản tùy theo cấu trúc thực tế của response
+        const response = await getCustomer(AccountID);
+        console.log("User info fetched:", response.data);
+        
+        // Fixed: Access the user data from response.data.user instead of response.data
+        const account = response.data.user;
         setUserInfo({
-          name: account?.Name,
+          name: account?.fullName, // Changed from Name to fullName to match API response
           role: role ? role.substring(5) : "",
         });
       } catch (error) {
         console.error("Failed to fetch user info:", error);
+      } finally {
+        fetchingRef.current = false; // Reset fetching flag
       }
     };
 
     fetchUserInfo();
-  }, [AccountID]);
+  }, [AccountID, role]); // Added role to dependencies since it's used in the effect
 
   useEffect(() => {
     const path = location.pathname;

@@ -5,7 +5,7 @@ import { PoweroffOutlined, SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
 import OrderMenu from "@/components/Staff/Deli/OrderDeli/OrderMenu";
 import useAuth from "@/hooks/useAuth";
-import { getAccountDetail } from "@/services/accountApi";
+import { getCustomer } from "@/services/accountApi";
 import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
 import { showAllOrder, updateOrder } from "@/services/orderAPI";
@@ -39,7 +39,7 @@ const DeliveryPending = () => {
   // const [filteredData, setFilteredData] = useState(initialData);
 
   const fetchData = async () => {
-    const user = await getAccountDetail(AccountID ? AccountID : 0);
+    const user = await getCustomer(AccountID ? AccountID : 0);
     console.log(user.data.data);
     setUser(user.data.data);
 

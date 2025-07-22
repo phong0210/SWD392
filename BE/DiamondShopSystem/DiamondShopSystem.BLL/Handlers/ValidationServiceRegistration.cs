@@ -14,12 +14,12 @@ namespace DiamondShopSystem.BLL.Handlers
     {
         public static IServiceCollection AddDiamondShopValidators(this IServiceCollection services)
         {
-            services.AddScoped<FluentValidation.IValidator<LoginRequestDto>, LoginRequestValidator>();
-            services.AddScoped<FluentValidation.IValidator<UserCreateDto>, UserCreateValidator>();
-            services.AddScoped<FluentValidation.IValidator<UserGetCommand>, UserGetValidator>();
-            services.AddScoped<FluentValidation.IValidator<UserUpdateDto>, UserUpdateValidator>();
-            services.AddScoped<FluentValidation.IValidator<DiamondShopSystem.BLL.Handlers.Product.DTOs.ProductUpdateDto>, DiamondShopSystem.BLL.Handlers.Product.Validators.ProductUpdateValidator>();
-            services.AddScoped<FluentValidation.IValidator<WarrantyUpdateDto>, WarrantyUpdateValidator>();
+            services.AddScoped<IValidator<LoginRequestDto>, LoginRequestValidator>();
+            services.AddScoped<IValidator<UserRegisterDto>, UserCreateValidator>();
+            services.AddScoped<IValidator<UserGetCommand>, UserGetValidator>();
+            services.AddScoped<IValidator<UserUpdateDto>, UserUpdateValidator>();
+            services.AddScoped<IValidator<Product.DTOs.ProductUpdateDto>, ProductUpdateValidator>();
+            services.AddScoped<IValidator<WarrantyUpdateDto>, WarrantyUpdateValidator>();
             // Add more validators here as needed
             return services;
         }

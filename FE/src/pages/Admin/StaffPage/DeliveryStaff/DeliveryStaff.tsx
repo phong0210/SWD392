@@ -1,30 +1,13 @@
 import React, { useEffect, useState } from "react";
 import * as Styled from "./DeliveryStaff.styled";
-import {
-  SearchOutlined,
-  PlusCircleOutlined,
-  SaveOutlined,
-  // EyeOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, PlusCircleOutlined, SaveOutlined } from "@ant-design/icons";
 import type { FormInstance } from "antd";
-import {
-  Form,
-  Input,
-  InputNumber,
-  Popconfirm,
-  Table,
-  Button,
-  notification,
-} from "antd";
+import { Form, Input, InputNumber, Popconfirm, Table, Button, notification, AutoComplete, DatePicker } from "antd";
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import StaffMenu from "@/components/Admin/SalesStaffMenu/StaffMenu";
 import { SortOrder } from "antd/es/table/interface";
-import {
-  deleteAccount,
-  register,
-  showAllAccounts,
-  updateAccount,
-} from "@/services/authAPI";
+import { deleteAccount, showAllAccounts, updateAccount } from "@/services/authAPI";
+import { promoteToStaff } from "@/services/accountApi";
 import { Role } from "@/utils/enum";
 
 interface EditableCellProps {
@@ -46,19 +29,13 @@ const EditableCell: React.FC<EditableCellProps> = ({
   ...restProps
 }) => {
   const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
-
   return (
     <td {...restProps}>
       {editing ? (
         <Form.Item
           name={dataIndex.toString()}
           style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
+          rules={[{ required: true, message: `Please Input ${title}!` }]}
         >
           {inputNode}
         </Form.Item>
@@ -69,48 +46,81 @@ const EditableCell: React.FC<EditableCellProps> = ({
   );
 };
 
-const SalesStaff = () => {
+const DeliveryStaff = () => {
   const [form] = Form.useForm();
   const [staffs, setStaffs] = useState<any[]>([]);
-  // const [editingName, setEditingName] = useState<string>("");
-  const [isAdding, setIsAdding] = useState(false);
+  const [nonStaffUsers, setNonStaffUsers] = useState<any[]>([]);
+  const [isPromoting, setIsPromoting] = useState(false);
   const [api, contextHolder] = notification.useNotification();
   const [searchText, setSearchText] = useState("");
+  const [emailOptions, setEmailOptions] = useState<any[]>([]);
+  const [selectedUserInfo, setSelectedUserInfo] = useState<any>(null);
 
   type NotificationType = "success" | "info" | "warning" | "error";
-
-  const openNotification = (
-    type: NotificationType,
-    method: string,
-    error: string
-  ) => {
+  const openNotification = (type: NotificationType, method: string, error: string) => {
     api[type]({
       message: type === "success" ? "Notification" : "Error",
-      description:
-        type === "success" ? `${method} manager successfully` : error,
+      description: type === "success" ? `${method} user successfully` : error,
     });
   };
 
   const fetchData = async () => {
     try {
       const response = await showAllAccounts();
-      const { data } = response.data;
-      const filteredManagers = data.filter(
-        (customer: any) => customer.Role === Role.DELI_STAFF
-      );
+      console.log("API Response:", response);
+      let allUsers;
+      if (response.data && Array.isArray(response.data)) {
+        allUsers = response.data;
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        allUsers = response.data.data;
+      } else if (Array.isArray(response)) {
+        allUsers = response;
+      } else {
+        throw new Error("Invalid API response format");
+      }
 
-      const formattedStaffs = filteredManagers.map((manager: any) => ({
-        key: manager.AccountID,
-        staffID: manager.AccountID,
-        staffName: manager.Name,
-        phoneNumber: manager.PhoneNumber,
-        email: manager.Email,
-        password: manager.Password,
-        role: manager.Role,
+      const deliveryStaff = allUsers
+        .filter((user: any) => user.roleName === "DeliveryStaff")
+        .map((staff: any) => ({
+          key: staff.id || staff.AccountID,
+          staffID: staff.id || staff.AccountID,
+          staffName: staff.name || staff.Name || "",
+          phoneNumber: staff.phone || staff.PhoneNumber || "",
+          email: staff.email || staff.Email || "",
+          password: staff.password || staff.Password || "",
+          role: staff.roleName || staff.Role,
+          address: staff.address || "",
+        }));
+
+      const nonStaff = allUsers
+        .filter(
+          (user: any) =>
+            user.roleName !== "DeliveryStaff" &&
+            user.roleName !== "SaleStaff" &&
+            user.roleName !== "Manager" &&
+            user.roleName !== "HeadOfficeAdmin"
+        )
+        .map((user: any) => ({
+          key: user.id || user.AccountID,
+          email: user.email || user.Email || "",
+          name: user.name || user.Name || "",
+          phone: user.phone || user.PhoneNumber || "",
+        }));
+
+      console.log("Delivery Staff:", deliveryStaff);
+      console.log("Non-Staff Users:", nonStaff);
+      setStaffs(deliveryStaff);
+      setNonStaffUsers(nonStaff);
+
+      const options = nonStaff.map((user: any) => ({
+        value: user.email,
+        label: `${user.email} (${user.name})`,
+        user: user,
       }));
-      setStaffs(formattedStaffs);
+      setEmailOptions(options);
     } catch (error) {
-      console.error("Failed to fetch types:", error);
+      console.error("Failed to fetch delivery staff data:", error);
+      openNotification("error", "Fetch", "Failed to load delivery staff data");
     }
   };
 
@@ -118,74 +128,20 @@ const SalesStaff = () => {
     fetchData();
   }, []);
 
-  // EDIT
-  // const isEditing = (record: any) => record.staffName === editingName;
-
-  // const edit = (record: Partial<any> & { staffName: string }) => {
-  //   form.setFieldsValue({
-  //     // staffName: "",
-  //     email: "",
-  //     ...record,
-  //   });
-  //   setEditingName(record.staffName);
-  // };
-
-  // const cancel = () => {
-  //   setEditingName("");
-  // };
-
-  // const save = async (staffName: string) => {
-  //   try {
-  //     const row = (await form.validateFields()) as any;
-  //     const newData = [...staffs];
-  //     const index = newData.findIndex(
-  //       (item) => staffName === item.staffName
-  //     );
-
-  //     if (index > -1) {
-  //       const item = newData[index];
-  //       const updatedItem = {
-  //         Name: row.staffName,
-  //         Email: row.email,
-  //         PhoneNumber: item.phoneNumber,
-  //         CustomerID: item.CustomerID,
-  //         Role: item.role,
-  //       };
-  //       newData.splice(index, 1, {
-  //         ...item,
-  //         ...row,
-  //       });
-  //       setStaffs(newData);
-  //       await updateAccount(item.staffName, updatedItem);
-  //       openNotification("success", "Update", "");
-  //     } else {
-  //       newData.push(row);
-  //       setStaffs(newData);
-  //       openNotification("error", "Update", "Failed to update staff");
-  //     }
-  //     setEditingName("");
-  //   } catch (errInfo) {
-  //     console.log("Validate Failed:", errInfo);
-  //   }
-  // };
-
-  const handleDelete = async (staffID: number) => {
+  const handleDelete = async (staffID: string | number) => {
     try {
       await deleteAccount(staffID);
       openNotification("success", "Delete", "");
       fetchData();
     } catch (error: any) {
-      console.error("Failed to delete material:", error);
-      openNotification("error", "Delete", error.message);
+      console.error("Failed to delete staff:", error);
+      openNotification("error", "Delete", error.message || "Failed to delete staff");
     }
   };
 
-  
   const handleBan = async (email: string) => {
     try {
-      const response = await updateAccount(email, {
-        Role: "ROLE_BAN",
-      });
+      const response = await updateAccount(email, { Role: "ROLE_BAN" });
       console.log("Ban Response:", response.data);
       if (response.status === 200) {
         openNotification("success", "Ban", "Staff has been banned successfully.");
@@ -203,71 +159,46 @@ const SalesStaff = () => {
     {
       title: "Staff ID",
       dataIndex: "staffID",
-      // editable: true,
-      sorter: (a: any, b: any) => parseInt(a.staffID) - parseInt(b.staffID),
+      editable: true,
+      sorter: (a: any, b: any) => {
+        const aID = typeof a.staffID === "string" ? a.staffID : String(a.staffID || "");
+        const bID = typeof b.staffID === "string" ? b.staffID : String(b.staffID || "");
+        return aID.localeCompare(bID);
+      },
     },
     {
       title: "Staff Name",
       dataIndex: "staffName",
       defaultSortOrder: "descend" as SortOrder,
-      // editable: true,
-      sorter: (a: any, b: any) => a.staffName.length - b.staffName.length,
+      editable: true,
+      sorter: (a: any, b: any) => {
+        const aName = a.staffName || "";
+        const bName = b.staffName || "";
+        return aName.length - bName.length;
+      },
+    },
+    {
+      title: "Phone Number",
+      dataIndex: "phoneNumber",
+      editable: true,
     },
     {
       title: "Email",
       dataIndex: "email",
-      // editable: true,
+      editable: true,
+      sorter: (a: any, b: any) => {
+        const aEmail = a.email || "";
+        const bEmail = b.email || "";
+        return aEmail.localeCompare(bEmail);
+      },
     },
-    // {
-    //   title: "Detail",
-    //   key: "detail",
-    //   className: "TextAlign",
-    //   render: (_: any, staffID: any) => (
-    //     <Space size="middle">
-    //       <Link to={`/admin/staff/delivery-staff/detail/${staffID}`}>
-    //         <EyeOutlined />
-    //       </Link>
-    //     </Space>
-    //   ),
-    // },
-    // {
-    //   title: "Edit",
-    //   dataIndex: "edit",
-    //   className: "TextAlign SmallSize",
-    //   render: (_: unknown, record: any) => {
-    //     const editable = isEditing(record);
-    //     return editable ? (
-    //       <span>
-    //         <Typography.Link
-    //           onClick={() => save(record.key)}
-    //           style={{ marginRight: 8 }}
-    //         >
-    //           Save
-    //         </Typography.Link>
-    //         <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-    //           <a>Cancel</a>
-    //         </Popconfirm>
-    //       </span>
-    //     ) : (
-    //       <Typography.Link
-    //         disabled={editingName !== ""}
-    //         onClick={() => edit(record)}
-    //       >
-    //         Edit
-    //       </Typography.Link>
-    //     );
-    //   },
-    // },
     {
       title: "Delete",
       dataIndex: "delete",
       className: "TextAlign",
       render: (_: unknown, record: any) =>
         staffs.length >= 1 ? (
-          <Popconfirm
-            title="Sure to delete?"
-            onConfirm={() => handleDelete(record.key)}
-          >
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
             <a>Delete</a>
           </Popconfirm>
         ) : null,
@@ -278,10 +209,7 @@ const SalesStaff = () => {
       className: "TextAlign",
       render: (_: unknown, record: any) =>
         staffs.length >= 1 ? (
-          <Popconfirm
-            title="Sure to ban?"
-            onConfirm={() => handleBan(record.email)}
-          >
+          <Popconfirm title="Sure to ban?" onConfirm={() => handleBan(record.email)}>
             <a>Ban</a>
           </Popconfirm>
         ) : null,
@@ -289,9 +217,9 @@ const SalesStaff = () => {
   ];
 
   const mergedColumns = columns.map((col) => {
-    // if (!col.editable) {
-    //   return col;
-    // }
+    if (!col.editable) {
+      return col;
+    }
     return {
       ...col,
       onCell: (record: any) => ({
@@ -299,15 +227,12 @@ const SalesStaff = () => {
         inputType: col.dataIndex === "phoneNumber" ? "number" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        // editing: isEditing(record),
       }),
     };
   });
 
-  // SEARCH
   const onSearch = (value: string) => {
     console.log("Search:", value);
-    // Thực hiện logic tìm kiếm ở đây
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -316,25 +241,46 @@ const SalesStaff = () => {
     }
   };
 
-  // MOVE ADD NEW
-
-  const handleAddNew = () => {
-    setIsAdding(true);
+  const handlePromoteNew = () => {
+    setIsPromoting(true);
+    setSelectedUserInfo(null);
+    form.resetFields();
   };
 
   const handleCancel = () => {
-    setIsAdding(false);
+    setIsPromoting(false);
+    setSelectedUserInfo(null);
+    form.resetFields();
   };
 
-  // SUBMIT FORM
+  const handleEmailSelect = (value: string) => {
+    const selectedOption = emailOptions.find((option) => option.value === value);
+    if (selectedOption) {
+      setSelectedUserInfo(selectedOption.user);
+      form.setFieldsValue({ email: value });
+    }
+  };
+
+  const handleEmailSearch = (searchText: string) => {
+    const filteredOptions = nonStaffUsers
+      .filter(
+        (user: any) =>
+          user.email.toLowerCase().includes(searchText.toLowerCase()) ||
+          user.name.toLowerCase().includes(searchText.toLowerCase())
+      )
+      .map((user: any) => ({
+        value: user.email,
+        label: `${user.email} (${user.name})`,
+        user: user,
+      }));
+    setEmailOptions(filteredOptions);
+  };
+
   interface SubmitButtonProps {
     form: FormInstance;
   }
 
-  const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({
-    form,
-    children,
-  }) => {
+  const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({ form, children }) => {
     const [submittable, setSubmittable] = useState(false);
     const values = Form.useWatch([], form);
 
@@ -345,33 +291,27 @@ const SalesStaff = () => {
         .catch(() => setSubmittable(false));
     }, [form, values]);
 
-    const addManager = async () => {
+    const promoteUser = async () => {
       try {
-        const managerValues = await form.validateFields();
-        const newManager = {
-          ...managerValues,
-          PhoneNumber: "",
-          CustomerID: null,
-          Role: "ROLE_DELIVERY_STAFF",
-        };
-
-        const { data } = await register(newManager);
-        if (data.statusCode !== 200) throw new Error(data.message);
-        fetchData();
-        setIsAdding(false);
-        openNotification("success", "Add", "");
+        const { email, salary, hireDate } = await form.validateFields();
+        const roleName = "DeliveryStaff";
+        const response = await promoteToStaff(email, roleName, salary, hireDate.toISOString());
+        if (response.status === 200) {
+          openNotification("success", "Promote", "User promoted to delivery staff successfully.");
+          fetchData();
+          setIsPromoting(false);
+          setSelectedUserInfo(null);
+          form.resetFields();
+        } else {
+          openNotification("error", "Promote", response.data?.message || "Failed to promote user.");
+        }
       } catch (error: any) {
-        openNotification("error", "", error.message);
+        openNotification("error", "Promote", error.message || "An unexpected error occurred.");
       }
     };
 
     return (
-      <Button
-        type="primary"
-        htmlType="submit"
-        disabled={!submittable}
-        onClick={addManager}
-      >
+      <Button type="primary" htmlType="submit" disabled={!submittable} onClick={promoteUser}>
         {children}
       </Button>
     );
@@ -383,114 +323,107 @@ const SalesStaff = () => {
       <Styled.GlobalStyle />
       <Styled.AdminArea>
         <Sidebar />
-
         <Styled.AdminPage>
           <StaffMenu />
-
           <Styled.AdPageContent>
             <Styled.AdPageContent_Head>
-              {(!isAdding && (
+              {!isPromoting ? (
                 <>
                   <Styled.SearchArea>
-                    <Input
-                      className="searchInput"
-                      type="text"
-                      // size="large"
-                      placeholder="Search here..."
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      prefix={<SearchOutlined className="searchIcon" />}
-                    />
+                    <div className="searchInputContainer">
+                      <SearchOutlined className="searchIcon" />
+                      <Input
+                        className="searchInput"
+                        type="text"
+                        placeholder="Search here..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                      />
+                    </div>
                   </Styled.SearchArea>
                   <Styled.AddButton>
-                    <button onClick={handleAddNew}>
-                      <PlusCircleOutlined />
-                      Add New Staff
+                    <button onClick={handlePromoteNew}>
+                      <PlusCircleOutlined /> Promote User to Delivery Staff
                     </button>
                   </Styled.AddButton>
                 </>
-              )) || (
-                  <>
-                    <Styled.AddContent_Title>
-                      <p>Add Staff</p>
-                    </Styled.AddContent_Title>
-                  </>
-                )}
+              ) : (
+                <Styled.AddContent_Title>
+                  <p>Promote User to Delivery Staff</p>
+                </Styled.AddContent_Title>
+              )}
             </Styled.AdPageContent_Head>
-
             <Styled.AdminTable>
-              {isAdding ? (
-                <>
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    className="AdPageContent_Content"
-                  >
-                    {/* <Styled.FormItem>
-                      <Form.Item name="radio-group" label="Staff Type">
-                        <Radio.Group>
-                          <Radio value="sales">Sales Staff</Radio>
-                          <Radio value="delivery">Delivery Staff</Radio>
-                        </Radio.Group>
-                      </Form.Item>
-                    </Styled.FormItem> */}
-                    <Styled.FormItem>
-                      <Form.Item
-                        name="Name"
-                        label="Staff Name"
-                        rules={[{ required: true }]}
+              {isPromoting ? (
+                <Form form={form} layout="vertical" className="AdPageContent_Content">
+                  <Styled.FormItem>
+                    <Form.Item
+                      name="email"
+                      label="User E-mail"
+                      rules={[{ required: true, message: "Please select a user E-mail!" }]}
+                    >
+                      <AutoComplete
+                        placeholder="Type to search and select user email..."
+                        onSelect={handleEmailSelect}
+                        onSearch={handleEmailSearch}
+                        options={emailOptions}
+                        filterOption={false}
+                        showSearch
+                        allowClear
+                        style={{ width: "100%", marginBottom: "16px" }}
+                        dropdownStyle={{ maxHeight: "200px", overflow: "auto", zIndex: 1000 }}
+                      />
+                    </Form.Item>
+                    {selectedUserInfo && (
+                      <div
+                        style={{
+                          padding: "12px 16px",
+                          backgroundColor: "#f6f6f6",
+                          borderRadius: "4px",
+                          marginTop: "12px",
+                          marginBottom: "16px",
+                          border: "1px solid #d9d9d9",
+                          fontSize: "14px",
+                        }}
                       >
-                        <Input placeholder="trang.staff" />
-                      </Form.Item>
-                    </Styled.FormItem>
-                    <Styled.FormItem>
-                      <Form.Item
-                        name="Email"
-                        label="E-mail"
-                        rules={[
-                          {
-                            type: "email",
-                            message: "The input is not valid E-mail!",
-                          },
-                          {
-                            required: true,
-                            message: "Please input your E-mail!",
-                          },
-                        ]}
-                      >
-                        <Input />
-                      </Form.Item>
-                    </Styled.FormItem>
-                    <Styled.FormItem>
-                      <Form.Item
-                        label="Password"
-                        name="Password"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please input your password!",
-                          },
-                        ]}
-                      >
-                        <Input.Password />
-                      </Form.Item>
-                    </Styled.FormItem>
-
-                    <Styled.ActionBtn>
-                      <SubmitButton form={form}>
-                        <SaveOutlined />
-                        Save
-                      </SubmitButton>
-                      <Button
-                        onClick={handleCancel}
-                        style={{ marginLeft: "10px" }}
-                      >
-                        Cancel
-                      </Button>
-                    </Styled.ActionBtn>
-                  </Form>
-                </>
+                        <strong>Selected User:</strong> {selectedUserInfo.name} <br />
+                        <strong>Email:</strong> {selectedUserInfo.email} <br />
+                        {selectedUserInfo.phone && (
+                          <>
+                            <strong>Phone:</strong> {selectedUserInfo.phone}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </Styled.FormItem>
+                  <Styled.FormItem>
+                    <Form.Item
+                      name="salary"
+                      label="Salary"
+                      rules={[{ required: true, message: "Please input salary!" }]}
+                    >
+                      <InputNumber min={0} style={{ width: "100%" }} placeholder="Enter salary" />
+                    </Form.Item>
+                  </Styled.FormItem>
+                  <Styled.FormItem>
+                    <Form.Item
+                      name="hireDate"
+                      label="Hire Date"
+                      rules={[{ required: true, message: "Please select hire date!" }]}
+                    >
+                      <DatePicker style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Styled.FormItem>
+                  <Styled.ActionBtn>
+                    <SubmitButton form={form}>
+                      <SaveOutlined /> Promote
+                    </SubmitButton>
+                    <Button onClick={handleCancel} style={{ marginLeft: "10px" }}>
+                      Cancel
+                    </Button>
+                  </Styled.ActionBtn>
+                </Form>
               ) : (
                 <Form form={form} component={false}>
                   <Table
@@ -504,9 +437,11 @@ const SalesStaff = () => {
                     columns={mergedColumns}
                     rowClassName="editable-row"
                     pagination={{
-                      // onChange: cancel,
                       pageSize: 6,
+                      showSizeChanger: false,
+                      showQuickJumper: true,
                     }}
+                    loading={staffs.length === 0}
                   />
                 </Form>
               )}
@@ -518,4 +453,4 @@ const SalesStaff = () => {
   );
 };
 
-export default SalesStaff;
+export default DeliveryStaff;

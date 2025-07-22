@@ -8,6 +8,8 @@ using DiamondShopSystem.BLL.Services;
 using DiamondShopSystem.BLL.Services.Auth;
 using DiamondShopSystem.BLL.Services.Category;
 using DiamondShopSystem.BLL.Services.Order;
+using DiamondShopSystem.BLL.Services.Email;
+using DiamondShopSystem.BLL.Services.Otp;
 using DiamondShopSystem.BLL.Services.User;
 using DiamondShopSystem.BLL.Services.Warranty;
 using DiamondShopSystem.DAL;
@@ -96,6 +98,11 @@ void ConfigureServices()
     builder.Services.AddScoped<JwtUtil>(provider =>
         new JwtUtil(provider.GetRequiredService<IConfiguration>()));
     builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<IOtpService, OtpService>();
+    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+    builder.Services.AddSingleton<DiamondShopSystem.BLL.Services.Cache.IOtpCacheService, DiamondShopSystem.BLL.Services.Cache.OtpCacheService>();
     
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();

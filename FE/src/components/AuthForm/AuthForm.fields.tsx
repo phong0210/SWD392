@@ -126,4 +126,23 @@ export const RegisterFields: FieldType[] = [
             />
         )
     },
-]
+];
+
+export const OtpFields: FieldType[] = [
+    {
+        key: 1,
+        label: 'OTP',
+        name: 'otp',
+        rules: [
+            {
+                required: true,
+                message: 'Please enter the OTP',
+            },
+            {
+                pattern: /^[0-9]{6}$/,
+                message: 'OTP must be a 6-digit number',
+            }
+        ],
+        children: <Input placeholder="" />,
+    },
+];

@@ -13,7 +13,7 @@ import {
 import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
 import useAuth from "@/hooks/useAuth";
-import { getAccountDetail } from "@/services/accountApi";
+import { getCustomer } from "@/services/accountApi";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -24,7 +24,7 @@ const Sidebar = () => {
   useEffect(() => {
     //Get staff info
     const getInfo = async () => {
-      const { data } = await getAccountDetail(AccountID ? AccountID : 0);
+      const { data } = await getCustomer(AccountID ? AccountID : 0);
       setStaff(data.data);
     }
     getInfo();

@@ -1,4 +1,4 @@
-import { getAccountDetail, getCustomer } from "@/services/accountApi";
+import {  getCustomer } from "@/services/accountApi";
 import cookieUtils from "@/services/cookieUtils";
 import { Role } from "@/utils/enum";
 import { useCallback, useEffect, useState } from "react";
@@ -97,7 +97,7 @@ const useAuth = () => {
                         const { data } = await getCustomer(currentAccountID);
                         setUser(data.data);
                     } else {
-                        const { data } = await getAccountDetail(currentAccountID);
+                        const { data } = await getCustomer(currentAccountID);
                         setAccount(data.data);
                     }
                 }

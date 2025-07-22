@@ -5,7 +5,9 @@ import { ChangeEvent, FormEvent, useState, useRef, useEffect } from "react";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { getAccountDetail } from "@/services/authAPI";
+import { requestPasswordReset, confirmPasswordReset } from "@/services/authAPI";
+import { message } from "antd";
+import { getCustomer } from "@/services/accountApi";
 
 interface Account {
   name: string;
@@ -17,7 +19,7 @@ interface Account {
 
 const fetchCustomerInfo = async (AccountID: number) => {
   try {
-    const { data } = await getAccountDetail(AccountID);
+    const { data } = await getCustomer(AccountID);
     console.log("data for getCustomer:", data);
     // Handle the nested response structure
     if (data && data.user) {
@@ -59,9 +61,9 @@ const updateAccountDetails = async (userId: number, accountData: Account) => {
 
 const Account = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [isPasswordEditing, setIsPasswordEditing] = useState(false);
+  const [passwordChangeStep, setPasswordChangeStep] = useState(0); // 0: idle, 1: request OTP, 2: verify OTP and set new password
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [messageApi, contextHolder] = message.useMessage(); // Use Ant Design message
 
   const [account, setAccount] = useState<Account>({
     name: "",
@@ -72,17 +74,19 @@ const Account = () => {
   });
 
   const [tempAccount, setTempAccount] = useState<Account>({ ...account });
-  const [tempPassword, setTempPassword] = useState({
-    currentPassword: "",
+  const [passwordResetData, setPasswordResetData] = useState({
+    email: "",
+    otp: "",
     newPassword: "",
-    confirmPassword: "",
+    confirmNewPassword: "",
   });
 
   const [accountErrors, setAccountErrors] = useState<Partial<Account>>({});
-  const [passwordErrors, setPasswordErrors] = useState<{
-    currentPassword?: string;
+  const [passwordResetErrors, setPasswordResetErrors] = useState<{
+    email?: string;
+    otp?: string;
     newPassword?: string;
-    confirmPassword?: string;
+    confirmNewPassword?: string;
   }>({});
 
   const { user } = useSelector((state: RootState) => state.auth);
@@ -94,13 +98,20 @@ const Account = () => {
     return errors;
   };
 
-  const validatePassword = (passwordData: typeof tempPassword) => {
-    const errors: typeof passwordErrors = {};
-    if (!passwordData.currentPassword) errors.currentPassword = "Current password is required";
-    if (!passwordData.newPassword) errors.newPassword = "New password is required";
-    if (passwordData.newPassword.length < 6) errors.newPassword = "Password must be at least 6 characters";
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
+  const validatePasswordReset = (data: typeof passwordResetData) => {
+    const errors: typeof passwordResetErrors = {};
+    if (passwordChangeStep === 1) {
+      if (!data.email) errors.email = "Email is required";
+      else if (!validateEmail(data.email)) errors.email = "Invalid email format";
+    } else if (passwordChangeStep === 2) {
+      if (!data.otp) errors.otp = "OTP is required";
+      if (!data.newPassword) errors.newPassword = "New password is required";
+      if (data.newPassword.length < 8 || data.newPassword.length > 16 || !/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,16}$/.test(data.newPassword)) {
+        errors.newPassword = "Must be between 8 and 16 characters, including a number, one uppercase letter and one lowercase letter.";
+      }
+      if (data.newPassword !== data.confirmNewPassword) {
+        errors.confirmNewPassword = "Passwords do not match";
+      }
     }
     return errors;
   };
@@ -121,29 +132,30 @@ const Account = () => {
       });
     }
     setIsEditing(true);
-    setMessage(null);
+    messageApi.destroy(); // Clear messages
   };
 
   const handlePasswordEditStart = () => {
-    setTempPassword({
-      currentPassword: "",
+    setPasswordChangeStep(1); // Start password reset flow
+    setPasswordResetData({
+      email: customerInfo?.email || "", // Pre-fill email if available
+      otp: "",
       newPassword: "",
-      confirmPassword: "",
+      confirmNewPassword: "",
     });
-    setIsPasswordEditing(true);
-    setMessage(null);
+    messageApi.destroy(); // Clear messages
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setIsPasswordEditing(false);
+    setPasswordChangeStep(0); // Reset password change flow
     resetFormValues();
-    setMessage(null);
+    messageApi.destroy(); // Clear messages
   };
 
   const resetFormValues = () => {
     setAccountErrors({});
-    setPasswordErrors({});
+    setPasswordResetErrors({});
   };
 
   const handleAccountChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -161,10 +173,10 @@ const Account = () => {
     }
   };
 
-  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handlePasswordResetChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setTempPassword((prevPassword) => ({
-      ...prevPassword,
+    setPasswordResetData((prevData) => ({
+      ...prevData,
       [name]: value,
     }));
   };
@@ -172,7 +184,7 @@ const Account = () => {
   const handleAccountSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage(null);
+    messageApi.destroy();
 
     const errors = validateAccount(tempAccount);
     const emailIsValid = validateEmail(tempAccount.email);
@@ -188,7 +200,7 @@ const Account = () => {
     if (Object.keys(errors).length === 0) {
       try {
         const response = await updateAccountDetails(user.userId, tempAccount);
-        setMessage({ type: 'success', text: 'Account details updated successfully!' });
+        messageApi.success('Account details updated successfully!');
         setTimeout(() => {
           setIsEditing(false);
           // Refresh customer info
@@ -197,7 +209,7 @@ const Account = () => {
           }
         }, 2000);
       } catch (error) {
-        setMessage({ type: 'error', text: 'Failed to update account details. Please try again.' });
+        messageApi.error('Failed to update account details. Please try again.');
       }
     } else {
       setAccountErrors(errors);
@@ -205,26 +217,43 @@ const Account = () => {
     setIsLoading(false);
   };
 
-  const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handlePasswordResetSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage(null);
+    messageApi.destroy();
 
-    const errors = validatePassword(tempPassword);
+    const errors = validatePasswordReset(passwordResetData);
 
     if (Object.keys(errors).length === 0) {
       try {
-        // TODO: Implement API call to change password
-        // const response = await changePassword(tempPassword);
-        setMessage({ type: 'success', text: 'Password changed successfully!' });
-        setTimeout(() => {
-          setIsPasswordEditing(false);
-        }, 2000);
-      } catch (error) {
-        setMessage({ type: 'error', text: 'Failed to change password. Please check your current password.' });
+        if (passwordChangeStep === 1) {
+          const response = await requestPasswordReset({ email: passwordResetData.email });
+          if (response.status === 200) {
+            messageApi.success('OTP sent to your email. Please check your inbox.');
+            setPasswordChangeStep(2); // Move to OTP verification step
+          } else {
+            messageApi.error(response.data?.message || 'Failed to send OTP. Please try again.');
+          }
+        } else if (passwordChangeStep === 2) {
+          const response = await confirmPasswordReset({
+            email: passwordResetData.email,
+            otp: passwordResetData.otp,
+            newPassword: passwordResetData.newPassword,
+          });
+          if (response.status === 200) {
+            messageApi.success('Password changed successfully!');
+            setTimeout(() => {
+              setPasswordChangeStep(0); // Reset password change flow
+            }, 2000);
+          } else {
+            messageApi.error(response.data?.message || 'Failed to change password. Invalid OTP or new password.');
+          }
+        }
+      } catch (error: any) {
+        messageApi.error(error.response?.data?.message || 'An error occurred during password reset.');
       }
     } else {
-      setPasswordErrors(errors);
+      setPasswordResetErrors(errors);
     }
     setIsLoading(false);
   };
@@ -284,7 +313,7 @@ const Account = () => {
               <Column>
                 <Row>
                   <InfoTitle>Account Details</InfoTitle>
-                  {!isEditing && !isPasswordEditing && (
+                  {!isEditing && passwordChangeStep === 0 && (
                     <ActionButtons>
                       <EditButton onClick={handleEditStart}>
                         Edit Details
@@ -298,12 +327,7 @@ const Account = () => {
                 {customerInfo && (
                   <Row>
                     <Column>
-                      {message && (
-                        <MessageBox type={message.type}>
-                          {message.text}
-                        </MessageBox>
-                      )}
-                      
+                      {contextHolder}                      
                       {isEditing ? (
                         <form onSubmit={handleAccountSubmit}>
                           <DetailGroup>
@@ -373,56 +397,78 @@ const Account = () => {
                             </ActionButton>
                           </InlineActions>
                         </form>
-                      ) : isPasswordEditing ? (
-                        <form onSubmit={handlePasswordSubmit}>
+                      ) : passwordChangeStep === 1 ? (
+                        <form onSubmit={handlePasswordResetSubmit}>
                           <DetailGroup>
-                            <Label>CURRENT PASSWORD</Label>
+                            <Label>EMAIL</Label>
                             <InlineInput
-                              type="password"
-                              name="currentPassword"
-                              value={tempPassword.currentPassword}
-                              onChange={handlePasswordChange}
+                              type="email"
+                              name="email"
+                              value={passwordResetData.email}
+                              onChange={handlePasswordResetChange}
                               disabled={isLoading}
-                              placeholder="Current password"
+                              placeholder="Enter your email"
                             />
-                            {passwordErrors.currentPassword && (
-                              <ErrorText>{passwordErrors.currentPassword}</ErrorText>
+                            {passwordResetErrors.email && (
+                              <ErrorText>{passwordResetErrors.email}</ErrorText>
                             )}
                           </DetailGroup>
-
+                          <InlineActions>
+                            <ActionButton type="submit" disabled={isLoading} className="save-button">
+                              {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                            </ActionButton>
+                            <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
+                              Cancel
+                            </ActionButton>
+                          </InlineActions>
+                        </form>
+                      ) : passwordChangeStep === 2 ? (
+                        <form onSubmit={handlePasswordResetSubmit}>
+                          <DetailGroup>
+                            <Label>OTP</Label>
+                            <InlineInput
+                              type="text"
+                              name="otp"
+                              value={passwordResetData.otp}
+                              onChange={handlePasswordResetChange}
+                              disabled={isLoading}
+                              placeholder="Enter OTP"
+                            />
+                            {passwordResetErrors.otp && (
+                              <ErrorText>{passwordResetErrors.otp}</ErrorText>
+                            )}
+                          </DetailGroup>
                           <DetailGroup>
                             <Label>NEW PASSWORD</Label>
                             <InlineInput
                               type="password"
                               name="newPassword"
-                              value={tempPassword.newPassword}
-                              onChange={handlePasswordChange}
+                              value={passwordResetData.newPassword}
+                              onChange={handlePasswordResetChange}
                               disabled={isLoading}
-                              placeholder="New password"
+                              placeholder="Enter new password"
                             />
-                            {passwordErrors.newPassword && (
-                              <ErrorText>{passwordErrors.newPassword}</ErrorText>
+                            {passwordResetErrors.newPassword && (
+                              <ErrorText>{passwordResetErrors.newPassword}</ErrorText>
                             )}
                           </DetailGroup>
-
                           <DetailGroup>
                             <Label>CONFIRM NEW PASSWORD</Label>
                             <InlineInput
                               type="password"
-                              name="confirmPassword"
-                              value={tempPassword.confirmPassword}
-                              onChange={handlePasswordChange}
+                              name="confirmNewPassword"
+                              value={passwordResetData.confirmNewPassword}
+                              onChange={handlePasswordResetChange}
                               disabled={isLoading}
                               placeholder="Confirm new password"
                             />
-                            {passwordErrors.confirmPassword && (
-                              <ErrorText>{passwordErrors.confirmPassword}</ErrorText>
+                            {passwordResetErrors.confirmNewPassword && (
+                              <ErrorText>{passwordResetErrors.confirmNewPassword}</ErrorText>
                             )}
                           </DetailGroup>
-
                           <InlineActions>
                             <ActionButton type="submit" disabled={isLoading} className="save-button">
-                              {isLoading ? 'Changing...' : 'Change Password'}
+                              {isLoading ? 'Changing Password...' : 'Change Password'}
                             </ActionButton>
                             <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
                               Cancel
