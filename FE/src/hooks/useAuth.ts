@@ -2,6 +2,8 @@ import { getAccountDetail, getCustomer } from "@/services/accountApi";
 import cookieUtils from "@/services/cookieUtils";
 import { Role } from "@/utils/enum";
 import { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 type JwtType = {
     AccountID: number;
@@ -33,7 +35,7 @@ export type AccountType = {
     CustomerID: null;
 }
 
-const getRole = () => {
+const getRoleFromToken = () => {
     const decoded = cookieUtils.decodeJwt() as JwtType;
     if (!decoded || !decoded.Role) return null;
 
@@ -49,9 +51,10 @@ const getAccountID = () => {
 }
 
 const useAuth = () => {
-    const [role, setRole] = useState<string | null>(getRole());
+    const { user: authUser, loading: authLoading } = useSelector((state: RootState) => state.auth);
+    const [role, setRole] = useState<string | null>(getRoleFromToken());
     const [AccountID, setAccountID] = useState<number | null>(getAccountID());
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(authLoading);
     const [user, setUser] = useState<UserType | null>(null);
     const [account, setAccount] = useState<AccountType | null>(null);
 
@@ -70,40 +73,48 @@ const useAuth = () => {
     }, [token]);
 
     useEffect(() => {
+        setLoading(authLoading);
+    }, [authLoading]);
+
+    useEffect(() => {
         const token = cookieUtils.getToken();
 
-        if (!token) {
+        if (!token || !authUser) {
             setRole(null);
             return;
         }
 
-        try {
+        const fetchData = async () => {
             setLoading(true);
+            try {
+                const currentRole = authUser.role;
+                const currentAccountID = authUser.accountId;
+                setRole(currentRole);
+                setAccountID(currentAccountID);
 
-            setRole(getRole());
-
-            setAccountID(getAccountID());
-
-            const getInfo = async () => {
-                if (role === Role.CUSTOMER) {
-                    const { data } = await getCustomer(AccountID || 0);
-                    setUser(data.data);
-                } else {
-                    const { data } = await getAccountDetail(AccountID || 0);
-                    setAccount(data.data);
+                if (currentAccountID) {
+                    if (currentRole === 'Customer') {
+                        const { data } = await getCustomer(currentAccountID);
+                        setUser(data.data);
+                    } else {
+                        const { data } = await getAccountDetail(currentAccountID);
+                        setAccount(data.data);
+                    }
                 }
-            };
+            } catch (error) {
+                console.error("Failed to fetch user info:", error);
+                // Optionally handle the error state here
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            getInfo();
-
-        } finally {
-            setLoading(false);
-        }
+        fetchData();
 
         const intervalId = setInterval(checkTokenExpiration, 5000);
 
         return () => clearInterval(intervalId);
-    }, [checkTokenExpiration]);
+    }, [token, authUser, checkTokenExpiration]);
 
     return { loading, role, AccountID, user, account };
 };

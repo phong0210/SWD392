@@ -38,13 +38,8 @@ import { Role } from "@/utils/enum";
 import useAuth from "@/hooks/useAuth";
 
 const SalesStaffRouter = () => {
-    const { role, loading } = useAuth();
-
-    if (loading) {
-        return <div>Loading...</div>; // Or a proper loading spinner
-    }
-
-    return role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
+    const { user } = useSelector((state: RootState) => state.auth);
+    return user?.role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
 }
 
 const salesStaffRoutes = [
