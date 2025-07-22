@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using DiamondShopSystem.BLL.Services.Auth;
 using MediatR;
 using AutoMapper;
 using DiamondShopSystem.DAL.Repositories;
 using DiamondShopSystem.DAL.Entities;
 using DiamondShopSystem.BLL.Handlers.User.DTOs;
-using DiamondShopSystem.BLL.Services;
 
 namespace DiamondShopSystem.BLL.Handlers.User.Commands.Create
 {
@@ -14,11 +14,13 @@ namespace DiamondShopSystem.BLL.Handlers.User.Commands.Create
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IAuthService _authService;
 
-        public UserCreateCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public UserCreateCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IAuthService authService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _authService = authService;
         }
 
         public async Task<UserCreateResponseDto> Handle(UserCreateCommand request, CancellationToken cancellationToken)
@@ -34,7 +36,7 @@ namespace DiamondShopSystem.BLL.Handlers.User.Commands.Create
                 };
             }
             var user = _mapper.Map<DiamondShopSystem.DAL.Entities.User>(request.Dto);
-            user.PasswordHash = HashPassword(request.Dto.Password);
+            user.PasswordHash = _authService.HashPassword(request.Dto.Password);
             await userRepo.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
             return new UserCreateResponseDto {
@@ -42,13 +44,6 @@ namespace DiamondShopSystem.BLL.Handlers.User.Commands.Create
                 UserId = user.Id,
                 Email = user.Email
             };
-        }
-
-        private string HashPassword(string password)
-        {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
         }
     }
 } 

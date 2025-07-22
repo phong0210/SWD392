@@ -22,8 +22,10 @@ namespace DiamondShopSystem.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var result = await _mediator.Send(new LoginCommand(request));
-            if (result == null)
-                return Unauthorized(new { error = "Invalid credentials" });
+            if (!string.IsNullOrEmpty(result.Error))
+            {
+                return Unauthorized(new { message = result.Error });
+            }
             return Ok(result);
         }
     }

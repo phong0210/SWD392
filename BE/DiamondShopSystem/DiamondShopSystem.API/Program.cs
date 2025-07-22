@@ -93,8 +93,8 @@ void ConfigureServices()
 
     builder.Services.AddDiamondShopValidators();
     
-    // Auth Services
-    builder.Services.AddScoped<JwtUtil>();
+    builder.Services.AddScoped<JwtUtil>(provider =>
+        new JwtUtil(provider.GetRequiredService<IConfiguration>()));
     builder.Services.AddScoped<IAuthService, AuthService>();
     
     // User Services

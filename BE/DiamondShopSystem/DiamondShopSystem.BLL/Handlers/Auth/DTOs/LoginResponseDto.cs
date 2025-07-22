@@ -7,5 +7,6 @@ namespace DiamondShopSystem.BLL.Handlers.Auth.DTOs
         public string Token { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public string? Error { get; set; }
     }
 } 

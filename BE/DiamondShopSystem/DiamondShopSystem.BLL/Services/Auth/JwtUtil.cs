@@ -1,4 +1,5 @@
-using DiamondShopSystem.BLL.Services.User;
+
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,25 +14,19 @@ namespace DiamondShopSystem.BLL.Services.Auth
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly int _jwtTokenValidityInMinutes;
-        private readonly IUserService _userService;
 
-        public JwtUtil(IUserService userService)
+        public JwtUtil(IConfiguration configuration)
         {
-            _jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new InvalidOperationException("JWT_KEY environment variable is not set");
-            _jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new InvalidOperationException("JWT_ISSUER environment variable is not set");
-            _jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? throw new InvalidOperationException("JWT_AUDIENCE environment variable is not set");
-            _jwtTokenValidityInMinutes = int.Parse(Environment.GetEnvironmentVariable("JWT_TOKEN_VALIDITY_IN_MINUTES") ?? "60");
-            _userService = userService;
+            _jwtKey = configuration["JWT_KEY"] ?? throw new InvalidOperationException("JWT_KEY is not set in the configuration");
+            _jwtIssuer = configuration["JWT_ISSUER"] ?? throw new InvalidOperationException("JWT_ISSUER is not set in the configuration");
+            _jwtAudience = configuration["JWT_AUDIENCE"] ?? throw new InvalidOperationException("JWT_AUDIENCE is not set in the configuration");
+            _jwtTokenValidityInMinutes = int.Parse(configuration["JWT_TOKEN_VALIDITY_IN_MINUTES"] ?? "60");
         }
 
-        public async Task<string> GenerateTokenAsync(DiamondShopSystem.DAL.Entities.User user)
+        public string GenerateToken(DiamondShopSystem.DAL.Entities.User user, string role)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtKey);
-
-            // Determine role based on StaffProfile
-            var userResponse = await _userService.GetUserByIdAsync(user.Id);
-            string role = userResponse.Success ? userResponse.User.RoleName : "Customer";
 
             var claims = new[]
             {
@@ -56,4 +51,5 @@ namespace DiamondShopSystem.BLL.Services.Auth
             return tokenHandler.WriteToken(token);
         }
     }
-} 
+}
+ 
