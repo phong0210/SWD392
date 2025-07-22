@@ -22,6 +22,7 @@ using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
 using DiamondShopSystem.DAL.Repositories.Contracts;
+using DiamondShopSystem.API.Services;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -111,6 +112,9 @@ void ConfigureServices()
 
     // Warranty Services
     builder.Services.AddScoped<IWarrantyService, WarrantyService>();
+
+    // VnPay Services
+    builder.Services.AddScoped<IVnPayService, VnPayService>();
 
    
     
