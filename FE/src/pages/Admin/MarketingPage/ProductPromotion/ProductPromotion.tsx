@@ -29,6 +29,7 @@ import { createVoucher, deleteVoucher, showAllVoucher, updateVoucher } from "@/s
 import { showAllDiscount, createDiscount, updateDiscount, deleteDiscount } from "@/services/discountAPI";
 import { showAllProduct } from "@/services/productAPI";
 import { showAllDiamond } from "@/services/diamondAPI";
+import dayjs from "dayjs";
 // import { setSelectedDiamond } from "@/layouts/MainLayout/slice/customRingSlice";
 
 interface EditableCellProps {
@@ -94,11 +95,11 @@ const ProductPromotion = () => {
   const isEditing = (record: any) => record.key === editingKey;
   const [products, setProducts] = useState<any[]>([]);
   const [productUpdate, setProductUpdate] = useState<any[]>([]);
-  const [diamondUpdate, setDiamondUpdate] = useState<any[]>([]);
+  // const [diamondUpdate, setDiamondUpdate] = useState<any[]>([]);
   const [api, contextHolder] = notification.useNotification();
 
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [selectedDiamonds, setSelectedDiamonds] = useState([]);
+  // const [selectedDiamonds, setSelectedDiamonds] = useState([]);
 
 
   type NotificationType = "success" | "info" | "warning" | "error";
@@ -115,42 +116,61 @@ const ProductPromotion = () => {
     });
   };
 
-  const fetchData = async () => {
-    try {
-      const response = await showAllDiscount();
-      const responseProduct = await showAllProduct();
-      const responseDiamond = await showAllDiamond();
+ const fetchData = async () => {
+  try {
+    const response = await showAllVoucher();
+    const responseProduct = await showAllProduct();
+  console.log("📦 responseProduct:", responseProduct);
 
-      const { data } = response.data;
-      const { data: productData } = responseProduct.data;
-      const { data: diamondData } = responseDiamond.data;
+    // const discountList = response?.data?.data ?? [];
+    // const productList = responseProduct?.data?.data ?? [];
 
-      const formattedDiscounts = data.map((discount: any) => ({
-        key: discount.PromotionID,
-        promotionID: discount.PromotionID,
-        name: discount.Name,
-        discountValue: discount.DiscountValue,
-        startDate: discount.StartDate,
-        endDate: discount.EndDate,
-        description: discount.Description,
-      }));
+     const data = response.data;
+    //  const { data: productData } = responseProduct.data;
+    // const productData = responseProduct.data.map((item: any) => item.product);
+    const productData = responseProduct.data.map((item: any) => ({
+      Id: item.product.id, // hoặc item.product.Id nếu viết hoa
+      Name: item.product.name, // nếu cần thêm thì bổ sung các field khác
+    }));
+    console.log("Voucher data:", data); // debug xem có dữ liệu không
 
-      const formattedProducts = productData
-        .filter((product: any) => (product.PromotionID !== null))
-        .map((product: any) => ({
-          productName: product.Name,
-          promotionID: product.PromotionID,
-        }));
+    const formattedDiscounts = data.map((voucher: any) => ({
+      key: voucher.id,
+      promotionID: voucher.id,
+      name: voucher.name,
+      discountValue: voucher.discountValue,
+      startDate: voucher.startDate,
+      endDate: voucher.endDate,
+      description: voucher.description,
+      appliesToProductId: voucher.appliesToProductId,
+    }));
 
-      setDiscounts(formattedDiscounts);
-      setProducts(formattedProducts);
-      setProductUpdate(productData);
-      setDiamondUpdate(diamondData);
-      console.log("Product data: ", productData)
-    } catch (error) {
-      console.error("Failed to fetch types:", error);
-    }
-  };
+    // const formattedProducts = productList
+    //   .filter((product: any) => product.ProductID !== null)
+    //   .map((product: any) => ({
+    //     label: product.Name,
+    //     value: product.ProductID,
+    //   }));
+    const formattedProducts = productData
+  .filter((product: any) => product.ProductID !== null)
+  .map((product: any) => ({
+    label: product.Name,       // để hiển thị tên sản phẩm trên dropdown/select UI
+    value: product.ProductID,  // để lưu xuống AppliesToProductId trong bảng Promotion
+  }));
+
+    setDiscounts(formattedDiscounts);
+    setProducts(formattedProducts);
+    // setProductUpdate(productList);
+    setProductUpdate(productData);
+    console.log("productUpdate example:", productUpdate[0]);
+console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToProductId));
+
+    console.log("✔️ Discounts:", formattedDiscounts);
+    console.log("✔️ Products:", formattedProducts);
+  } catch (error) {
+    console.error("❌ Failed to fetch data:", error);
+  }
+};
 
 
   useEffect(() => {
@@ -160,9 +180,9 @@ const ProductPromotion = () => {
   const handleChangeProduct = (value: any) => {
     setSelectedProducts(value);
   }
-  const handleChangeDiamond = (value: any) => {
-    setSelectedDiamonds(value);
-  }
+  // const handleChangeDiamond = (value: any) => {
+  //   setSelectedDiamonds(value);
+  // }
   // useEffect(()=>{
   //   const fetchData = async ()=> {
   //     try{
@@ -182,6 +202,7 @@ const ProductPromotion = () => {
       startDate: "",
       endDate: "",
       description: "",
+      appliesToProductId: "", // thêm dòng này
       ...record,
     });
     setEditingKey(record.key);
@@ -204,7 +225,9 @@ const ProductPromotion = () => {
           PercentDiscounts: row.discountValue,
           StartDate: row.startDate,
           EndDate: row.endDate,
+          AppliesToProductId: row.appliesToProductId, // thêm dòng này
           Description: row.description,
+           
           // UpdateTime: new Date().toISOString(),
         };
         newData.splice(index, 1, {
@@ -225,131 +248,137 @@ const ProductPromotion = () => {
     }
   };
 
-  const handleDelete = async (discountID: number) => {
+  // const handleDelete = async (discountID: number) => {
+  //   try {
+  //     await deleteDiscount(discountID);
+  //     openNotification("success", "Delete", "");
+  //     fetchData();
+  //   } catch (error: any) {
+  //     console.error("Failed to delete promotion:", error);
+  //     openNotification("error", "Delete", error.message);
+  //   }
+  // };
+
+  const handleDelete = async (voucherID: number) => {
     try {
-      await deleteDiscount(discountID);
+      await deleteVoucher(voucherID);
       openNotification("success", "Delete", "");
-      fetchData();
+      // Cập nhật lại danh sách vouchers mà không cần gọi lại API
+      setDiscounts(prev => prev.filter(v => v.promotionID !== voucherID));
     } catch (error: any) {
-      console.error("Failed to delete promotion:", error);
+      console.error("Failed to delete collection:", error);
       openNotification("error", "Delete", error.message);
     }
   };
+  
 
-  const columns = [
+ const columns = [
     {
       title: "Promotion ID",
       dataIndex: "promotionID",
-      sorter: (a: any, b: any) =>
-        parseInt(a.promotionID) - parseInt(b.discountID),
+      editable: false,
+      sorter: (a: any, b: any) => parseInt(a.promotionID) - parseInt(b.promotionID),
     },
     {
-      title: "Promotion Name",
+      title: "Name",
       dataIndex: "name",
       editable: true,
-      sorter: (a: any, b: any) =>
-        a.name.length - b.name.length,
+      sorter: (a: any, b: any) => a.name.length - b.name.length,
     },
     {
       title: "% discount",
       dataIndex: "discountValue",
       editable: true,
-      sorter: (a: any, b: any) =>
-        a.discountValue - b.discountValue,
+      sorter: (a: any, b: any) => a.discountValue - b.discountValue,
     },
+
     {
-      title: "Start Date",
-      dataIndex: "startDate",
-      // editable: true,
-      onChange: { onChangeDate },
-      render: (_: any, { startDate }: any) => {
-        return <>{startDate.replace("T", " ").replace(".000Z", " ")}</>
+        title: "Start Date",
+        dataIndex: "startDate",
+        editable: true,
+        render: (_: any, { startDate }: any) => {
+          return startDate ? dayjs(startDate).format("YYYY-MM-DD") : "N/A";
+        },
+        sorter: (a: any, b: any) =>
+          dayjs(a.startDate).unix() - dayjs(b.startDate).unix(),
       },
-      sorter: (a: any, b: any) =>
-        a.startDate.length - b.startDate.length,
-      
-    },
-    {
-      title: "End Date",
-      dataIndex: "endDate",
-      // editable: true,
-      onChange: { onChangeDate },
-      render: (_: any, { endDate }: any) => {
-        return <>{endDate.replace("T", " ").replace(".000Z", " ")}</>
+      {
+        title: "End Date",
+        dataIndex: "endDate",
+        editable: true,
+        render: (_: any, { endDate }: any) => {
+          return endDate ? dayjs(endDate).format("YYYY-MM-DD") : "N/A";
+        },
+        sorter: (a: any, b: any) =>
+          dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
       },
-      sorter: (a: any, b: any) =>
-        a.endDate.length - b.endDate.length,
+      {
+    title: "Applied Product",
+    dataIndex: "appliesToProductId",
+    editable: true,
+    render: (_: any, record: any) => {
+      const product = productUpdate.find(p => p.Id === record.appliesToProductId);
+      return product ? `${product.Name}` : "N/A";
     },
-    {
-      title: "Product Quantity",
-      dataIndex: "prouctID",
-      render: (_: any, record: any) => {
-        const count = products.filter(product => product.id === record.id).length;
-        return count;
-      },
-      sorter: (a: any, b: any) => a.count.length - b.count.length,
-    },
+  },
     {
       title: "Description",
       dataIndex: "description",
       editable: true,
-      width: "15%",
     },
+
     // {
-    //   title: "Detail",
-    //   key: "detail",
-    //   className: "TextAlign",
-    //   render: (_: unknown, { promotionID }) => (
-    //     <Space size="middle">
-    //       <Link to={`/admin/marketing/discount/detail/${promotionID}`}>
-    //         <EyeOutlined />
-    //       </Link>
-    //     </Space>
-    //   ),
+    // title: "Applied Product",
+    // dataIndex: "appliesToProductId",
+    // render: (_: any, record: any) => {
+    //   const product = productUpdate.find(p => p.ProductID === record.appliesToProductId);
+    //   return product ? `${product.Name}` : "N/A";
     // },
-    {
-      title: "Edit",
-      dataIndex: "edit",
-      className: "TextAlign SmallSize",
-      render: (_: unknown, record: any) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.key)}
-              style={{ marginRight: 8 }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
+  // },
+  {
+    title: "Edit",
+    dataIndex: "edit",
+    className: "TextAlign SmallSize",
+    render: (_: unknown, record: any) => {
+      const editable = isEditing(record);
+      return editable ? (
+        <span>
           <Typography.Link
-            disabled={editingKey !== ""}
-            onClick={() => edit(record)}
+            onClick={() => save(record.key)}
+            style={{ marginRight: 8 }}
           >
-            Edit
+            Save
           </Typography.Link>
-        );
-      },
-    },
-    {
-      title: "Delete",
-      dataIndex: "delete",
-      className: "TextAlign",
-      render: (_: unknown, record: any) =>
-        discounts.length >= 1 ? (
-          <Popconfirm
-            title="Sure to delete?"
-            onConfirm={() => handleDelete(record.key)}
-          >
-            <a>Delete</a>
+          <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+            <a>Cancel</a>
           </Popconfirm>
-        ) : null,
+        </span>
+      ) : (
+        <Typography.Link
+          disabled={editingKey !== ""}
+          onClick={() => edit(record)}
+        >
+          Edit
+        </Typography.Link>
+      );
     },
-  ];
+  },
+  {
+    title: "Delete",
+    dataIndex: "delete",
+    className: "TextAlign",
+    render: (_: unknown, record: any) =>
+      discounts.length >= 1 ? (
+        <Popconfirm
+          title="Sure to delete?"
+          onConfirm={() => handleDelete(record.key)}
+        >
+          <a>Delete</a>
+        </Popconfirm>
+      ) : null,
+  },
+];
+
 
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
@@ -421,12 +450,29 @@ const ProductPromotion = () => {
         .catch(() => setSubmittable(false));
     }, [values]);
 
+    // const addDiscount = async () => {
+    //   try {
+    //     const discountValues = await form.validateFields();
+    //     // const newDiscount = {
+    //     //   ...discountValues,
+    //     // };
+    //     const newDiscount = {
+    //     Name: discountValues.Name,
+    //     DiscountValue: discountValues.DiscountValue,
+    //     DiscountType: discountValues.DiscountType,
+    //     StartDate: discountValues.StartDate,
+    //     EndDate: discountValues.EndDate,
+    //     Description: discountValues.Description,
+    //     AppliesToProductId: discountValues.AppliesToProductId,
+    //   };
     const addDiscount = async () => {
       try {
         const discountValues = await form.validateFields();
         const newDiscount = {
           ...discountValues,
         };
+
+      console.log("🎯 New Discount Values:", newDiscount);
 
         const { data } = await createVoucher(newDiscount);
         if (data.statusCode !== 200) throw new Error(data.message);
@@ -588,46 +634,20 @@ const ProductPromotion = () => {
                       <Styled.FormItem>
                         <Form.Item
                           label="Product in Promotion"
-                          name="Products"
-                          rules={[{ required: false }]}
+                          name="AppliesToProductId"
+                          rules={[{ required: true, message: "Please select a product." }]}
                         >
                           <Select
                             className="formItem"
-                            mode="multiple"
                             allowClear
                             placeholder="Select Product"
                             options={productUpdate.map((product) => ({
-                              value: product.ProductID,
-                              label:
-                                product.ProductID + ": " + product.Name,
+                              value: product.Id,
+                              label: `${product.Name}`,
                             }))}
-                            // Ensure the value is bound to state
-                            onChange={handleChangeProduct}
-                            value={selectedProducts}
                           />
                         </Form.Item>
-                      </Styled.FormItem>
-                      <Styled.FormItem>
-                        <Form.Item
-                          label="Diamond in Promotion"
-                          name="Diamonds"
-                          rules={[{ required: false }]}
-                        >
-                          <Select
-                            className="formItem"
-                            mode="multiple"
-                            allowClear
-                            placeholder="Select Diamond"
-                            options={diamondUpdate.map((diamond) => ({
-                              value: diamond.DiamondID,
-                              label:
-                                diamond.DiamondID + ": " + diamond.Name,
-                            }))}
-                            // Ensure the value is bound to state
-                            onChange={handleChangeDiamond}
-                            value={selectedDiamonds}
-                          />
-                        </Form.Item>
+
                       </Styled.FormItem>
                     </Styled.FormDescript>
                     <Styled.ActionBtn>

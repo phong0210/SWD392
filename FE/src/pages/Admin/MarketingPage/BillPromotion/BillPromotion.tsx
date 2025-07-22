@@ -195,6 +195,8 @@ const BillPromotion = () => {
   }
 };
 
+
+
   const columns = [
     {
       title: "Promotion ID",
