@@ -35,9 +35,15 @@ import FeedbackCompleted from "@/pages/Staff/SalesStaff/ClientCaringPage/Feedbac
 import { Role } from "@/utils/enum";
 
 
+import useAuth from "@/hooks/useAuth";
+
 const SalesStaffRouter = () => {
-    const { user } = useSelector((state: RootState) => state.auth);
-    const role = user?.role || null;
+    const { role, loading } = useAuth();
+
+    if (loading) {
+        return <div>Loading...</div>; // Or a proper loading spinner
+    }
+
     return role === Role.SalesStaff ? <StaffLayout /> : <Navigate to="/" />;
 }
 
