@@ -21,9 +21,9 @@ namespace DiamondShopSystem.BLL.Services.Auth
             return Convert.ToBase64String(hashedBytes);
         }
 
-        public string GenerateJwtToken(DiamondShopSystem.DAL.Entities.User user)
+        public async Task<string> GenerateJwtTokenAsync(DiamondShopSystem.DAL.Entities.User user)
         {
-            return _jwtUtil.GenerateToken(user);
+            return await _jwtUtil.GenerateTokenAsync(user);
         }
 
         public bool ValidatePassword(string password, string hashedPassword)

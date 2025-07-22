@@ -37,10 +37,10 @@ namespace DiamondShopSystem.BLL.Handlers.Auth.Commands.Login
                 return new LoginResponseDto();
             }
 
-            var token = _authService.GenerateJwtToken(userEntity);
+            var token = _authService.GenerateJwtTokenAsync(userEntity);
             return new LoginResponseDto
             {
-                Token = token,
+                Token = await token,
                 Email = userEntity.Email,
                 Name = userEntity.Name
             };
