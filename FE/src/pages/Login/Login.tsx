@@ -25,13 +25,23 @@ const Login = () => {
 
     const onFinish = async (values: unknown) => {
         const resultAction = await dispatch(loginThunk(values));
-        console.log("Login thunk result:", resultAction);
         if (loginThunk.fulfilled.match(resultAction)) {
-            console.log("Login fulfilled payload:", resultAction.payload);
             await messageApi.success('Login successfully');
-            navigate(config.routes.public.home);
+            const user = resultAction.payload.user;
+            switch (user.role) {
+                case 'HeadOfficeAdmin':
+                    navigate(config.routes.admin.dashboard);
+                    break;
+                case 'SalesStaff':
+                    navigate(config.routes.salesStaff.dashboard);
+                    break;
+                case 'DeliveryStaff':
+                    navigate(config.routes.deliStaff.dashboard);
+                    break;
+                default:
+                    navigate(config.routes.public.home);
+            }
         } else {
-            console.log("Login failed result:", resultAction);
             const errorMsg = typeof resultAction.payload === 'string' ? resultAction.payload : 'Login failed';
             messageApi.error(errorMsg);
         }
