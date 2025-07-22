@@ -11,7 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import config from "@/config";
 import { useAppSelector } from "@/hooks";
 import { orderDetail, updateOrder } from "@/services/orderAPI";
-import { getVnPayPaymentCallback } from "@/services/paymentAPI";
+import { captureOrderPayPal } from "@/services/paymentAPI";
 import { OrderStatus } from "@/utils/enum";
 
 const ThankPageSuccess: React.FC = () => {
@@ -35,12 +35,10 @@ const ThankPageSuccess: React.FC = () => {
     }
     fetchData();
 
-    const processVnPayCallback = async () => {
-      const params = new URLSearchParams(location.search);
-      const queryString = params.toString();
-      if (queryString) {
-        const response = await getVnPayPaymentCallback(queryString);
-        if (response.data.isSuccess) {
+    const capturePayment = async () => {
+      if (token) {
+        const capturePayment = await captureOrderPayPal(token);
+        if (capturePayment.data.status === "COMPLETED") {
           const orderDetailData = await orderDetail(currentOrderID);
           const getOrderDetail = orderDetailData.data.data
           setOrder(getOrderDetail);
@@ -53,7 +51,7 @@ const ThankPageSuccess: React.FC = () => {
         }
       }
     }
-    processVnPayCallback();
+    capturePayment();
   }, [location.search])
 
   return (
