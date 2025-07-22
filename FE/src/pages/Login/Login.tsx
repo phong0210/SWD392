@@ -7,11 +7,10 @@ import { RootState } from '@/store';
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { LogoTypo } from "./Login.styled";
-import { PageEnum } from "@/utils/enum";
+import { PageEnum, Role } from "@/utils/enum";
 import { LoginFields } from "@/components/AuthForm/AuthForm.fields";
 import AuthForm from "@/components/AuthForm";
 import { AppDispatch } from '@/store';
-
 
 const Login = () => {
     useDocumentTitle('Login | Aphromas Diamond');
@@ -21,28 +20,29 @@ const Login = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const { loading } = useSelector((state: RootState) => state.auth);
 
-
-
     const onFinish = async (values: unknown) => {
         const resultAction = await dispatch(loginThunk(values));
         if (loginThunk.fulfilled.match(resultAction)) {
             await messageApi.success('Login successfully');
             const user = resultAction.payload.user;
+            
             switch (user.role) {
-                case 'HeadOfficeAdmin':
-                    navigate(config.routes.admin.dashboard);
+                case Role.HeadOfficeAdmin:
+                    navigate(config.routes.admin.dashboard, { replace: true });
                     break;
-                case 'SalesStaff':
-                    navigate(config.routes.salesStaff.dashboard);
+                case Role.SalesStaff:
+                    navigate(config.routes.salesStaff.dashboard, { replace: true });
                     break;
-                case 'DeliveryStaff':
-                    navigate(config.routes.deliStaff.dashboard);
+                case Role.DeliveryStaff:
+                    navigate(config.routes.deliStaff.dashboard, { replace: true });
                     break;
                 default:
-                    navigate(config.routes.public.home);
+                    navigate(config.routes.public.home, { replace: true });
             }
         } else {
-            const errorMsg = typeof resultAction.payload === 'string' ? resultAction.payload : 'Login failed';
+            const errorMsg = typeof resultAction.payload === 'string' 
+                ? resultAction.payload 
+                : 'Login failed';
             messageApi.error(errorMsg);
         }
     };
@@ -57,7 +57,7 @@ const Login = () => {
         <Link to={config.routes.public.home} underline scroll>
             <LogoTypo>Aphromas Diamond</LogoTypo>
         </Link>
-    )
+    );
 
     return (
         <>
@@ -73,7 +73,7 @@ const Login = () => {
                 isSubmitting={loading}
             />
         </>
-    )
-}
+    );
+};
 
 export default Login;

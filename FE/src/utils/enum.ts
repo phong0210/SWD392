@@ -8,7 +8,7 @@ export enum PageEnum {
 export const Role: {[key: string]: string} = {
     Customer: 'Customer',
     DeliveryStaff: 'DeliveryStaff',
-    SalesStaff: 'SalesStaff',
+    SalesStaff: 'SaleStaff',
     StoreManager: 'StoreManager',
     HeadOfficeAdmin: 'HeadOfficeAdmin'
 }
