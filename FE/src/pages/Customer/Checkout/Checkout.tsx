@@ -15,7 +15,7 @@ import { getCustomer } from "@/services/accountApi";
 import { OrderStatus, PaymentMethodEnum } from "@/utils/enum";
 import { useAppDispatch, useAppSelector } from "@/hooks";
 import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
-import { createVnPayPayment } from "@/services/paymentAPI";
+import { createOrderPaypal } from "@/services/paymentAPI";
 
 const description = "This is a description";
 const Checkout: React.FC = () => {
@@ -137,9 +137,9 @@ const Checkout: React.FC = () => {
         });
       if (!updateOrderLine) throw new Error();
 
-      if (values.Method === PaymentMethodEnum.VNPAY) {
-          const createPayment = await createVnPayPayment(getOrderID, TotalPrice);
-          window.location.href = createPayment.data.paymentUrl;
+      if (values.Method === PaymentMethodEnum.PAYPAL) {
+          const createPayment = await createOrderPaypal(TotalPrice);
+          window.location.href = createPayment.data.links[1].href;
       } else {
         navigate(config.routes.public.success);
       }

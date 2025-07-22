@@ -1,9 +1,10 @@
-import { get, post } from "./apiCaller";
+import { post } from "./apiCaller";
 
-export const createVnPayPayment = (orderId: string, amount: number) => {
-    return post(`/VnPay/create-payment?orderId=${orderId}&amount=${amount}`);
+
+export const createOrderPaypal = (amount: number) => {
+    return post(`/paypal/create-order`, {amount});
 }
 
-export const getVnPayPaymentCallback = (queryString: string) => {
-    return get(`/VnPay/payment-callback?${queryString}`);
+export const captureOrderPayPal = (orderID: string) => {
+    return post(`/paypal/capture-order/${orderID}`)
 }
