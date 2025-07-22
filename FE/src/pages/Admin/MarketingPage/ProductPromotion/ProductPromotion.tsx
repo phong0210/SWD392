@@ -36,7 +36,8 @@ interface EditableCellProps {
   editing: boolean;
   dataIndex: keyof any;
   title: React.ReactNode;
-  inputType: "number" | "text";
+  // inputType: "number" | "text";
+   inputType: "number" | "text"  ;
   record: any;
   index: number;
 }
@@ -312,15 +313,25 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
         sorter: (a: any, b: any) =>
           dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
       },
-      {
-    title: "Applied Product",
-    dataIndex: "appliesToProductId",
-    editable: true,
-    render: (_: any, record: any) => {
-      const product = productUpdate.find(p => p.Id === record.appliesToProductId);
-      return product ? `${product.Name}` : "N/A";
-    },
+  //     {
+  //   title: "Applied Product",
+  //   dataIndex: "appliesToProductId",
+  //   editable: true,
+  //   render: (_: any, record: any) => {
+  //     const product = productUpdate.find(p => p.Id === record.appliesToProductId);
+  //     return product ? `${product.Name}` : "N/A";
+  //   },
+  // },
+  {
+  title: "Applied Product",
+  dataIndex: "appliesToProductId",
+  // editable: true,
+  render: (_: any, record: any) => {
+ 
+    const product = productUpdate.find(p => p.Id === record.appliesToProductId);
+    return product ? `${product.Name}` : "N/A"; // Nếu không thấy tên, có thể là do productUpdate rỗng hoặc Id không khớp
   },
+},
     {
       title: "Description",
       dataIndex: "description",
@@ -380,21 +391,45 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
 ];
 
 
+  // const mergedColumns = columns.map((col) => {
+  //   if (!col.editable) {
+  //     return col;
+  //   }
+  //   return {
+  //     ...col,
+  //     onCell: (record: any) => ({
+  //       record,
+  //       inputType: col.dataIndex === "discountValue" ? "number" : "text",
+  //       dataIndex: col.dataIndex,
+  //       title: col.title,
+  //       editing: isEditing(record),
+  //       products: products,
+  //     }),
+  //   };
+  // });
   const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: any) => ({
-        record,
-        inputType: col.dataIndex === "discountValue" ? "number" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
+  if (!col.editable) {
+    return col;
+  }
+  return {
+    ...col,
+    onCell: (record: any) => ({
+      record,
+      inputType:
+        col.dataIndex === "discountValue"
+          ? "number"
+          : col.dataIndex === "appliesToProductId"
+          ? "select" // <-- CHẮC CHẮN PHẢI CÓ DÒNG NÀY
+          : col.dataIndex === "startDate" || col.dataIndex === "endDate"
+          ? "date"
+          : "text",
+      dataIndex: col.dataIndex,
+      title: col.title,
+      editing: isEditing(record),
+      products: products, // <-- CHẮC CHẮN PHẢI CÓ DÒNG NÀY
+    }),
+  };
+});
 
   const onChangeTable: TableProps<any>["onChange"] = (
     pagination,
