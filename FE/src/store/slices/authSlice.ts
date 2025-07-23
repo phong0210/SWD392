@@ -55,7 +55,7 @@ export const initializeAuth = createAsyncThunk(
             user: {
               email: decoded.sub,
               fullName: decoded.sub,
-              role: decoded["HeadOfficeAdmin"] || "HeadOfficeAdmin",
+              role: decoded["SaleStaff"] || "SaleStaff",
               userId: decoded.AccountID,
             },
           };

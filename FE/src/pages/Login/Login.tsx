@@ -25,7 +25,7 @@ const Login = () => {
     if (loginThunk.fulfilled.match(resultAction)) {
       // await messageApi.success('Login successfully');
       const user = resultAction.payload.user;
-
+      console.log(user.role);
       switch (user.role) {
         case Role.HeadOfficeAdmin:
           navigate(config.routes.admin.dashboard, { replace: true });
@@ -37,7 +37,7 @@ const Login = () => {
           navigate(config.routes.deliStaff.dashboard, { replace: true });
           break;
         default:
-          navigate(config.routes.public.home, { replace: true });
+          navigate(config.routes.salesStaff.dashboard, { replace: true });
       }
     } else {
       const errorMsg =

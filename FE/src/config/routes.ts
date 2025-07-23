@@ -1,5 +1,3 @@
-
-
 const routes = {
   public: {
     home: "/",
@@ -29,7 +27,7 @@ const routes = {
     learn: "/learn",
     size: "/find-ring-size",
     wish: "/wishlist",
-    cs:"/learn-4cs",
+    cs: "/learn-4cs",
     certification: "/diamond-certification",
     shape: "/diamond-shape",
     buying: "/buying-guide",
@@ -131,7 +129,7 @@ const routes = {
     feedbackCompleted: "/sales-staff/client-caring/feedback-completed",
   },
   deliStaff: {
-    dashboard: '/delivery-staff',
+    dashboard: "/delivery-staff",
     deliveryPending: "/delivery-staff/delivery-pending",
     deliveryDelivering: "/delivery-staff/delivery-delivering",
     deliveryDelivered: "/delivery-staff/delivery-delivered",
