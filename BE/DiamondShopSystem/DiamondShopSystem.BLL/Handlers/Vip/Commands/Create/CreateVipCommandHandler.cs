@@ -21,9 +21,10 @@ namespace DiamondShopSystem.BLL.Handlers.Vip.Commands
 
         public async Task<VipDto> Handle(CreateVipCommand request, CancellationToken cancellationToken)
         {
-            var vip = _mapper.Map<Vip>(request.Request);
-            await _unitOfWork.VipRepository.AddAsync(vip);
-            await _unitOfWork.SaveAsync();
+            var vip = _mapper.Map<VipDto>(request.Request);
+            var vipRepo = _unitOfWork.Repository<VipDto>();
+            await vipRepo.AddAsync(vip);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<VipDto>(vip);
         }
     }

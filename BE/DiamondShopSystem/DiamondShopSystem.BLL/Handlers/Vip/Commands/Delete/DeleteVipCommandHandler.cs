@@ -17,14 +17,15 @@ namespace DiamondShopSystem.BLL.Handlers.Vip.Commands
 
         public async Task<bool> Handle(DeleteVipCommand request, CancellationToken cancellationToken)
         {
-            var vip = await _unitOfWork.VipRepository.GetByIdAsync(request.Id);
+            var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
+            var vip = await vipRepo.GetByIdAsync(request.Id);
             if (vip == null)
             {
                 return false;
             }
 
-            _unitOfWork.VipRepository.Delete(vip);
-            await _unitOfWork.SaveAsync();
+            vipRepo.Remove(vip);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

@@ -1,5 +1,5 @@
 using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
-using DiamondShopSystem.BLL.Interfaces;
+using DiamondShopSystem.BLL.Services.Vip;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -21,43 +21,35 @@ namespace DiamondShopSystem.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<VipDto>>> GetAllVips()
         {
-            var response = await _vipService.GetAllVipsAsync();
-            if (!response.Success)
-            {
-                return BadRequest(response.Error);
-            }
-            return Ok(response.Vips);
+            var vips = await _vipService.GetAllVipsAsync();
+            return Ok(vips);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<VipDto>> GetVipById(Guid id)
         {
-            var response = await _vipService.GetVipByIdAsync(id);
-            if (!response.Success)
+            var vip = await _vipService.GetVipByIdAsync(id);
+            if (vip == null)
             {
-                return NotFound(response.Error);
+                return NotFound();
             }
-            return Ok(response.Vip);
+            return Ok(vip);
         }
 
         [HttpPost]
         public async Task<ActionResult<VipDto>> CreateVip([FromBody] VipCreateRequestDto request)
         {
-            var response = await _vipService.CreateVipAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response.Error);
-            }
-            return CreatedAtAction(nameof(GetVipById), new { id = response.Vip?.VipId }, response.Vip);
+            var vip = await _vipService.CreateVipAsync(request);
+            return CreatedAtAction(nameof(GetVipById), new { id = vip.VipId }, vip);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateVip(Guid id, [FromBody] VipUpdateRequestDto request)
         {
-            var response = await _vipService.UpdateVipAsync(id, request);
-            if (!response.Success)
+            var vip = await _vipService.UpdateVipAsync(id, request);
+            if (vip == null)
             {
-                return NotFound(response.Error);
+                return NotFound();
             }
             return NoContent();
         }
@@ -65,10 +57,10 @@ namespace DiamondShopSystem.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVip(Guid id)
         {
-            var response = await _vipService.DeleteVipAsync(id);
-            if (!response.Success)
+            var result = await _vipService.DeleteVipAsync(id);
+            if (!result)
             {
-                return NotFound(response.Error);
+                return NotFound();
             }
             return NoContent();
         }
