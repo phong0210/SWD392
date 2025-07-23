@@ -1,19 +1,24 @@
 import * as Styled from "./ProductPromotion.styled";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  SearchOutlined,
   EyeOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import type {
   TableProps,
-  TableColumnsType,
 } from "antd";
 import {
   Form,
   Input,
-  Table,
+  Popconfirm,
   Space,
+  Table,
+  Typography,
+  notification,
 } from "antd";
+import {showAllVoucher} from "@/services/voucherAPI";
+import { showAllProduct } from "@/services/productAPI";
+import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { promotionData, PromotionDataType } from "../MarketingData";
 import { productData } from "../../ProductPage/ProductData";
@@ -24,87 +29,212 @@ import MarketingMenu from "@/components/Staff/SalesStaff/MarketingMenu/Marketing
 
 const ProductPromotion = () => {
   const [form] = Form.useForm();
-  const [data] = useState<PromotionDataType[]>(promotionData);
+  const [searchText, setSearchText] = useState("");
+  const [discounts, setDiscounts] = useState<any[]>([]);
+  const [editingKey, setEditingKey] = useState<React.Key>("");
+  const isEditing = (record: any) => record.key === editingKey;
+  const [products, setProducts] = useState<any[]>([]);
+  const [productUpdate, setProductUpdate] = useState<any[]>([]);
+  // const [diamondUpdate, setDiamondUpdate] = useState<any[]>([]);
+  const [api, contextHolder] = notification.useNotification();
 
-  const columns: TableColumnsType<PromotionDataType> = [
-    {
-      title: "Promotion ID",
-      dataIndex: "promotionID",
-      sorter: (a: PromotionDataType, b: PromotionDataType) =>
-        a.promotionID.localeCompare(b.promotionID),
-    },
-    {
-      title: "Promotion Name",
-      dataIndex: "promotionName",
-      sorter: (a: PromotionDataType, b: PromotionDataType) =>
-        a.promotionName.length - b.promotionName.length,
-    },
-    {
-      title: "% discount",
-      dataIndex: "discountPercent",
-      sorter: (a: PromotionDataType, b: PromotionDataType) =>
-        a.discountPercent - b.discountPercent,
-    },
-    {
-      title: "Start Date",
-      dataIndex: "startDate",
-      sorter: (a: PromotionDataType, b: PromotionDataType) =>
-        a.startDate.length - b.startDate.length,
-    },
-    {
-      title: "End Date",
-      dataIndex: "endDate",
-      sorter: (a: PromotionDataType, b: PromotionDataType) =>
-        a.endDate.length - b.endDate.length,
-    },
-    {
-      title: "Product Quantity",
-      dataIndex: "promotionID",
-      render: (_, { promotionID }) => {
-        let count = 0;
-        productData.forEach((promotion) => {
-          if (promotion.promotionID === promotionID) {
-            count++;
-          }
-        });
-        return count;
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [filteredDiscounts, setFilteredDiscounts] = useState<any[]>([]);
+  
+
+
+  type NotificationType = "success" | "info" | "warning" | "error";
+
+  const openNotification = (
+    type: NotificationType,
+    method: string,
+    error: string
+  ) => {
+    api[type]({
+      message: type === "success" ? "Notification" : "Error",
+      description:
+        type === "success" ? `${method} promotion successfully` : error,
+    });
+  };
+
+ const fetchData = async () => {
+  try {
+    const response = await showAllVoucher();
+    const responseProduct = await showAllProduct();
+  console.log("📦 responseProduct:", responseProduct);
+
+    // const discountList = response?.data?.data ?? [];
+    // const productList = responseProduct?.data?.data ?? [];
+
+     const data = response.data;
+    //  const { data: productData } = responseProduct.data;
+    // const productData = responseProduct.data.map((item: any) => item.product);
+    const productData = responseProduct.data.map((item: any) => ({
+      Id: item.product.id, // hoặc item.product.Id nếu viết hoa
+      Name: item.product.name, // nếu cần thêm thì bổ sung các field khác
+    }));
+    console.log("Voucher data:", data); // debug xem có dữ liệu không
+
+    const formattedDiscounts = data.map((voucher: any) => ({
+      key: voucher.id,
+      promotionID: voucher.id,
+      name: voucher.name,
+      discountValue: voucher.discountValue,
+      startDate: voucher.startDate,
+      endDate: voucher.endDate,
+      description: voucher.description,
+      appliesToProductId: voucher.appliesToProductId,
+    }));
+
+    const formattedProducts = productData
+  .filter((product: any) => product.ProductID !== null)
+  .map((product: any) => ({
+    label: product.Name,       // để hiển thị tên sản phẩm trên dropdown/select UI
+    value: product.ProductID,  // để lưu xuống AppliesToProductId trong bảng Promotion
+  }));
+
+    setDiscounts(formattedDiscounts);
+    setProducts(formattedProducts);
+    // setProductUpdate(productList);
+    setProductUpdate(productData);
+    console.log("productUpdate example:", productUpdate[0]);
+console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToProductId));
+
+    console.log("✔️ Discounts:", formattedDiscounts);
+    console.log("✔️ Products:", formattedProducts);
+  } catch (error) {
+    console.error("❌ Failed to fetch data:", error);
+  }
+};
+
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const columns = [
+      {
+        title: "Promotion ID",
+        dataIndex: "promotionID",
+        editable: false,
+        sorter: (a: any, b: any) => parseInt(a.promotionID) - parseInt(b.promotionID),
       },
-    },
+      {
+        title: "Name",
+        dataIndex: "name",
+        editable: true,
+        sorter: (a: any, b: any) => a.name.length - b.name.length,
+      },
+      {
+        title: "% discount",
+        dataIndex: "discountValue",
+        editable: true,
+        sorter: (a: any, b: any) => a.discountValue - b.discountValue,
+      },
+  
+      {
+          title: "Start Date",
+          dataIndex: "startDate",
+          editable: true,
+          render: (_: any, { startDate }: any) => {
+            return startDate ? dayjs(startDate).format("YYYY-MM-DD") : "N/A";
+          },
+          sorter: (a: any, b: any) =>
+            dayjs(a.startDate).unix() - dayjs(b.startDate).unix(),
+        },
+        {
+          title: "End Date",
+          dataIndex: "endDate",
+          editable: true,
+          render: (_: any, { endDate }: any) => {
+            return endDate ? dayjs(endDate).format("YYYY-MM-DD") : "N/A";
+          },
+          sorter: (a: any, b: any) =>
+            dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
+        },
+   
     {
+    title: "Applied Product",
+    dataIndex: "appliesToProductId",
+    // editable: true,
+    render: (_: any, record: any) => {
+   
+      const product = productUpdate.find(p => p.Id === record.appliesToProductId);
+      return product ? `${product.Name}` : "N/A"; // Nếu không thấy tên, có thể là do productUpdate rỗng hoặc Id không khớp
+    },
+  },
+      {
+        title: "Description",
+        dataIndex: "description",
+        editable: true,
+      },
+  
+              {
       title: "Detail",
       key: "detail",
       className: "TextAlign",
-      render: (_: unknown, { promotionID }) => (
+      render: (_: unknown, record: { promotionID: string }) => (
         <Space size="middle">
-          <Link to={`/sales-staff/marketing/discount/detail/${promotionID}`}>
+          <Link to={`/sales-staff/marketing/discount/detail/${record.promotionID}`}>
             <EyeOutlined />
           </Link>
         </Space>
       ),
-    },
+    }
   ];
-
-  const onChangeTable: TableProps<PromotionDataType>["onChange"] = (
-    pagination,
-    filters,
-    sorter,
-    extra
-  ) => {
-    console.log("params", pagination, filters, sorter, extra);
-  };
+  
+    const mergedColumns = columns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record: any) => ({
+        record,
+        inputType:
+          col.dataIndex === "discountValue"
+            ? "number"
+            : col.dataIndex === "appliesToProductId"
+            ? "select" // <-- CHẮC CHẮN PHẢI CÓ DÒNG NÀY
+            : col.dataIndex === "startDate" || col.dataIndex === "endDate"
+            ? "date"
+            : "text",
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditing(record),
+        products: products, // <-- CHẮC CHẮN PHẢI CÓ DÒNG NÀY
+      }),
+    };
+  });
+  
+    const onChangeTable: TableProps<any>["onChange"] = (
+      pagination,
+      filters,
+      sorter,
+      extra
+    ) => {
+      console.log("params", pagination, filters, sorter, extra);
+    };
+  
 
   // SEARCH AREA
-  const [searchText, setSearchText] = useState("");
-
   const onSearch = (value: string) => {
-    console.log("Search:", value);
+    const keyword = value.toLowerCase().trim();
+    const filtered = discounts.filter((discount) =>
+      discount.name?.toLowerCase().includes(keyword)
+    );
+    setFilteredDiscounts(filtered);
   };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      onSearch(searchText);
-    }
-  };
+    useEffect(() => {
+    setFilteredDiscounts(discounts); // khi discounts thay đổi thì update bảng hiển thị
+  }, [discounts]);
+  
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        onSearch(searchText);
+      }
+    };
+  
 
  
   return (
@@ -137,7 +267,7 @@ const ProductPromotion = () => {
                 <Form form={form} component={false}>
                   <Table
                     bordered
-                    dataSource={data}
+                    dataSource={filteredDiscounts}
                     columns={columns}
                     rowClassName="editable-row"
                     pagination={{ pageSize: 6 }} // Add pagination here
