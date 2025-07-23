@@ -42,6 +42,7 @@
 
   <ItemGroup>
     <Folder Include="Handlers\Category\Validators\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

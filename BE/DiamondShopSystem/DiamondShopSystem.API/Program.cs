@@ -4,7 +4,6 @@ using DiamondShopSystem.BLL.Handlers;
 using DiamondShopSystem.BLL.Handlers.User;
 using DiamondShopSystem.BLL.Handlers.User.Validators;
 using DiamondShopSystem.BLL.Mapping;
-using DiamondShopSystem.BLL.Services;
 using DiamondShopSystem.BLL.Services.Auth;
 using DiamondShopSystem.BLL.Services.Category;
 using DiamondShopSystem.BLL.Services.Order;
@@ -24,6 +23,7 @@ using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
 using DiamondShopSystem.DAL.Repositories.Contracts;
+using DiamondShopSystem.BLL.Services.Delivery;
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -126,7 +126,7 @@ void ConfigureServices()
     // Delivery Services
     builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-    builder.Services.AddScoped<DeliveryService>();
+    builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
 
     builder.Services.Configure<EmailSettings>(options =>

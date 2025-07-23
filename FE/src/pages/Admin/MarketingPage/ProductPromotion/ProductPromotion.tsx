@@ -100,7 +100,8 @@ const ProductPromotion = () => {
   const [api, contextHolder] = notification.useNotification();
 
   const [selectedProducts, setSelectedProducts] = useState([]);
-  // const [selectedDiamonds, setSelectedDiamonds] = useState([]);
+  const [filteredDiscounts, setFilteredDiscounts] = useState<any[]>([]);
+  
 
 
   type NotificationType = "success" | "info" | "warning" | "error";
@@ -146,12 +147,6 @@ const ProductPromotion = () => {
       appliesToProductId: voucher.appliesToProductId,
     }));
 
-    // const formattedProducts = productList
-    //   .filter((product: any) => product.ProductID !== null)
-    //   .map((product: any) => ({
-    //     label: product.Name,
-    //     value: product.ProductID,
-    //   }));
     const formattedProducts = productData
   .filter((product: any) => product.ProductID !== null)
   .map((product: any) => ({
@@ -181,19 +176,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
   const handleChangeProduct = (value: any) => {
     setSelectedProducts(value);
   }
-  // const handleChangeDiamond = (value: any) => {
-  //   setSelectedDiamonds(value);
-  // }
-  // useEffect(()=>{
-  //   const fetchData = async ()=> {
-  //     try{
-  //       const dataProduct = 
-  //     }
-  //     catch(error){
-  //       console.log(error)
-  //     }
-  //   }
-  // },[]);
 
   // EDIT
   const edit = (record: Partial<any> & { key: React.Key }) => {
@@ -249,17 +231,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
     }
   };
 
-  // const handleDelete = async (discountID: number) => {
-  //   try {
-  //     await deleteDiscount(discountID);
-  //     openNotification("success", "Delete", "");
-  //     fetchData();
-  //   } catch (error: any) {
-  //     console.error("Failed to delete promotion:", error);
-  //     openNotification("error", "Delete", error.message);
-  //   }
-  // };
-
   const handleDelete = async (voucherID: number) => {
     try {
       await deleteVoucher(voucherID);
@@ -313,15 +284,7 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
         sorter: (a: any, b: any) =>
           dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
       },
-  //     {
-  //   title: "Applied Product",
-  //   dataIndex: "appliesToProductId",
-  //   editable: true,
-  //   render: (_: any, record: any) => {
-  //     const product = productUpdate.find(p => p.Id === record.appliesToProductId);
-  //     return product ? `${product.Name}` : "N/A";
-  //   },
-  // },
+ 
   {
   title: "Applied Product",
   dataIndex: "appliesToProductId",
@@ -338,14 +301,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
       editable: true,
     },
 
-    // {
-    // title: "Applied Product",
-    // dataIndex: "appliesToProductId",
-    // render: (_: any, record: any) => {
-    //   const product = productUpdate.find(p => p.ProductID === record.appliesToProductId);
-    //   return product ? `${product.Name}` : "N/A";
-    // },
-  // },
   {
     title: "Edit",
     dataIndex: "edit",
@@ -390,23 +345,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
   },
 ];
 
-
-  // const mergedColumns = columns.map((col) => {
-  //   if (!col.editable) {
-  //     return col;
-  //   }
-  //   return {
-  //     ...col,
-  //     onCell: (record: any) => ({
-  //       record,
-  //       inputType: col.dataIndex === "discountValue" ? "number" : "text",
-  //       dataIndex: col.dataIndex,
-  //       title: col.title,
-  //       editing: isEditing(record),
-  //       products: products,
-  //     }),
-  //   };
-  // });
   const mergedColumns = columns.map((col) => {
   if (!col.editable) {
     return col;
@@ -443,9 +381,18 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
 
   // SEARCH AREA
 
-  const onSearch = (value: string) => {
-    console.log("Search:", value);
-  };
+ 
+
+const onSearch = (value: string) => {
+  const keyword = value.toLowerCase().trim();
+  const filtered = discounts.filter((discount) =>
+    discount.name?.toLowerCase().includes(keyword)
+  );
+  setFilteredDiscounts(filtered);
+};
+  useEffect(() => {
+  setFilteredDiscounts(discounts); // khi discounts thay đổi thì update bảng hiển thị
+}, [discounts]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -485,21 +432,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
         .catch(() => setSubmittable(false));
     }, [values]);
 
-    // const addDiscount = async () => {
-    //   try {
-    //     const discountValues = await form.validateFields();
-    //     // const newDiscount = {
-    //     //   ...discountValues,
-    //     // };
-    //     const newDiscount = {
-    //     Name: discountValues.Name,
-    //     DiscountValue: discountValues.DiscountValue,
-    //     DiscountType: discountValues.DiscountType,
-    //     StartDate: discountValues.StartDate,
-    //     EndDate: discountValues.EndDate,
-    //     Description: discountValues.Description,
-    //     AppliesToProductId: discountValues.AppliesToProductId,
-    //   };
     const addDiscount = async () => {
       try {
         const discountValues = await form.validateFields();
@@ -555,7 +487,7 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
                       placeholder="Search here..."
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={handleKeyPress}
+                      onKeyDown={handleKeyPress}
                       prefix={<SearchOutlined className="searchIcon" />}
                     />
                   </Styled.SearchArea>
@@ -713,7 +645,7 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
                       },
                     }}
                     bordered
-                    dataSource={discounts}
+                    dataSource={filteredDiscounts}
                     columns={mergedColumns}
                     rowClassName="editable-row"
                     pagination={{ pageSize: 6 }}
