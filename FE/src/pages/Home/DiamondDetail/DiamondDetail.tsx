@@ -251,10 +251,10 @@ const DiamondDetails: React.FC = () => {
   //   foundProduct?.usingImage?.map((img: any) => getImage(img.UsingImageID)) ||
   //   [];
 
-  const changeImage = (src: string, index: number) => {
-    setMainImage(src);
-    setSelectedThumb(index);
-  };
+  // const changeImage = (src: string, index: number) => {
+  //   setMainImage(src);
+  //   setSelectedThumb(index);
+  // };
   const matchingReviews = reviewsData.filter(
     (review) => foundProduct && foundProduct.id === review.diamondId
   );
