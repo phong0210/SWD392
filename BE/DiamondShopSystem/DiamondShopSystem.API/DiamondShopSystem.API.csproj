@@ -48,9 +48,7 @@
     <ProjectReference Include="..\DiamondShopSystem.BLL\DiamondShopSystem.BLL.csproj">
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj">
-      <Private>True</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\DiamondShopSystem.DAL\DiamondShopSystem.DAL.csproj" />
   </ItemGroup>
 
 </Project>

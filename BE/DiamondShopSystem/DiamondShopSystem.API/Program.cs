@@ -84,7 +84,7 @@ void ConfigureServices()
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(typeof(EntityToDtoProfile).Assembly);
     builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.User.Validators.UserCreateValidator).Assembly);
-   
+
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
@@ -94,7 +94,7 @@ void ConfigureServices()
     builder.Services.AddControllers();
 
     builder.Services.AddDiamondShopValidators();
-    
+
     builder.Services.AddScoped<JwtUtil>(provider =>
         new JwtUtil(provider.GetRequiredService<IConfiguration>()));
 
@@ -104,10 +104,10 @@ void ConfigureServices()
     builder.Services.AddSingleton<DiamondShopSystem.BLL.Services.Cache.IOtpCacheService, DiamondShopSystem.BLL.Services.Cache.OtpCacheService>();
 
 
-    
+
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();
-    
+
     // Order Services
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 
@@ -120,8 +120,8 @@ void ConfigureServices()
     // Warranty Services
     builder.Services.AddScoped<IWarrantyService, WarrantyService>();
 
-   
-    
+
+
 
     // Delivery Services
     builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();

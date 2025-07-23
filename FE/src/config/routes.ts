@@ -64,6 +64,8 @@ const routes = {
     // orderDetails:'/order-details'
     orderDetails: "/order-details",
     reviewFeedBack: "/review-feedback",
+    vip: "/vip",
+    loyalty: "/loyalty"
   },
   admin: {
     dashboard: "/admin",

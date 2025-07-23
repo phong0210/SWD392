@@ -1,4 +1,6 @@
 using MediatR;
+using System;
+using DiamondShopSystem.BLL.Handlers.Order.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Delete
 {
@@ -16,5 +18,6 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Delete
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
+        public OrderDetailDto? Data { get; set; }
     }
 } 
