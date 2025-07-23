@@ -22,7 +22,7 @@ namespace DiamondShopSystem.BLL.Handlers.Vip.Queries
 
         public async Task<IEnumerable<VipDto>> Handle(GetAllVipsQuery request, CancellationToken cancellationToken)
         {
-            var vips = await _unitOfWork.VipRepository.GetAllAsync();
+            var vips = _unitOfWork.Repository<DAL.Entities.Vip>();
             return _mapper.Map<IEnumerable<VipDto>>(vips);
         }
     }

@@ -20,15 +20,17 @@ namespace DiamondShopSystem.BLL.Handlers.Vip.Commands.Update
 
         public async Task<bool> Handle(UpdateVipCommand request, CancellationToken cancellationToken)
         {
-            var existingVip = await _unitOfWork.VipRepository.GetByIdAsync(request.Id);
+            var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
+            var existingVip = await vipRepo.GetByIdAsync(request.Id);
             if (existingVip == null)
             {
                 return false;
             }
 
             _mapper.Map(request.Request, existingVip);
-            _unitOfWork.VipRepository.Update(existingVip);
-            await _unitOfWork.SaveAsync();
+            vipRepo.Update(existingVip);
+
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

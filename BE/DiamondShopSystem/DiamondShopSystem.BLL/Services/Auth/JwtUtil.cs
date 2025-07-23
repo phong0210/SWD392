@@ -30,13 +30,13 @@ namespace DiamondShopSystem.BLL.Services.Auth
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim("AccountID", user.Id.ToString()),
-                new Claim("Email", user.Email),
-                new Claim("Role", role)
-            };
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Name, user.Name),
+        new Claim("AccountID", user.Id.ToString()),
+        new Claim("Email", user.Email),
+        new Claim("Role", role)
+    };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

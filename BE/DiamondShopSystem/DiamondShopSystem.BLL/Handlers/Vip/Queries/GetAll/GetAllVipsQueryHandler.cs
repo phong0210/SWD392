@@ -1,9 +1,9 @@
 using MediatR;
-using DiamondShopSystem.BLL.Interfaces;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
+using DiamondShopSystem.BLL.Services.Vip;
 
 namespace DiamondShopSystem.BLL.Handlers.Vip.Queries.GetAll
 {

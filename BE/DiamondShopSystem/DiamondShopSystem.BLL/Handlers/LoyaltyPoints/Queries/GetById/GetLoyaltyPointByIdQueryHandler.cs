@@ -1,6 +1,5 @@
 using AutoMapper;
 using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
-using DiamondShopSystem.BLL.Models;
 using DiamondShopSystem.DAL.Repositories;
 using MediatR;
 using System.Threading;

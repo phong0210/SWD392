@@ -1,5 +1,4 @@
 using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
-using DiamondShopSystem.BLL.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

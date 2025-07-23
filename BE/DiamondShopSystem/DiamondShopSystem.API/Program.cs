@@ -24,8 +24,8 @@ using System.Collections;
 using System.Text;
 using DiamondShopSystem.DAL.Repositories.Contracts;
 using DiamondShopSystem.BLL.Services.Delivery;
-using DiamondShopSystem.API.Services;
 using DiamondShopSystem.BLL.Services.LoyaltyPoint;
+using DiamondShopSystem.BLL.Services.Vip;
 
 
 
@@ -113,6 +113,9 @@ void ConfigureServices()
 
     // Loyalty Point Services
     builder.Services.AddScoped<ILoyaltyPointService, LoyaltyPointService>();
+
+    // Vip Services
+    builder.Services.AddScoped<IVipService, VipService>();
 
     // Order Services
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();

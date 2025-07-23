@@ -1,6 +1,5 @@
 
 using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
-using DiamondShopSystem.BLL.Models;
 using MediatR;
 using System.Collections.Generic;
 
