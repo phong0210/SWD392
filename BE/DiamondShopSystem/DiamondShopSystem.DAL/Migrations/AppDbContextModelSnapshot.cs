@@ -260,6 +260,9 @@ namespace DiamondShopSystem.DAL.Migrations
                     b.Property<int>("StockQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("WarrantyId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -548,7 +551,7 @@ namespace DiamondShopSystem.DAL.Migrations
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Promotion", b =>
                 {
                     b.HasOne("DiamondShopSystem.DAL.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("Promotions")
                         .HasForeignKey("AppliesToProductId");
 
                     b.Navigation("Product");
@@ -607,6 +610,8 @@ namespace DiamondShopSystem.DAL.Migrations
 
             modelBuilder.Entity("DiamondShopSystem.DAL.Entities.Product", b =>
                 {
+                    b.Navigation("Promotions");
+
                     b.Navigation("Warranty");
                 });
 

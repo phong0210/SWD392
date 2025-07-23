@@ -53,5 +53,8 @@ namespace DiamondShopSystem.DAL.Entities
         public OrderDetail? OrderDetail { get; set; }
 
         public Warranty? Warranty { get; set; }
+
+        public Guid? WarrantyId { get; set; }
+
     }
 }
