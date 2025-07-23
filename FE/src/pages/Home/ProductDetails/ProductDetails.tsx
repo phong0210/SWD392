@@ -53,6 +53,7 @@ import {
   CustomBreadcrumb,
 } from "./ProductDetails.styled";
 import { StarFilled } from "@ant-design/icons";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 import { useNavigate } from "react-router-dom";
 import { showAllSize } from "@/services/sizeAPI";
 import { getProductDetails, showAllProduct } from "@/services/productAPI";
@@ -85,23 +86,23 @@ const ProductDetails: React.FC = () => {
   const [sizes, setSizes] = useState<any[]>([]);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchSizes = async () => {
-      try {
-        const response = await showAllSize();
-        if (response.status === 200) {
-          setSizes(response.data.data);
-          if (response.data.data.length > 0) {
-            setSelectedSize(response.data.data[0].sizeId);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching sizes:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchSizes = async () => {
+  //     try {
+  //       const response = await showAllSize();
+  //       if (response.status === 200) {
+  //         setSizes(response.data.data);
+  //         if (response.data.data.length > 0) {
+  //           setSelectedSize(response.data.data[0].sizeId);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching sizes:", error);
+  //     }
+  //   };
 
-    fetchSizes();
-  }, []);
+  //   fetchSizes();
+  // }, []);
 
   const handleClick = (sizeId: number) => {
     setSelectedSize(sizeId);
@@ -185,92 +186,80 @@ const ProductDetails: React.FC = () => {
   };
 
   const fetchProductDetails = async () => {
+    if (!id) {
+      console.error("Missing product ID");
+      setIsLoading(false);
+      return;
+    }
     try {
-      console.log("Fetching product details...");
+      console.log("Fetching diamond details...");
       const response = await getProductDetails(id);
+      console.log("Response from getProductDetails:", response.data);
       if (response.status === 200) {
-        const product = response.data.data;
-        setFoundProduct({
-          ...product,
-          FinalPrice: Number(
-            product.TotalDiamondPrice +
-              product.JewelrySetting?.jewelrySettingVariant?.find(
-                (item: any) => item.MaterialJewelryID === Number(selectedMetal)
-              )?.Price
-          ),
-          DiscountFinalPrice: Number(
-            (product.TotalDiamondPrice +
-              product.JewelrySetting?.jewelrySettingVariant?.find(
-                (item: any) => item.MaterialJewelryID === Number(selectedMetal)
-              )?.Price) *
-              ((100 - product?.Discount?.PercentDiscounts) / 100)
-          ),
-        });
-        const productId = product.ProductID;
-        setProductId(productId);
+        const product = response.data;
+        const foundProduct = product.product;
+        setFoundProduct(foundProduct);
+        console.log("Found product:", foundProduct);
+        const diamondId = product.product.id;
+        setProductId(diamondId);
+        console.log("Diamond ID:", diamondId);
 
-        if (product.UsingImage && product.UsingImage.length > 0) {
-          const mainImageUrl = getImage(product.UsingImage[0].UsingImageID);
+        if (product.usingImage && product.usingImage.length > 0) {
+          const mainImageUrl = getImage(product.usingImage[0].UsingImageID);
           setMainImage(mainImageUrl);
         } else {
           setMainImage("");
         }
         setSelectedThumb(0);
 
-        const weightCarat = product.WeightCarat;
-        const params = { weightCarat };
-        console.log(params);
-        const sameWeightProductsResponse = await showAllProduct();
+        // const weightCarat = product.WeightCarat;
+        // const params = { weightCarat };
+        // const sameWeightProductsResponse = await showDiamonds(params);
 
-        if (sameWeightProductsResponse.status === 200) {
-          if (
-            sameWeightProductsResponse.data &&
-            Array.isArray(sameWeightProductsResponse.data.data)
-          ) {
-            const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
-              (jewelry: any) => ({
-                id: jewelry.ProductID,
-                name: jewelry.Name,
-                brand: jewelry.Brand,
-                totalDiamondPrice: jewelry.TotalDiamondPrice,
-                firstPrice: jewelry.FirstPrice,
-                discountFirstPrice: jewelry.DiscountFirstPrice,
-                jewelryType: jewelry.JewelrySetting?.jewelryType?.Name,
-                images: jewelry.UsingImage.map((image: any) => ({
-                  id: image.UsingImageID,
-                  url: getImage(image.UsingImageID),
-                })),
-              })
-            );
+        // if (sameWeightProductsResponse.status === 200) {
+        //   if (
+        //     sameWeightProductsResponse.data &&
+        //     Array.isArray(sameWeightProductsResponse.data.data)
+        //   ) {
+        //     const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
+        //       (item: any) => ({
+        //         id: item.DiamondID,
+        //         name: item.Name,
+        //         cut: item.Cut,
+        //         stars: item.Stars,
+        //         price: item.Price,
+        //         color: item.Color,
+        //         description: item.Description,
+        //         isActive: item.IsActive,
+        //         clarity: item.Clarity,
+        //         cutter: item.Cutter,
+        //         discountPrice: item.DiscountPrice,
+        //         images: item.usingImage.map((image: any) => ({
+        //           id: image.UsingImageID,
+        //           name: image.Name,
+        //           url: getImage(image.UsingImageID),
+        //         })),
+        //       })
+        //     );
 
-            const maxProductsToShow = 4;
+        //     const maxProductsToShow = 4;
+        //     const productsToShow =
+        //       fetchedDiamonds.length <= maxProductsToShow
+        //         ? fetchedDiamonds
+        //         : fetchedDiamonds
+        //             .sort(() => 0.5 - Math.random())
+        //             .slice(0, maxProductsToShow);
 
-            // Assuming you have a variable for the current brand
-            const currentBrand = product.Brand;
-
-            // Filter products by the current brand
-            const sameBrandProducts = fetchedDiamonds.filter(
-              (item: any) =>
-                item.brand === currentBrand && item.id !== productId
-            );
-
-            const productsToShow =
-              sameBrandProducts.length <= maxProductsToShow
-                ? sameBrandProducts
-                : sameBrandProducts
-                    .sort(() => 0.5 - Math.random())
-                    .slice(0, maxProductsToShow);
-
-            setSameBrandProducts(productsToShow);
-          } else {
-            setSameBrandProducts([]);
-          }
-        } else {
-          setSameBrandProducts([]);
-        }
-        if (productId !== null) {
-          await fetchFeedbackDetail(productId);
-        }
+        //     setSameBrandProducts(productsToShow);
+        //   } else {
+        //     setSameBrandProducts([]);
+        //   }
+        // } else {
+        //   setSameBrandProducts([]);
+        // }
+        // if (diamondId !== null) {
+        //   await fetchFeedbackDetail(diamondId);
+        // }
       } else {
         setFoundProduct(null);
       }
@@ -279,7 +268,6 @@ const ProductDetails: React.FC = () => {
       setFoundProduct(null);
     } finally {
       setIsLoading(false);
-      console.log("Loading: ", isLoading);
     }
   };
 
@@ -287,18 +275,18 @@ const ProductDetails: React.FC = () => {
     fetchProductDetails();
   }, [id, productId]);
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      const orderlines = await showAllOrderLineForAdmin();
-      const cartItems = orderlines.data.data.filter(
-        (item: any) =>
-          item.OrderID === null && item.CustomerID === user?.CustomerID
-      );
-      setCartList(cartItems);
-    };
+  // useEffect(() => {
+  //   const fetchCart = async () => {
+  //     const orderlines = await showAllOrderLineForAdmin();
+  //     const cartItems = orderlines.data.data.filter(
+  //       (item: any) =>
+  //         item.OrderID === null && item.CustomerID === user?.CustomerID
+  //     );
+  //     setCartList(cartItems);
+  //   };
 
-    fetchCart();
-  }, [id]);
+  //   fetchCart();
+  // }, [id]);
 
   const handleAddToCart = async () => {
     if (role) {
@@ -380,13 +368,13 @@ const ProductDetails: React.FC = () => {
     return <div>Product not found</div>;
   }
 
-  const thumbnailImages =
-    foundProduct?.UsingImage?.map((img: any) => getImage(img.UsingImageID)) ||
-    [];
-  const changeImage = (src: string, index: number) => {
-    setMainImage(src);
-    setSelectedThumb(index);
-  };
+  // const thumbnailImages =
+  //   foundProduct?.UsingImage?.map((img: any) => getImage(img.UsingImageID)) ||
+  //   [];
+  // const changeImage = (src: string, index: number) => {
+  //   setMainImage(src);
+  //   setSelectedThumb(index);
+  // };
 
   const handleButtonClick = (id: any, type: any) => {
     setSelectedMetal(id);
@@ -418,7 +406,7 @@ const ProductDetails: React.FC = () => {
     <Body>
       {contextHolder}
       <div>
-        <CustomBreadcrumb
+        {/* <CustomBreadcrumb
           separator=">"
           items={[
             { title: "Home", href: "/" },
@@ -427,7 +415,7 @@ const ProductDetails: React.FC = () => {
               title: `${foundProduct.JewelrySetting.jewelryType.Name} - #${foundProduct.ProductID}`,
             },
           ]}
-        />
+        /> */}
       </div>
       <Section>
         <Container>
@@ -436,7 +424,7 @@ const ProductDetails: React.FC = () => {
               <Wrapper>
                 <ImageContainer>
                   <OuterThumb>
-                    <ThumbnailImage>
+                    {/* <ThumbnailImage>
                       {thumbnailImages.map((src: any, index: any) => (
                         <Item
                           key={index}
@@ -446,11 +434,11 @@ const ProductDetails: React.FC = () => {
                           <img src={src} alt={`Thumb ${index + 1}`} />
                         </Item>
                       ))}
-                    </ThumbnailImage>
+                    </ThumbnailImage> */}
                   </OuterThumb>
                   <OuterMain>
                     <MainImage>
-                      <img id="mainImage" src={mainImage} alt="Main" />
+                      <img id="mainImage" src={defaultImage} alt="Main" />
                     </MainImage>
                   </OuterMain>
                 </ImageContainer>
@@ -473,13 +461,9 @@ const ProductDetails: React.FC = () => {
                 </Heading>
                 <ProductInfo>
                   <div className="wrap">
-                    <div className="info-box">
-                      {foundProduct.JewelrySetting.jewelryType.Name}
-                    </div>
+                    <div className="info-box">{foundProduct.name}</div>
                     <div>
-                      {foundProduct.JewelrySetting.jewelryType.Name.includes(
-                        "Men"
-                      ) ? (
+                      {foundProduct.name.includes("Men") ? (
                         <div className="info-box">
                           {
                             foundProduct?.JewelrySetting
@@ -487,20 +471,14 @@ const ProductDetails: React.FC = () => {
                           }
                         </div>
                       ) : (
-                        <div className="info-box">
-                          {foundProduct.JewelrySetting.DiamondShape}
-                        </div>
+                        <div className="info-box">{foundProduct.cut}</div>
                       )}
                     </div>
-                    <div className="info-box">
-                      {foundProduct.JewelrySetting.Name}
-                    </div>
+                    <div className="info-box">{foundProduct.name}</div>
                   </div>
                 </ProductInfo>
-                {foundProduct.JewelrySetting.jewelryType.Name !==
-                  "Men Engagement Ring" &&
-                  foundProduct.JewelrySetting.jewelryType.Name !==
-                    "Men Wedding Ring" && (
+                {foundProduct.name !== "Men Engagement Ring" &&
+                  foundProduct.name !== "Men Wedding Ring" && (
                     <ProductMetal>
                       <span className="fill">Metal Type: {metalType}</span>
                       <div className="wrap">
@@ -520,9 +498,7 @@ const ProductDetails: React.FC = () => {
                       </div>
                     </ProductMetal>
                   )}
-                {foundProduct.JewelrySetting.jewelryType.Name.includes(
-                  "Ring"
-                ) && (
+                {foundProduct.name.includes("Ring") && (
                   <>
                     <div>
                       <RingSizeContainer>
@@ -586,7 +562,7 @@ const ProductDetails: React.FC = () => {
                   <div className="product-group">
                     <div className="product-price">
                       <CurrentPrice>
-                        ${foundProduct.DiscountFinalPrice.toFixed(2)}
+                        ${foundProduct.price.toFixed(2)}
                       </CurrentPrice>
                       {foundProduct.FirstPrice && (
                         <div className="wrap">
@@ -666,25 +642,18 @@ const ProductDetails: React.FC = () => {
                   <ul>
                     <li>ID Number: {foundProduct.ProductID}</li>
                     <li>Firm: {foundProduct.Brand}</li>
-                    <li>
-                      Type: {foundProduct.JewelrySetting.jewelryType.Name}
-                    </li>
-                    {!foundProduct.JewelrySetting.jewelryType.Name.includes(
-                      "Men"
-                    ) && (
-                      <li>
-                        Diamond Shape:{" "}
-                        {foundProduct.JewelrySetting.DiamondShape}
-                      </li>
+                    <li>Type: {foundProduct.name}</li>
+                    {!foundProduct.name.includes("Men") && (
+                      <li>Diamond Shape: {foundProduct.cut}</li>
                     )}
                     <li>
                       Quantity:{" "}
                       {foundProduct.TotalQuantityJewelrySettingVariants}
                     </li>
-                    <li>Setting: {foundProduct.JewelrySetting.Name}</li>
+                    <li>Setting: {foundProduct.name}</li>
                     {foundProduct.Discount &&
                       foundProduct.Discount.DiscountID && (
-                        <li>Promotion: {foundProduct.Discount.Name}</li>
+                        <li>Promotion: {foundProduct.name}</li>
                       )}
                   </ul>
                 </ListBlock>
@@ -793,33 +762,21 @@ const ProductDetails: React.FC = () => {
                   hoverable
                   className="product-card"
                   cover={
-                    product.images.length > 0 ? (
-                      <>
-                        <Link to={`/product/${product.id}`}>
-                          <img
-                            style={{ borderRadius: "0" }}
-                            src={product.images[0]?.url || ""}
-                            alt={product.name}
-                            className="product-image"
-                            onMouseOver={(e) =>
-                              (e.currentTarget.src =
-                                product.images[1]?.url ||
-                                product.images[0]?.url ||
-                                "")
-                            }
-                            onMouseOut={(e) =>
-                              (e.currentTarget.src =
-                                product.images[0]?.url || "")
-                            }
-                          />
-                        </Link>
-                        {product.discountFirstPrice && (
-                          <div className="sale-badge">SALE</div>
-                        )}
-                      </>
-                    ) : (
-                      <div>No Image Available</div>
-                    )
+                    <Link to={`/product/${product.id}`}>
+                      <img
+                        style={{ borderRadius: "0" }}
+                        src={defaultImage}
+                        alt={product.name}
+                        className="product-image"
+                        onMouseOver={(e) =>
+                          (e.currentTarget.src = defaultImage)
+                        }
+                        onMouseOut={(e) => (e.currentTarget.src = defaultImage)}
+                      />
+                      {product.salePrice && (
+                        <div className="sale-badge">SALE</div>
+                      )}
+                    </Link>
                   }
                 >
                   <div className="product-info">

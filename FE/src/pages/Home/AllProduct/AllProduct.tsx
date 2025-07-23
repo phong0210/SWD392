@@ -13,6 +13,8 @@ import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { showAllProduct } from "@/services/productAPI";
 import { getImage } from "@/services/imageAPI";
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 
 const { Title, Text } = Typography;
 
@@ -24,7 +26,7 @@ const AllProduct: React.FC = () => {
     "Men Wedding Ring",
   ];
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [wishList, setWishList] = useState<string[]>([]);
@@ -33,39 +35,51 @@ const AllProduct: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
-        const response = await showAllProduct();
-        console.log("API response:", response.data.data);
+        const response = await showAllProduct(); // Call the function to get the promise
+        console.log("API response:", response.data);
 
-        if (response && response.data && Array.isArray(response.data.data)) {
-          const fetchedProducts = response.data.data.map((jewelry: any) => ({
-            id: jewelry.ProductID,
-            name: jewelry.Name,
-            brand: jewelry.Brand,
-            totalDiamondPrice: jewelry.TotalDiamondPrice,
-            firstPrice: jewelry.FirstPrice,
-            discountFirstPrice: jewelry.DiscountFirstPrice,
-            type: jewelry.JewelrySetting.jewelryType.Name,
-            jewelryType: jewelry.JewelrySetting?.jewelryType?.Name,
-            images: jewelry.UsingImage.map((image: any) => ({
-              id: image.UsingImageID,
-              url: getImage(image.UsingImageID),
-            })),
-          }));
+        if (response && Array.isArray(response.data)) {
+          // In your useEffect, update the fetchedProducts mapping:
 
+          const fetchedProducts = (
+            response.data as ProductApiResponseItem[]
+          ).map((item) => {
+            const product = item.product;
+            return {
+              id: product.id,
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: product.categoryId,
+              orderDetailId: product.orderDetailId,
+              warrantyId: product.warrantyId,
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images) ? product.images : [],
+            };
+          });
           console.log(fetchedProducts);
-
           setProducts(fetchedProducts);
           setLoading(false);
         } else {
           console.error("Unexpected API response format:", response.data);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching diamonds:", error);
       }
     };
-
     fetchData();
   }, []);
 
@@ -172,33 +186,23 @@ const AllProduct: React.FC = () => {
                     hoverable
                     className="product-card"
                     cover={
-                      product.images.length > 0 ? (
-                        <>
-                          <Link to={`/product/${product.id}`}>
-                            <img
-                              style={{ borderRadius: "0" }}
-                              src={product.images[0]?.url || ""}
-                              alt={product.name}
-                              className="product-image"
-                              onMouseOver={(e) =>
-                                (e.currentTarget.src =
-                                  product.images[1]?.url ||
-                                  product.images[0]?.url ||
-                                  "")
-                              }
-                              onMouseOut={(e) =>
-                                (e.currentTarget.src =
-                                  product.images[0]?.url || "")
-                              }
-                            />
-                          </Link>
-                          {product.discountFirstPrice && (
-                            <div className="sale-badge">SALE</div>
-                          )}
-                        </>
-                      ) : (
-                        <div>No Image Available</div>
-                      )
+                      <Link to={`/product/${product.id}`}>
+                        <img
+                          style={{ borderRadius: "0" }}
+                          src={defaultImage}
+                          alt={product.name}
+                          className="product-image"
+                          onMouseOver={(e) =>
+                            (e.currentTarget.src = defaultImage)
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.src = defaultImage)
+                          }
+                        />
+                        {product.salePrice && (
+                          <div className="sale-badge">SALE</div>
+                        )}
+                      </Link>
                     }
                   >
                     <div className="product-info">

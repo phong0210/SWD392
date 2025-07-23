@@ -30,4 +30,4 @@ namespace DiamondShopSystem.DAL.Entities
         public Guid? AppliesToProductId { get; set; }
         public Product? Product { get; set; }
     }
-} 
+}
