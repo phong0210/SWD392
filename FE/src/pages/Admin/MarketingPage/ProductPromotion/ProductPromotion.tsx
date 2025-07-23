@@ -128,10 +128,18 @@ const ProductPromotion = () => {
      const data = response.data;
     //  const { data: productData } = responseProduct.data;
     // const productData = responseProduct.data.map((item: any) => item.product);
-    const productData = responseProduct.data.map((item: any) => ({
-      Id: item.product.id, // hoặc item.product.Id nếu viết hoa
-      Name: item.product.name, // nếu cần thêm thì bổ sung các field khác
-    }));
+    // const productData = responseProduct.data.map((item: any) => ({
+    //   Id: item.product.id, // hoặc item.product.Id nếu viết hoa
+    //   Name: item.product.name, // nếu cần thêm thì bổ sung các field khác
+    // }));
+    const productData = Array.isArray(responseProduct?.data)
+  ? responseProduct.data
+      .filter((item: any) => item.product !== null)
+      .map((item: any) => ({
+        Id: item.product.id,
+        Name: item.product.name,
+      }))
+  : [];
     console.log("Voucher data:", data); // debug xem có dữ liệu không
 
     const formattedDiscounts = data.map((voucher: any) => ({
@@ -153,9 +161,11 @@ const ProductPromotion = () => {
   }));
 
     setDiscounts(formattedDiscounts);
+    setFilteredDiscounts(formattedDiscounts);
     setProducts(formattedProducts);
     // setProductUpdate(productList);
     setProductUpdate(productData);
+    console.log("✅ productUpdate vừa cập nhật:", productData);
     console.log("productUpdate example:", productUpdate[0]);
 console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToProductId));
 
@@ -453,7 +463,10 @@ const onSearch = (value: string) => {
       console.log("🎯 New Discount Values:", newDiscount);
 
         const { data } = await createVoucher(newDiscount);
-        if (data.statusCode !== 200) throw new Error(data.message);
+        // if (data.statusCode !== 200) throw new Error(data.message);
+        if (!data || data.error || data.success === false) {
+  throw new Error(data.message || "Unknown error");
+}
         fetchData();
         setIsAdding(false);
         openNotification("success", "Add", "");

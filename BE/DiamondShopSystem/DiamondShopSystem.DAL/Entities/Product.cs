@@ -54,7 +54,6 @@ namespace DiamondShopSystem.DAL.Entities
 
         public Warranty? Warranty { get; set; }
 
-        public Guid? WarrantyId { get; set; }
 
     }
 }
