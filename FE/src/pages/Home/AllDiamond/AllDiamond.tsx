@@ -14,9 +14,10 @@ import { Card, Col, Row, Typography, Spin } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { labels, texts } from "./AllDiamond.props";
 import { useDocumentTitle } from "@/hooks";
-import { showAllDiamond } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
 import { Link } from "react-router-dom";
+import { Product } from "../shared/ListOfProducts";
+import { showAllProduct } from "@/services/productAPI";
+import { ProductApiResponseItem } from "@/models/Entities/Product";
 const { Title, Text } = Typography;
 
 const items = texts.map((text, index) => ({
@@ -32,11 +33,11 @@ const onChange = (key: any) => {
 const AllDiamond: React.FC = () => {
   useDocumentTitle("Diamond | Aphromas Diamond");
 
-  const [diamonds, setDiamonds] = useState<any[]>([]);
+  const [diamonds, setDiamonds] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [wishList, setWishList] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 12;
+  const pageSize = 5;
 
   const toggleWishList = (productId: string) => {
     setWishList((prev) =>
@@ -53,37 +54,42 @@ const AllDiamond: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await showAllDiamond();
-        console.log("API response:", response.data.data);
+        const response = await showAllProduct(); // Call the function to get the promise
+        console.log("API response:", response.data);
 
-        if (response && response.data && Array.isArray(response.data.data)) {
-          const fetchedDiamonds = response.data.data
+        if (response && Array.isArray(response.data)) {
+          // In your useEffect, update the fetchedProducts mapping:
 
-            .filter(
-              (item: any) => item.IsActive === true && item.Quantity === 1
-            )
-            .map((item: any) => ({
-              id: item.DiamondID,
-              name: item.Name,
-              cut: item.Cut,
-              price: item.Price,
-              color: item.Color,
-              description: item.Description,
-              isActive: item.IsActive,
-              clarity: item.Clarity,
-              cutter: item.Cutter,
-              shape: item.Shape,
-              discountPrice: item.DiscountPrice,
-              images: item.usingImage.map((image: any) => ({
-                id: image.UsingImageID,
-                name: image.Name,
-                url: getImage(image.UsingImageID),
-              })),
-            }));
-
-          console.log(fetchedDiamonds);
-
-          setDiamonds(fetchedDiamonds);
+          const fetchedProducts = (
+            response.data as ProductApiResponseItem[]
+          ).map((item) => {
+            const product = item.product;
+            return {
+              id: product.id,
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: product.categoryId,
+              orderDetailId: product.orderDetailId,
+              warrantyId: product.warrantyId,
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images) ? product.images : [],
+            };
+          });
+          console.log(fetchedProducts);
+          setDiamonds(fetchedProducts);
           setLoading(false);
         } else {
           console.error("Unexpected API response format:", response.data);
@@ -92,7 +98,6 @@ const AllDiamond: React.FC = () => {
         console.error("Error fetching diamonds:", error);
       }
     };
-
     fetchData();
   }, []);
 

@@ -5,53 +5,67 @@ import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { Link, useNavigate, useParams } from "react-router-dom";
 const { Title, Text } = Typography;
 import config from "@/config";
-import { showAllDiamond } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
 import FAQ from "@/components/FAQs/FAQs";
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import Banner from "@/components/Banner/Banner";
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import { showAllProduct } from "@/services/productAPI";
+import { UUID } from "crypto";
 
 const DiamondList: React.FC = () => {
   const { diamondShape } = useParams<{ diamondShape: string }>();
   const navigate = useNavigate();
-  const [diamonds, setDiamonds] = useState<any[]>([]);
+  const [diamonds, setDiamonds] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   console.log(loading);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await showAllDiamond(); // Call the function to get the promise
-        console.log("API response:", response.data.data);
+        const response = await showAllProduct();
+        console.log("API response:", response.data);
 
-        if (response && response.data && Array.isArray(response.data.data)) {
-          const fetchedDiamonds = response.data.data.map((item: any) => ({
-            id: item.DiamondID,
-            name: item.Name,
-            cut: item.Cut,
-            price: item.Price,
-            color: item.Color,
-            description: item.Description,
-            isActive: item.IsActive,
-            clarity: item.Clarity,
-            shape: item.Shape,
-            discountPrice: item.DiscountPrice,
-            images: item.usingImage.map((image: any) => ({
-              id: image.UsingImageID,
-              name: image.Name,
-              url: getImage(image.UsingImageID),
-            })),
-          }));
+        if (response && Array.isArray(response.data)) {
+          const fetchedProducts = (
+            response.data as ProductApiResponseItem[]
+          ).map((item) => {
+            const product = item.product;
+            return {
+              id: product.id as UUID, // Cast về UUID type
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: Number(product.categoryId), // Convert về number
+              orderDetailId: Number(product.orderDetailId), // Convert về number
+              warrantyId: Number(product.warrantyId), // Convert về number
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images)
+                ? product.images.map((img) => ({ url: img.url }))
+                : [], // Đảm bảo format đúng { url: string }[]
+            } as Product; // Cast toàn bộ object về Product type
+          });
 
-          console.log(fetchedDiamonds);
-
-          setDiamonds(fetchedDiamonds);
+          console.log(fetchedProducts);
+          setDiamonds(fetchedProducts);
           setLoading(false);
         } else {
           console.error("Unexpected API response format:", response.data);
         }
       } catch (error) {
         console.error("Error fetching diamonds:", error);
+        setLoading(false);
       }
     };
     fetchData();
@@ -433,7 +447,7 @@ const DiamondList: React.FC = () => {
 
   const currentDiamondData = diamondData[diamondShape];
   const [wishList, setWishList] = useState<string[]>([]);
-  
+
   useEffect(() => {
     const savedWishList = sessionStorage.getItem("wishlist");
     if (savedWishList) {
