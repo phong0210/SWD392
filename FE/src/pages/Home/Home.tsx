@@ -46,7 +46,7 @@ import {
 } from "./Home.styled";
 
 import { Link, useNavigate } from "react-router-dom";
-
+import defaultImage from "@/assets/diamond/defaultImage.png";
 import { Carousel } from "antd";
 import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
@@ -503,33 +503,23 @@ const Home: React.FC = () => {
                       hoverable
                       className="product-card"
                       cover={
-                        product.images.length > 0 ? (
-                          <>
-                            <Link to={`/product/${product.id}`}>
-                              <img
-                                style={{ borderRadius: "0" }}
-                                src={product.images[0]?.url || ""}
-                                alt={product.name}
-                                className="product-image"
-                                onMouseOver={(e) =>
-                                  (e.currentTarget.src =
-                                    product.images[1]?.url ||
-                                    product.images[0]?.url ||
-                                    "")
-                                }
-                                onMouseOut={(e) =>
-                                  (e.currentTarget.src =
-                                    product.images[0]?.url || "")
-                                }
-                              />
-                            </Link>
-                            {product.salePrice && (
-                              <div className="sale-badge">SALE</div>
-                            )}
-                          </>
-                        ) : (
-                          <div>No Image Available</div>
-                        )
+                        <Link to={`/product/${product.id}`}>
+                          <img
+                            style={{ borderRadius: "0" }}
+                            src={defaultImage}
+                            alt={product.name}
+                            className="product-image"
+                            onMouseOver={(e) =>
+                              (e.currentTarget.src = defaultImage)
+                            }
+                            onMouseOut={(e) =>
+                              (e.currentTarget.src = defaultImage)
+                            }
+                          />
+                          {product.salePrice && (
+                            <div className="sale-badge">SALE</div>
+                          )}
+                        </Link>
                       }
                     >
                       <div className="product-info">
@@ -580,33 +570,23 @@ const Home: React.FC = () => {
                       hoverable
                       className="product-card"
                       cover={
-                        product.images.length > 0 ? (
-                          <>
-                            <Link to={`/product/${product.id}`}>
-                              <img
-                                style={{ borderRadius: "0" }}
-                                src={product.images[0]?.url || ""}
-                                alt={product.name}
-                                className="product-image"
-                                onMouseOver={(e) =>
-                                  (e.currentTarget.src =
-                                    product.images[1]?.url ||
-                                    product.images[0]?.url ||
-                                    "")
-                                }
-                                onMouseOut={(e) =>
-                                  (e.currentTarget.src =
-                                    product.images[0]?.url || "")
-                                }
-                              />
-                            </Link>
-                            {product.salePrice && (
-                              <div className="sale-badge">SALE</div>
-                            )}
-                          </>
-                        ) : (
-                          <div>No Image Available</div>
-                        )
+                        <Link to={`/product/${product.id}`}>
+                          <img
+                            style={{ borderRadius: "0" }}
+                            src={defaultImage}
+                            alt={product.name}
+                            className="product-image"
+                            onMouseOver={(e) =>
+                              (e.currentTarget.src = defaultImage)
+                            }
+                            onMouseOut={(e) =>
+                              (e.currentTarget.src = defaultImage)
+                            }
+                          />
+                          {product.salePrice && (
+                            <div className="sale-badge">SALE</div>
+                          )}
+                        </Link>
                       }
                     >
                       <div className="product-info">
