@@ -28,6 +28,13 @@ namespace DiamondShopSystem.BLL.Services.Auth
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtKey);
 
+            // Determine role based on StaffProfile
+            string role = "Customer"; // Default role
+            if (user.StaffProfile != null )
+            {
+                role = user.StaffProfile.Role.Name;
+            }
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),

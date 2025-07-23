@@ -299,7 +299,7 @@ const OrderDetail: React.FC = () => {
   }, [orderId]); // Chạy khi orderId thay đổi
 
   const hasProductID = (data: (DiamondDetail | ProductDetail)[]) =>
-    data.some((item) => 'ProductID' in item);
+    data.some((item) => "ProductID" in item);
 
   const columns: TableColumnGroupType<DiamondDetail | ProductDetail>[] = [
     {
@@ -327,16 +327,15 @@ const OrderDetail: React.FC = () => {
           key: "Name",
           // width: "10%",
         },
-        ...(hasProductID([
-
-          ...Object.values(productDetails),
-        ]) ? [
-          {
-            title: "Product Inscription",
-            dataIndex: "Inscription",
-            key: "Inscription",
-          }
-        ] : []),
+        ...(hasProductID([...Object.values(productDetails)])
+          ? [
+              {
+                title: "Product Inscription",
+                dataIndex: "Inscription",
+                key: "Inscription",
+              },
+            ]
+          : []),
         {
           title: "Price",
           dataIndex: "Price",
@@ -528,8 +527,8 @@ const OrderDetail: React.FC = () => {
                 paymentMethod === "COD"
                   ? "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Customer%2FCheckout%2FPayment%20-%20Img%2F122290830_132545211952745_2371548508191512996_n.jpg?alt=media&token=13186094-eb53-4e6c-98a0-1e7fe06b3664"
                   : paymentMethod === "Paypal"
-                    ? "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Customer%2FOrderDetails%2FPaypal.png?alt=media&token=239e4919-44d4-4018-98ed-abcd2ff4a350"
-                    : ""
+                  ? "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Customer%2FOrderDetails%2FPaypal.png?alt=media&token=239e4919-44d4-4018-98ed-abcd2ff4a350"
+                  : ""
               }
               alt="Payment method"
             />

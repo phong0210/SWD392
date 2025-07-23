@@ -1,37 +1,45 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 using MediatR;
-using DiamondShopSystem.BLL.Handlers.Order.Commands.Delete;
-using DiamondShopSystem.BLL.Services.Order;
+using DiamondShopSystem.DAL.Repositories;
+using DiamondShopSystem.DAL.Entities;
+using DiamondShopSystem.BLL.Handlers.Order.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Delete
 {
     public class OrderDetailDeleteCommandHandler : IRequestHandler<OrderDetailDeleteCommand, OrderDetailDeleteResponse>
     {
-        private readonly IOrderDetailService _orderDetailService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public OrderDetailDeleteCommandHandler(IOrderDetailService orderDetailService)
+        public OrderDetailDeleteCommandHandler(IUnitOfWork unitOfWork)
         {
-            _orderDetailService = orderDetailService;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<OrderDetailDeleteResponse> Handle(OrderDetailDeleteCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _orderDetailService.DeleteOrderDetailAsync(request.Id);
-                
-                if (!result)
+                var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+
+                var orderDetail = await orderDetailRepo.GetByIdAsync(request.Id);
+                if (orderDetail == null)
                 {
                     return new OrderDetailDeleteResponse
                     {
                         Success = false,
-                        Message = "Order detail not found"
+                        Message = "Order detail not found."
                     };
                 }
+
+                orderDetailRepo.Remove(orderDetail);
+                await _unitOfWork.SaveChangesAsync();
 
                 return new OrderDetailDeleteResponse
                 {
                     Success = true,
-                    Message = "Order detail deleted successfully"
+                    Message = "Order detail deleted successfully."
                 };
             }
             catch (Exception ex)
@@ -39,9 +47,9 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Delete
                 return new OrderDetailDeleteResponse
                 {
                     Success = false,
-                    Message = $"Failed to delete order detail: {ex.Message}"
+                    Message = $"Error deleting order detail: {ex.Message}"
                 };
             }
         }
     }
-} 
+}

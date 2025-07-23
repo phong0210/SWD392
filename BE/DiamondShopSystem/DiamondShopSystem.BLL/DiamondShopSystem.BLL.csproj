@@ -43,6 +43,8 @@
   <ItemGroup>
     <Folder Include="Handlers\Category\Validators\" />
     <Folder Include="Models\" />
+    <Folder Include="Handlers\LoyaltyPoints\Commands\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 
 </Project>

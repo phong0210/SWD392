@@ -26,11 +26,9 @@ import {
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import MarketingMenu from "@/components/Admin/MarketingMenu/MarketingMenu";
 import { createVoucher, deleteVoucher, showAllVoucher, updateVoucher } from "@/services/voucherAPI";
-import { showAllDiscount, createDiscount, updateDiscount, deleteDiscount } from "@/services/discountAPI";
 import { showAllProduct } from "@/services/productAPI";
-import { showAllDiamond } from "@/services/diamondAPI";
 import dayjs from "dayjs";
-// import { setSelectedDiamond } from "@/layouts/MainLayout/slice/customRingSlice";
+
 
 interface EditableCellProps {
   editing: boolean;
@@ -218,7 +216,7 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
           ...row,
         });
         setDiscounts(newData);
-        await updateDiscount(item.promotionID, updatedItem);
+        await updateVoucher(item.promotionID, updatedItem);
         openNotification("success", "Update", "");
       } else {
         newData.push(row);
@@ -242,6 +240,19 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
       openNotification("error", "Delete", error.message);
     }
   };
+
+      // {
+      //   title: "Detail",
+      //   key: "detail",
+      //   className: "TextAlign",
+      //   render: (_: unknown, { promotionID }) => (
+      //     <Space size="middle">
+      //       <Link to={`/sales-staff/marketing/discount/detail/${promotionID}`}>
+      //         <EyeOutlined />
+      //       </Link>
+      //     </Space>
+      //   ),
+      // },
   
 
  const columns = [
@@ -662,3 +673,258 @@ const onSearch = (value: string) => {
 };
 
 export default ProductPromotion;
+
+
+// import { useParams, Link } from "react-router-dom";
+// import { useEffect, useState } from "react";
+// import { showAllVoucher } from "@/services/voucherAPI";
+// import { showAllProduct } from "@/services/productAPI";
+// // import type { TableColumnsType } from "antd/es/table";
+// import { Table, Button } from "antd";
+
+// // Define type
+// interface ProductDataType {
+//   jewelryID: string;
+//   jewelryName: string;
+//   jewelryImg: string;
+//   promotionID: string;
+// }
+
+// interface PromotionType {
+//   promotionID: string;
+//   promotionName: string;
+//   discountPercent: number;
+//   startDate: string;
+//   endDate: string;
+//   description: string;
+// }
+
+// const ProductPromotionDetail = () => {
+//   const { id } = useParams<{ id: string }>();
+//   const [activePromotion, setActivePromotion] = useState<PromotionType | null>(null);
+//   const [data, setData] = useState<ProductDataType[]>([]);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         const voucherRes = await showAllVoucher();
+//         const productRes = await showAllProduct();
+
+//         const promotions: PromotionType[] = voucherRes.data.map((v: any) => ({
+//           promotionID: v.id,
+//           promotionName: v.name,
+//           discountPercent: v.discountValue,
+//           startDate: v.startDate,
+//           endDate: v.endDate,
+//           description: v.description,
+//         }));
+
+//         const products: ProductDataType[] = productRes.data.map((p: any) => ({
+//           jewelryID: p.product.id,
+//           jewelryName: p.product.name,
+//           jewelryImg: p.product.image,
+//           promotionID: p.product.promotionID, // đảm bảo API có trường này
+//         }));
+
+//         setActivePromotion(promotions.find(p => p.promotionID === id) || null);
+//         setData(products.filter(p => p.promotionID === id));
+//       } catch (err) {
+//         console.error("❌ Error fetching data:", err);
+//       }
+//     };
+
+//     fetchData();
+//   }, [id]);
+
+//   return (
+//     <div>
+//       {activePromotion ? (
+//         <>
+//           <h2>Promotion Detail</h2>
+//           <p><strong>ID:</strong> {activePromotion.promotionID}</p>
+//           <p><strong>Name:</strong> {activePromotion.promotionName}</p>
+//           <p><strong>% Discount:</strong> {activePromotion.discountPercent}%</p>
+//           <p><strong>Start:</strong> {activePromotion.startDate}</p>
+//           <p><strong>End:</strong> {activePromotion.endDate}</p>
+//           <p><strong>Description:</strong> {activePromotion.description}</p>
+
+//           <h3>Applied Products</h3>
+//           <Table
+//             dataSource={data}
+//             pagination={{ pageSize: 4 }}
+//           />
+//           <Link to="/sales-staff/marketing/discount">
+//             <Button>Back</Button>
+//           </Link>
+//         </>
+//       ) : (
+//         <p>Loading promotion...</p>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default ProductPromotionDetail;
+
+
+// import { useParams, Link } from "react-router-dom";
+// import { useEffect, useState } from "react";
+// import { Table, Button } from "antd";
+// import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
+// import MarketingMenu from "@/components/Staff/SalesStaff/MarketingMenu/MarketingMenu";
+// import * as Styled from "./ProductPromotionDetail.styled";
+// import { showAllVoucher } from "@/services/voucherAPI";
+// import { showAllProduct } from "@/services/productAPI";
+
+// interface PromotionType {
+//   promotionID: string;
+//   promotionName: string;
+//   discountPercent: number;
+//   startDate: string;
+//   endDate: string;
+//   description: string;
+// }
+
+// interface ProductType {
+//   id: string;
+//   name: string;
+//   image: string;
+//   promotionID: string;
+// }
+
+// const ProductPromotionDetail = () => {
+//   const { id } = useParams<{ id: string }>();
+//   const [activePromotion, setActivePromotion] = useState<PromotionType | null>(null);
+//   const [productList, setProductList] = useState<ProductType[]>([]);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         const voucherRes = await showAllVoucher();
+//         const productRes = await showAllProduct();
+
+//         const promotions: PromotionType[] = voucherRes.data.map((v: any) => ({
+//           promotionID: v.id,
+//           promotionName: v.name,
+//           discountPercent: v.discountValue,
+//           startDate: v.startDate,
+//           endDate: v.endDate,
+//           description: v.description,
+//         }));
+
+//         const products: ProductType[] = productRes.data.map((item: any) => ({
+//           id: item.product.id,
+//           name: item.product.name,
+//           image: item.product.image,
+//           promotionID: item.product.promotionID,
+//         }));
+
+//         const promotion = promotions.find(p => p.promotionID === id) || null;
+//         const filteredProducts = products.filter(p => p.promotionID === id);
+
+//         setActivePromotion(promotion);
+//         setProductList(filteredProducts);
+//       } catch (err) {
+//         console.error("❌ Error fetching data:", err);
+//       }
+//     };
+
+//     fetchData();
+//   }, [id]);
+
+//   const columns = [
+//     {
+//       title: "Product ID",
+//       dataIndex: "id",
+//       sorter: (a: ProductType, b: ProductType) => a.id.localeCompare(b.id),
+//     },
+//     {
+//       title: "Product Image",
+//       dataIndex: "image",
+//       render: (_: any, record: ProductType) => (
+//         <img
+//           src={record.image}
+//           alt={record.name}
+//           style={{ width: "50px", height: "50px", objectFit: "cover" }}
+//         />
+//       ),
+//     },
+//     {
+//       title: "Product Name",
+//       dataIndex: "name",
+//       sorter: (a: ProductType, b: ProductType) => a.name.localeCompare(b.name),
+//     },
+//   ];
+
+//   return (
+//     <>
+//       <Styled.GlobalStyle />
+//       <Styled.PageAdminArea>
+//         <Sidebar />
+//         <Styled.AdminPage>
+//           <MarketingMenu />
+//           <Styled.PageContent>
+//             {activePromotion ? (
+//               <>
+//                 <Styled.PageContent_Bot>
+//                   <Styled.PageDetail_Title>
+//                     <p>Product Promotion Detail</p>
+//                   </Styled.PageDetail_Title>
+//                   <Styled.PageDetail_Infor>
+//                     <Styled.InforLine>
+//                       <p className="InforLine_Title">Promotion ID</p>
+//                       <p>{activePromotion.promotionID}</p>
+//                     </Styled.InforLine>
+//                     <Styled.InforLine>
+//                       <p className="InforLine_Title">Promotion Name</p>
+//                       <p>{activePromotion.promotionName}</p>
+//                     </Styled.InforLine>
+//                     <Styled.InforLine>
+//                       <p className="InforLine_Title">% Discount</p>
+//                       <p>{activePromotion.discountPercent}%</p>
+//                     </Styled.InforLine>
+//                     <Styled.InforLine>
+//                       <p className="InforLine_Title">Start Date</p>
+//                       <p>{activePromotion.startDate}</p>
+//                     </Styled.InforLine>
+//                     <Styled.InforLine>
+//                       <p className="InforLine_Title">End Date</p>
+//                       <p>{activePromotion.endDate}</p>
+//                     </Styled.InforLine>
+//                     <Styled.InforLine_Descrip>
+//                       <p className="InforLine_Title">Description</p>
+//                       <p>{activePromotion.description}</p>
+//                     </Styled.InforLine_Descrip>
+//                   </Styled.PageDetail_Infor>
+
+//                   <Styled.MaterialTable>
+//                     <Table
+//                       dataSource={productList}
+//                       columns={columns}
+//                       rowClassName={() => "editable-row"}
+//                       bordered
+//                       pagination={{ pageSize: 4 }}
+//                       rowKey="id"
+//                     />
+//                   </Styled.MaterialTable>
+//                 </Styled.PageContent_Bot>
+
+//                 <Styled.ActionBtn>
+//                   <Styled.ActionBtn_Left>
+//                     <Link to="/sales-staff/marketing/discount">
+//                       <Button style={{ marginLeft: "10px" }}>Back</Button>
+//                     </Link>
+//                   </Styled.ActionBtn_Left>
+//                 </Styled.ActionBtn>
+//               </>
+//             ) : (
+//               <p>No Promotion found.</p>
+//             )}
+//           </Styled.PageContent>
+//         </Styled.AdminPage>
+//       </Styled.PageAdminArea>
+//     </>
+//   );
+// };
+
+// export default ProductPromotionDetail;
