@@ -97,12 +97,13 @@ void ConfigureServices()
     
     builder.Services.AddScoped<JwtUtil>(provider =>
         new JwtUtil(provider.GetRequiredService<IConfiguration>()));
+
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IOtpService, OtpService>();
-    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
     builder.Services.AddSingleton<DiamondShopSystem.BLL.Services.Cache.IOtpCacheService, DiamondShopSystem.BLL.Services.Cache.OtpCacheService>();
+
+
     
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();
@@ -127,6 +128,15 @@ void ConfigureServices()
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<DeliveryService>();
 
+
+    builder.Services.Configure<EmailSettings>(options =>
+    {
+        options.SmtpHost = Environment.GetEnvironmentVariable("SMTP_HOST");
+        options.SmtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+        options.SmtpUser = Environment.GetEnvironmentVariable("SMTP_USER");
+        options.SmtpPass = Environment.GetEnvironmentVariable("SMTP_PASS");
+        options.FromEmail = Environment.GetEnvironmentVariable("FROM_EMAIL");
+    });
 }
 
 void ConfigureAuthentication()
