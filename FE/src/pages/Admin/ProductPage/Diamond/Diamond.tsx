@@ -1,13 +1,7 @@
 import * as Styled from "./Diamond.styled";
 import React, { useEffect, useState } from "react";
 // import { Link } from "react-router-dom";
-import {
-  Table,
-  Input,
-  Button,
-  Space,
-  notification,
-} from "antd";
+import { Table, Input, Button, Space, notification } from "antd";
 import {
   SearchOutlined,
   PlusCircleOutlined,
@@ -18,7 +12,7 @@ import type {
   TableProps,
   GetProp,
   UploadFile,
-  UploadProps
+  UploadProps,
 } from "antd";
 // import Dragger from "antd/es/upload/Dragger";
 // import { diamondData, DiamondDataType } from "../ProductData"; // Import data here
@@ -30,9 +24,11 @@ import { ColorType, ShapeType } from "./Diamond.type";
 import { getImage } from "@/services/imageAPI";
 import { useDocumentTitle } from "@/hooks";
 import DiamondSteps from "./components/steps/DiamondSteps";
+import { showAllProduct } from "@/services/productAPI";
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
 // import { RcFile, UploadChangeParam } from "antd/es/upload";
 
-type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
+type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
 const onChange: TableProps<any>["onChange"] = (
   pagination,
@@ -44,14 +40,14 @@ const onChange: TableProps<any>["onChange"] = (
 };
 
 const Diamond = () => {
-  useDocumentTitle('Diamond | Aphromas Diamond');
+  useDocumentTitle("Diamond | Aphromas Diamond");
 
   const [searchText, setSearchText] = useState("");
   const [currency, setCurrency] = useState<"VND" | "USD">("USD");
   const [isAdding, setIsAdding] = useState(false);
   const [api, contextHolder] = notification.useNotification();
   // const [diamonds, setDiamonds] = useState<any[]>([]);
-  const [diamonds, setDiamonds] = useState([]);
+  const [diamonds, setDiamonds] = useState<Product[]>([]);
   // const [totalDiamonds, setTotalDiamonds] = useState(0);
   // const [currentPage, setCurrentPage] = useState(1);
   // const [pageSize, setPageSize] = useState(6);
@@ -59,37 +55,43 @@ const Diamond = () => {
 
   const fetchData = async () => {
     try {
-      const response = await showAllDiamond();
-      console.log('API response:', response);
-      const { data } = response.data;
-      const formattedDiamonds = data
-      .filter((diamond: any) => (diamond.IsActive && diamond.ProductID === null))
-      .map((diamond: any) => ({
-        diamondID: diamond.DiamondID,
-        diamondName: diamond.Name,
-        price: diamond.Price,
-        color: diamond.Color,
-        shape: diamond.Shape,
-        polish: diamond.Polish,
-        cut: diamond.Cut,
-        lengthOnWidthRatio: diamond.LengthOnWidthRatio,
-        clarity: diamond.Clarity,
-        symmetry: diamond.Symmetry,
-        weightCarat: diamond.WeightCarat,
-        percentTable: diamond.PercentTable,
-        percentDepth: diamond.PercentDepth,
-        fluorescence: diamond.Fluorescence,
-        description: diamond.Description,
-        exchangeRate: 1,
-        chargeRate: diamond.ChargeRate,
-        images: diamond.usingImage.map((image: any) => ({
-          id: image.UsingImageID,
-          name: image.Name,
-          url: getImage(image.UsingImageID),
-        })),
-      }));
-      console.log('Formatted Diamonds:', formattedDiamonds); // Log formatted diamonds
-      setDiamonds(formattedDiamonds);
+      const response = await showAllProduct();
+      console.log("API response:", response.data);
+
+      if (response && Array.isArray(response.data)) {
+        const fetchedProducts = (response.data as ProductApiResponseItem[]).map(
+          (item) => {
+            const product = item.product;
+
+            return {
+              id: product.id,
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: product.categoryId,
+              orderDetailId: product.orderDetailId,
+              warrantyId: product.warrantyId,
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images) ? product.images : [],
+            };
+          }
+        );
+
+        console.log("Formatted Diamonds:", fetchedProducts); // Log formatted diamonds
+        setDiamonds(fetchedProducts);
+      }
     } catch (error) {
       console.error("Failed to fetch diamonds:", error);
     }
@@ -99,8 +101,7 @@ const Diamond = () => {
     fetchData();
   }, []);
 
-
-  // SEARCH 
+  // SEARCH
   const handleSearch = (value: any) => {
     console.log("Search:", value);
   };
@@ -111,12 +112,7 @@ const Diamond = () => {
     }
   };
 
-
   // Change Currency
-  const handleCurrencyChange = (value: "USD" | "VND") => {
-    setCurrency(value);
-  };
-  handleCurrencyChange("USD");
 
   const convertPrice = (
     price: number,
@@ -147,7 +143,11 @@ const Diamond = () => {
       render: (_, record) => (
         <a href="#" target="_blank" rel="noopener noreferrer">
           <img
-            src={record.images && record.images[0] ? record.images[0].url : "default-image-url"} 
+            src={
+              record.images && record.images[0]
+                ? record.images[0].url
+                : "default-image-url"
+            }
             alt={record.diamondName}
             style={{ width: "50px", height: "50px" }}
           />
@@ -186,7 +186,10 @@ const Diamond = () => {
       title: `Selling Price (${currency})`,
       key: "sellingPrice",
       render: (_, record) => {
-        const price = sellingPrice(convertPrice(record.price, record.exchangeRate, currency), record.chargeRate);
+        const price = sellingPrice(
+          convertPrice(record.price, record.exchangeRate, currency),
+          record.chargeRate
+        );
         return `${price.toFixed(2)} ${currency}`;
       },
     },
@@ -226,7 +229,7 @@ const Diamond = () => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [docsList, setDocsList] = useState<UploadFile[]>([]);
 
-  const onChangeImg: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+  const onChangeImg: UploadProps["onChange"] = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
 
@@ -280,19 +283,22 @@ const Diamond = () => {
                   </Styled.AdPageContent_HeadLeft>
 
                   <Styled.AddButton>
-                    <Button type="primary" onClick={() => setIsAdding(!isAdding)}>
+                    <Button
+                      type="primary"
+                      onClick={() => setIsAdding(!isAdding)}
+                    >
                       <PlusCircleOutlined />
                       Add New Diamond
                     </Button>
                   </Styled.AddButton>
                 </>
               )) || (
-                  <>
-                    <Styled.AddContent_Title>
-                      <p>Add Diamond</p>
-                    </Styled.AddContent_Title>
-                  </>
-                )}
+                <>
+                  <Styled.AddContent_Title>
+                    <p>Add Diamond</p>
+                  </Styled.AddContent_Title>
+                </>
+              )}
             </Styled.AdPageContent_Head>
 
             <Styled.AdminTable>

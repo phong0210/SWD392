@@ -4,7 +4,6 @@ using DiamondShopSystem.BLL.Handlers;
 using DiamondShopSystem.BLL.Handlers.User;
 using DiamondShopSystem.BLL.Handlers.User.Validators;
 using DiamondShopSystem.BLL.Mapping;
-using DiamondShopSystem.BLL.Services;
 using DiamondShopSystem.BLL.Services.Auth;
 using DiamondShopSystem.BLL.Services.Category;
 using DiamondShopSystem.BLL.Services.Order;
@@ -24,6 +23,10 @@ using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
 using DiamondShopSystem.DAL.Repositories.Contracts;
+using DiamondShopSystem.BLL.Services.Delivery;
+using DiamondShopSystem.API.Services;
+using DiamondShopSystem.BLL.Services.LoyaltyPoint;
+
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -84,7 +87,7 @@ void ConfigureServices()
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddAutoMapper(typeof(EntityToDtoProfile).Assembly);
     builder.Services.AddMediatR(typeof(DiamondShopSystem.BLL.Handlers.User.Validators.UserCreateValidator).Assembly);
-   
+
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
@@ -94,7 +97,7 @@ void ConfigureServices()
     builder.Services.AddControllers();
 
     builder.Services.AddDiamondShopValidators();
-    
+
     builder.Services.AddScoped<JwtUtil>(provider =>
         new JwtUtil(provider.GetRequiredService<IConfiguration>()));
 
@@ -104,10 +107,13 @@ void ConfigureServices()
     builder.Services.AddSingleton<DiamondShopSystem.BLL.Services.Cache.IOtpCacheService, DiamondShopSystem.BLL.Services.Cache.OtpCacheService>();
 
 
-    
+
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();
-    
+
+    // Loyalty Point Services
+    builder.Services.AddScoped<ILoyaltyPointService, LoyaltyPointService>();
+
     // Order Services
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 
@@ -120,13 +126,13 @@ void ConfigureServices()
     // Warranty Services
     builder.Services.AddScoped<IWarrantyService, WarrantyService>();
 
-   
-    
+
+
 
     // Delivery Services
     builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-    builder.Services.AddScoped<DeliveryService>();
+    builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
 
     builder.Services.Configure<EmailSettings>(options =>

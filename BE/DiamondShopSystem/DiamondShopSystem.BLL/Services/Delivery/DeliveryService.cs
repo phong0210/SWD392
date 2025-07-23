@@ -1,4 +1,4 @@
-using DiamondShopSystem.BLL.Models;
+using DiamondShopSystem.BLL.Handlers.Delivery.DTOs;
 using DiamondShopSystem.DAL.Repositories;
 using DiamondShopSystem.DAL.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DiamondShopSystem.BLL.Services
+namespace DiamondShopSystem.BLL.Services.Delivery
 {
-    public class DeliveryService
+    public class DeliveryService : IDeliveryService
     {
         private readonly IDeliveryRepository _deliveryRepository;
         private readonly IOrderRepository _orderRepository;
@@ -37,7 +37,7 @@ namespace DiamondShopSystem.BLL.Services
             });
         }
 
-        public async Task<DeliveryDto?> GetDeliveryByIdAsync(Guid id)
+        public async Task<DeliveryDto> GetDeliveryByIdAsync(Guid id)
         {
             var delivery = await _deliveryRepository.GetByIdAsync(id);
             if (delivery == null) return null;
@@ -52,7 +52,7 @@ namespace DiamondShopSystem.BLL.Services
             };
         }
 
-        public async Task<DeliveryDto?> CreateDeliveryAsync(CreateDeliveryDto createDeliveryDto)
+        public async Task<CreateDeliveryDto> CreateDeliveryAsync(CreateDeliveryDto createDeliveryDto)
         {
             var order = await _orderRepository.GetByIdAsync(createDeliveryDto.OrderId);
             if (order == null)
@@ -84,21 +84,13 @@ namespace DiamondShopSystem.BLL.Services
                 return null;
             }
 
-            return new DeliveryDto
-            {
-                Id = delivery.Id,
-                OrderId = delivery.OrderId,
-                DispatchTime = delivery.DispatchTime,
-                DeliveryTime = delivery.DeliveryTime,
-                ShippingAddress = delivery.ShippingAddress,
-                Status = delivery.Status
-            };
+            return createDeliveryDto;
         }
 
-        public async Task<bool> UpdateDeliveryAsync(Guid id, UpdateDeliveryDto updateDeliveryDto)
+        public async Task UpdateDeliveryAsync(Guid id, UpdateDeliveryDto updateDeliveryDto)
         {
             var delivery = await _deliveryRepository.GetByIdAsync(id);
-            if (delivery == null) return false;
+            if (delivery == null) return;
 
             delivery.DispatchTime = updateDeliveryDto.DispatchTime;
             delivery.DeliveryTime = updateDeliveryDto.DeliveryTime;
@@ -107,17 +99,15 @@ namespace DiamondShopSystem.BLL.Services
 
             _deliveryRepository.Update(delivery);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<bool> DeleteDeliveryAsync(Guid id)
+        public async Task DeleteDeliveryAsync(Guid id)
         {
             var delivery = await _deliveryRepository.GetByIdAsync(id);
-            if (delivery == null) return false;
+            if (delivery == null) return;
 
             _deliveryRepository.Remove(delivery);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
     }
 }

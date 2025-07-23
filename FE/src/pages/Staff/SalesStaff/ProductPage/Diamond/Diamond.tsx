@@ -1,81 +1,68 @@
 import * as Styled from "./Diamond.styled";
 import React, { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
-import {
-  Table,
-  Input,
-  Space,
-  notification,
-} from "antd";
-import {
-  SearchOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
-import type {
-  TableColumnsType,
-  TableProps,
-} from "antd";
+import { Table, Input, Space, notification } from "antd";
+import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
+import type { TableColumnsType, TableProps } from "antd";
 import { Link } from "react-router-dom";
-import { showAllDiamond } from "@/services/diamondAPI";
-import { ColorType, ShapeType } from "./Diamond.type";
-import { getImage } from "@/services/imageAPI";
 import { useDocumentTitle } from "@/hooks";
+
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import ProductMenu from "@/components/Staff/SalesStaff/ProductMenu/ProductMenu";
 
-
-const onChange: TableProps<any>["onChange"] = (
-  pagination,
-  filters,
-  sorter,
-  extra
-) => {
-  console.log("params", pagination, filters, sorter, extra);
-};
+import { showAllProduct } from "@/services/productAPI";
+import { ColorType, ShapeType } from "./Diamond.type";
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
 
 const Diamond = () => {
-  useDocumentTitle('Diamond | Aphromas Diamond');
+  useDocumentTitle("Diamond | Aphromas Diamond");
 
   const [searchText, setSearchText] = useState("");
   const [currency] = useState<"VND" | "USD">("USD");
-  const [contextHolder] = notification.useNotification();
-  const [diamonds, setDiamonds] = useState([]);
+  const [api, contextHolder] = notification.useNotification();
+  const [diamonds, setDiamonds] = useState<Product[]>([]);
 
   const fetchData = async () => {
     try {
-      const response = await showAllDiamond();
-      console.log('API response:', response);
-      const { data } = response.data;
-      const formattedDiamonds = data
-      .filter((diamond: any) => (diamond.IsActive && diamond.ProductID === null))
-      .map((diamond: any) => ({
-        diamondID: diamond.DiamondID,
-        diamondName: diamond.Name,
-        price: diamond.Price,
-        color: diamond.Color,
-        shape: diamond.Shape,
-        polish: diamond.Polish,
-        cut: diamond.Cut,
-        lengthOnWidthRatio: diamond.LengthOnWidthRatio,
-        clarity: diamond.Clarity,
-        symmetry: diamond.Symmetry,
-        weightCarat: diamond.WeightCarat,
-        percentTable: diamond.PercentTable,
-        percentDepth: diamond.PercentDepth,
-        fluorescence: diamond.Fluorescence,
-        description: diamond.Description,
-        exchangeRate: 1,
-        chargeRate: diamond.ChargeRate,
-        images: diamond.usingImage.map((image: any) => ({
-          id: image.UsingImageID,
-          name: image.Name,
-          url: getImage(image.UsingImageID),
-        })),
-      }));
-      console.log('Formatted Diamonds:', formattedDiamonds); // Log formatted diamonds
-      setDiamonds(formattedDiamonds);
+      const response = await showAllProduct();
+
+      if (response && Array.isArray(response.data)) {
+        const fetchedProducts = (response.data as ProductApiResponseItem[]).map(
+          (item) => {
+            const product = item.product;
+
+            return {
+              id: product.id,
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: product.categoryId,
+              orderDetailId: product.orderDetailId,
+              warrantyId: product.warrantyId,
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images) ? product.images : [],
+            };
+          }
+        );
+
+        setDiamonds(fetchedProducts);
+      }
     } catch (error) {
-      console.error("Failed to fetch diamonds:", error);
+      api.error({
+        message: "Failed",
+        description: "Failed to fetch diamonds.",
+      });
     }
   };
 
@@ -83,9 +70,7 @@ const Diamond = () => {
     fetchData();
   }, []);
 
-
-  // SEARCH 
-  const handleSearch = (value: any) => {
+  const handleSearch = (value: string) => {
     console.log("Search:", value);
   };
 
@@ -95,21 +80,12 @@ const Diamond = () => {
     }
   };
 
-
-  // Change Currency
-  // const handleCurrencyChange = (value: "VND" | "USD") => {
-  //   setCurrency(value);
-  // };
-
   const convertPrice = (
     price: number,
     exchangeRate: number,
     currency: "USD" | "VND"
   ) => {
-    if (currency === "VND") {
-      return price * exchangeRate;
-    }
-    return price;
+    return currency === "VND" ? price * exchangeRate : price;
   };
 
   const sellingPrice = (price: number, markupPercentage: number) => {
@@ -120,7 +96,6 @@ const Diamond = () => {
     {
       title: "Diamond ID",
       dataIndex: "diamondID",
-      // defaultSortOrder: "descend",
       sorter: (a, b) => parseInt(a.diamondID) - parseInt(b.diamondID),
     },
     {
@@ -130,8 +105,12 @@ const Diamond = () => {
       render: (_, record) => (
         <a href="#" target="_blank" rel="noopener noreferrer">
           <img
-            src={record.images && record.images[0] ? record.images[0].url : "default-image-url"} 
-            alt={record.diamondName}
+            src={
+              record.images && record.images[0]
+                ? record.images[0].url
+                : "default-image-url"
+            }
+            alt={record.name}
             style={{ width: "50px", height: "50px" }}
           />
         </a>
@@ -139,10 +118,9 @@ const Diamond = () => {
     },
     {
       title: "Diamond Name",
-      dataIndex: "diamondName",
+      dataIndex: "name",
       showSorterTooltip: { target: "full-header" },
-      sorter: (a, b) => a.diamondName.length - b.diamondName.length,
-      // sortDirections: ["descend"],
+      sorter: (a, b) => a.name.length - b.name.length,
     },
     {
       title: `Cost Price (${currency})`,
@@ -169,7 +147,10 @@ const Diamond = () => {
       title: `Selling Price (${currency})`,
       key: "sellingPrice",
       render: (_, record) => {
-        const price = sellingPrice(convertPrice(record.price, record.exchangeRate, currency), record.chargeRate);
+        const price = sellingPrice(
+          convertPrice(record.price, record.exchangeRate, currency),
+          record.chargeRate
+        );
         return `${price.toFixed(2)} ${currency}`;
       },
     },
@@ -179,7 +160,6 @@ const Diamond = () => {
       key: "color",
       filters: ColorType,
       onFilter: (value, record) => record.color.indexOf(value as string) === 0,
-      // sortDirections: ["descend"],
       sorter: (a, b) => a.color.length - b.color.length,
     },
     {
@@ -189,15 +169,14 @@ const Diamond = () => {
       filters: ShapeType,
       onFilter: (value, record) => record.shape.indexOf(value as string) === 0,
       sorter: (a, b) => a.shape.length - b.shape.length,
-      // sortDirections: ["descend"],
     },
     {
       title: "Detail",
       key: "detail",
       className: "TextAlign",
-      render: (_, { diamondID }) => (
+      render: (_, { id }) => (
         <Space size="middle">
-          <Link to={`/sales-staff/product/diamond/detail/${diamondID}`}>
+          <Link to={`/sales-staff/product/diamond/detail/${id}`}>
             <EyeOutlined />
           </Link>
         </Space>
@@ -205,7 +184,14 @@ const Diamond = () => {
     },
   ];
 
-
+  const onChange: TableProps<any>["onChange"] = (
+    pagination,
+    filters,
+    sorter,
+    extra
+  ) => {
+    console.log("params", pagination, filters, sorter, extra);
+  };
 
   return (
     <>
@@ -220,30 +206,30 @@ const Diamond = () => {
 
           <Styled.AdPageContent>
             <Styled.AdPageContent_Head>
-                  <Styled.AdPageContent_HeadLeft>
-                    <Styled.SearchArea>
-                      <Input
-                        className="searchInput"
-                        type="text"
-                        // size="large"
-                        placeholder="Search here..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        prefix={<SearchOutlined className="searchIcon" />}
-                      />
-                    </Styled.SearchArea>
-                  </Styled.AdPageContent_HeadLeft>
+              <Styled.AdPageContent_HeadLeft>
+                <Styled.SearchArea>
+                  <Input
+                    className="searchInput"
+                    type="text"
+                    placeholder="Search here..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    prefix={<SearchOutlined className="searchIcon" />}
+                  />
+                </Styled.SearchArea>
+              </Styled.AdPageContent_HeadLeft>
             </Styled.AdPageContent_Head>
 
             <Styled.AdminTable>
-                <Table
-                  className="table"
-                  columns={columns}
-                  dataSource={diamonds}
-                  onChange={onChange}
-                  pagination={{ pageSize: 6 }}
-                />
+              <Table
+                className="table"
+                columns={columns}
+                dataSource={diamonds}
+                onChange={onChange}
+                pagination={{ pageSize: 6 }}
+                rowKey="id"
+              />
             </Styled.AdminTable>
           </Styled.AdPageContent>
         </Styled.AdminPage>

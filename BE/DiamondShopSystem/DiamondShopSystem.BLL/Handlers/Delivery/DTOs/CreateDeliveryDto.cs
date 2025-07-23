@@ -1,4 +1,4 @@
-namespace DiamondShopSystem.BLL.Models
+namespace DiamondShopSystem.BLL.Handlers.Delivery.DTOs
 {
     public class CreateDeliveryDto
     {

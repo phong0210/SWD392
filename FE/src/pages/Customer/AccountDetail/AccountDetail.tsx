@@ -3,8 +3,8 @@
 import styled from "styled-components";
 import { ChangeEvent, FormEvent, useState, useRef, useEffect } from "react";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { requestPasswordReset, confirmPasswordReset } from "@/services/authAPI";
 import { message } from "antd";
 import { getCustomer } from "@/services/accountApi";
@@ -34,28 +34,31 @@ const fetchCustomerInfo = async (AccountID: number) => {
 
 const updateAccountDetails = async (userId: number, accountData: Account) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/${userId}/update`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        name: accountData.name,
-        email: accountData.email,
-        phone: accountData.phone,
-        address: accountData.address
-      })
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/user/${userId}/update`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          name: accountData.name,
+          email: accountData.email,
+          phone: accountData.phone,
+          address: accountData.address,
+        }),
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to update account details');
+      throw new Error("Failed to update account details");
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error updating account details:', error);
-    throw new Error('Failed to update account details');
+    console.error("Error updating account details:", error);
+    throw new Error("Failed to update account details");
   }
 };
 
@@ -102,12 +105,18 @@ const Account = () => {
     const errors: typeof passwordResetErrors = {};
     if (passwordChangeStep === 1) {
       if (!data.email) errors.email = "Email is required";
-      else if (!validateEmail(data.email)) errors.email = "Invalid email format";
+      else if (!validateEmail(data.email))
+        errors.email = "Invalid email format";
     } else if (passwordChangeStep === 2) {
       if (!data.otp) errors.otp = "OTP is required";
       if (!data.newPassword) errors.newPassword = "New password is required";
-      if (data.newPassword.length < 8 || data.newPassword.length > 16 || !/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,16}$/.test(data.newPassword)) {
-        errors.newPassword = "Must be between 8 and 16 characters, including a number, one uppercase letter and one lowercase letter.";
+      if (
+        data.newPassword.length < 8 ||
+        data.newPassword.length > 16 ||
+        !/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,16}$/.test(data.newPassword)
+      ) {
+        errors.newPassword =
+          "Must be between 8 and 16 characters, including a number, one uppercase letter and one lowercase letter.";
       }
       if (data.newPassword !== data.confirmNewPassword) {
         errors.confirmNewPassword = "Passwords do not match";
@@ -200,7 +209,7 @@ const Account = () => {
     if (Object.keys(errors).length === 0) {
       try {
         const response = await updateAccountDetails(user.userId, tempAccount);
-        messageApi.success('Account details updated successfully!');
+        messageApi.success("Account details updated successfully!");
         setTimeout(() => {
           setIsEditing(false);
           // Refresh customer info
@@ -209,7 +218,7 @@ const Account = () => {
           }
         }, 2000);
       } catch (error) {
-        messageApi.error('Failed to update account details. Please try again.');
+        messageApi.error("Failed to update account details. Please try again.");
       }
     } else {
       setAccountErrors(errors);
@@ -227,12 +236,18 @@ const Account = () => {
     if (Object.keys(errors).length === 0) {
       try {
         if (passwordChangeStep === 1) {
-          const response = await requestPasswordReset({ email: passwordResetData.email });
+          const response = await requestPasswordReset({
+            email: passwordResetData.email,
+          });
           if (response.status === 200) {
-            messageApi.success('OTP sent to your email. Please check your inbox.');
+            messageApi.success(
+              "OTP sent to your email. Please check your inbox."
+            );
             setPasswordChangeStep(2); // Move to OTP verification step
           } else {
-            messageApi.error(response.data?.message || 'Failed to send OTP. Please try again.');
+            messageApi.error(
+              response.data?.message || "Failed to send OTP. Please try again."
+            );
           }
         } else if (passwordChangeStep === 2) {
           const response = await confirmPasswordReset({
@@ -241,16 +256,22 @@ const Account = () => {
             newPassword: passwordResetData.newPassword,
           });
           if (response.status === 200) {
-            messageApi.success('Password changed successfully!');
+            messageApi.success("Password changed successfully!");
             setTimeout(() => {
               setPasswordChangeStep(0); // Reset password change flow
             }, 2000);
           } else {
-            messageApi.error(response.data?.message || 'Failed to change password. Invalid OTP or new password.');
+            messageApi.error(
+              response.data?.message ||
+                "Failed to change password. Invalid OTP or new password."
+            );
           }
         }
       } catch (error: any) {
-        messageApi.error(error.response?.data?.message || 'An error occurred during password reset.');
+        messageApi.error(
+          error.response?.data?.message ||
+            "An error occurred during password reset."
+        );
       }
     } else {
       setPasswordResetErrors(errors);
@@ -327,7 +348,7 @@ const Account = () => {
                 {customerInfo && (
                   <Row>
                     <Column>
-                      {contextHolder}                      
+                      {contextHolder}
                       {isEditing ? (
                         <form onSubmit={handleAccountSubmit}>
                           <DetailGroup>
@@ -342,9 +363,9 @@ const Account = () => {
                                 placeholder="Name"
                               />
                             </InlineEditContainer>
-                                                         {(accountErrors.name) && (
-                               <ErrorText>{accountErrors.name}</ErrorText>
-                             )}
+                            {accountErrors.name && (
+                              <ErrorText>{accountErrors.name}</ErrorText>
+                            )}
                           </DetailGroup>
 
                           <DetailGroup>
@@ -357,7 +378,9 @@ const Account = () => {
                               disabled={isLoading}
                               placeholder="Email address"
                             />
-                            {accountErrors.email && <ErrorText>{accountErrors.email}</ErrorText>}
+                            {accountErrors.email && (
+                              <ErrorText>{accountErrors.email}</ErrorText>
+                            )}
                             {!validateEmail(tempAccount.email) && (
                               <ErrorText>Invalid email format</ErrorText>
                             )}
@@ -373,7 +396,9 @@ const Account = () => {
                               disabled={isLoading}
                               placeholder="Phone number"
                             />
-                            {accountErrors.phone && <ErrorText>{accountErrors.phone}</ErrorText>}
+                            {accountErrors.phone && (
+                              <ErrorText>{accountErrors.phone}</ErrorText>
+                            )}
                           </DetailGroup>
 
                           <DetailGroup>
@@ -389,10 +414,19 @@ const Account = () => {
                           </DetailGroup>
 
                           <InlineActions>
-                            <ActionButton type="submit" disabled={isLoading} className="save-button">
-                              {isLoading ? 'Saving...' : 'Save Changes'}
+                            <ActionButton
+                              type="submit"
+                              disabled={isLoading}
+                              className="save-button"
+                            >
+                              {isLoading ? "Saving..." : "Save Changes"}
                             </ActionButton>
-                            <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
+                            <ActionButton
+                              type="button"
+                              onClick={handleCancel}
+                              disabled={isLoading}
+                              className="cancel-button"
+                            >
                               Cancel
                             </ActionButton>
                           </InlineActions>
@@ -414,10 +448,19 @@ const Account = () => {
                             )}
                           </DetailGroup>
                           <InlineActions>
-                            <ActionButton type="submit" disabled={isLoading} className="save-button">
-                              {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                            <ActionButton
+                              type="submit"
+                              disabled={isLoading}
+                              className="save-button"
+                            >
+                              {isLoading ? "Sending OTP..." : "Send OTP"}
                             </ActionButton>
-                            <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
+                            <ActionButton
+                              type="button"
+                              onClick={handleCancel}
+                              disabled={isLoading}
+                              className="cancel-button"
+                            >
                               Cancel
                             </ActionButton>
                           </InlineActions>
@@ -449,7 +492,9 @@ const Account = () => {
                               placeholder="Enter new password"
                             />
                             {passwordResetErrors.newPassword && (
-                              <ErrorText>{passwordResetErrors.newPassword}</ErrorText>
+                              <ErrorText>
+                                {passwordResetErrors.newPassword}
+                              </ErrorText>
                             )}
                           </DetailGroup>
                           <DetailGroup>
@@ -463,14 +508,27 @@ const Account = () => {
                               placeholder="Confirm new password"
                             />
                             {passwordResetErrors.confirmNewPassword && (
-                              <ErrorText>{passwordResetErrors.confirmNewPassword}</ErrorText>
+                              <ErrorText>
+                                {passwordResetErrors.confirmNewPassword}
+                              </ErrorText>
                             )}
                           </DetailGroup>
                           <InlineActions>
-                            <ActionButton type="submit" disabled={isLoading} className="save-button">
-                              {isLoading ? 'Changing Password...' : 'Change Password'}
+                            <ActionButton
+                              type="submit"
+                              disabled={isLoading}
+                              className="save-button"
+                            >
+                              {isLoading
+                                ? "Changing Password..."
+                                : "Change Password"}
                             </ActionButton>
-                            <ActionButton type="button" onClick={handleCancel} disabled={isLoading} className="cancel-button">
+                            <ActionButton
+                              type="button"
+                              onClick={handleCancel}
+                              disabled={isLoading}
+                              className="cancel-button"
+                            >
                               Cancel
                             </ActionButton>
                           </InlineActions>
@@ -502,11 +560,17 @@ const Account = () => {
                             </DetailGroup>
                             <DetailGroup>
                               <Label>ACTIVE</Label>
-                              <Detail>{customerInfo.isActive ? 'Yes' : 'No'}</Detail>
+                              <Detail>
+                                {customerInfo.isActive ? "Yes" : "No"}
+                              </Detail>
                             </DetailGroup>
                             <DetailGroup>
                               <Label>CREATED AT</Label>
-                              <Detail>{customerInfo.createdAt ? formatDate(customerInfo.createdAt) : 'N/A'}</Detail>
+                              <Detail>
+                                {customerInfo.createdAt
+                                  ? formatDate(customerInfo.createdAt)
+                                  : "N/A"}
+                              </Detail>
                             </DetailGroup>
                           </DataColumn>
                         </DataGrid>
@@ -548,8 +612,7 @@ const EditButton = styled.button`
   transition: all 0.45s ease;
   font-family: "Gantari", sans-serif;
   font-weight: 600;
-  border-radius: 2
-  px;
+  border-radius: 2 px;
 
   &:hover {
     background-color: #102c57;
@@ -563,22 +626,24 @@ const EditButton = styled.button`
   }
 `;
 
-const MessageBox = styled.div<{ type: 'success' | 'error' }>`
+const MessageBox = styled.div<{ type: "success" | "error" }>`
   padding: 12px 16px;
   margin-bottom: 20px;
   border-radius: 8px;
   font-family: "Poppins", sans-serif;
   font-size: 14px;
   font-weight: 500;
-  background-color: ${props => props.type === 'success' ? '#d4edda' : '#f8d7da'};
-  color: ${props => props.type === 'success' ? '#155724' : '#721c24'};
-  border: 1px solid ${props => props.type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+  background-color: ${(props) =>
+    props.type === "success" ? "#d4edda" : "#f8d7da"};
+  color: ${(props) => (props.type === "success" ? "#155724" : "#721c24")};
+  border: 1px solid
+    ${(props) => (props.type === "success" ? "#c3e6cb" : "#f5c6cb")};
   display: flex;
   align-items: center;
   gap: 8px;
 
   &::before {
-    content: ${props => props.type === 'success' ? '"✓"' : '"✕"'};
+    content: ${(props) => (props.type === "success" ? '"✓"' : '"✕"')};
     font-weight: bold;
   }
 `;

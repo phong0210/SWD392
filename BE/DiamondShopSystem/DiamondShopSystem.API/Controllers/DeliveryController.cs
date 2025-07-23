@@ -1,5 +1,5 @@
-using DiamondShopSystem.BLL.Models;
-using DiamondShopSystem.BLL.Services;
+using DiamondShopSystem.BLL.Handlers.Delivery.DTOs;
+using DiamondShopSystem.BLL.Services.Delivery;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -10,9 +10,9 @@ namespace DiamondShopSystem.API.Controllers
     [ApiController]
     public class DeliveryController : ControllerBase
     {
-        private readonly DeliveryService _deliveryService;
+        private readonly IDeliveryService _deliveryService;
 
-        public DeliveryController(DeliveryService deliveryService)
+        public DeliveryController(IDeliveryService deliveryService)
         {
             _deliveryService = deliveryService;
         }
@@ -43,28 +43,20 @@ namespace DiamondShopSystem.API.Controllers
             {
                 return Conflict("A delivery for this order already exists.");
             }
-            return CreatedAtAction(nameof(GetDeliveryById), new { id = createdDelivery.Id }, createdDelivery);
+            return CreatedAtAction(nameof(GetDeliveryById), new { id = createdDelivery.OrderId }, createdDelivery);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDelivery(Guid id, [FromBody] UpdateDeliveryDto updateDeliveryDto)
         {
-            var result = await _deliveryService.UpdateDeliveryAsync(id, updateDeliveryDto);
-            if (!result)
-            {
-                return NotFound();
-            }
+            await _deliveryService.UpdateDeliveryAsync(id, updateDeliveryDto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDelivery(Guid id)
         {
-            var result = await _deliveryService.DeleteDeliveryAsync(id);
-            if (!result)
-            {
-                return NotFound();
-            }
+            await _deliveryService.DeleteDeliveryAsync(id);
             return NoContent();
         }
     }

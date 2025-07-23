@@ -18,13 +18,17 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Get
         {
             try
             {
-                var orderDetails = await _orderDetailService.GetOrderDetailsByOrderIdAsync(request.OrderId);
+                var orderDetails = await _orderDetailService.GetOrderDetailByIdAsync(request.OrderId);
+
+                var orderDetailsCollection = orderDetails is IEnumerable<OrderDetailDto>
+                    ? (IEnumerable<OrderDetailDto>)orderDetails
+                    : new List<OrderDetailDto> { orderDetails };
 
                 return new OrderDetailGetByOrderResponse
                 {
                     Success = true,
                     Message = "Order details retrieved successfully",
-                    Data = orderDetails
+                    Data = orderDetailsCollection
                 };
             }
             catch (Exception ex)

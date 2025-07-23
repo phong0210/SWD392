@@ -1,30 +1,67 @@
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 using MediatR;
-using DiamondShopSystem.BLL.Handlers.Order.Commands.Update;
+using AutoMapper;
+using DiamondShopSystem.DAL.Repositories;
+using DiamondShopSystem.DAL.Entities;
 using DiamondShopSystem.BLL.Handlers.Order.DTOs;
-using DiamondShopSystem.BLL.Services.Order;
 
 namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Update
 {
     public class OrderDetailUpdateCommandHandler : IRequestHandler<OrderDetailUpdateCommand, OrderDetailUpdateResponse>
     {
-        private readonly IOrderDetailService _orderDetailService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public OrderDetailUpdateCommandHandler(IOrderDetailService orderDetailService)
+        public OrderDetailUpdateCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _orderDetailService = orderDetailService;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task<OrderDetailUpdateResponse> Handle(OrderDetailUpdateCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var orderDetail = await _orderDetailService.UpdateOrderDetailAsync(request.Id, request.OrderDetailUpdateDto);
-                
+                var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+
+                var orderDetail = await orderDetailRepo.GetByIdAsync(request.Id);
+                if (orderDetail == null)
+                {
+                    return new OrderDetailUpdateResponse
+                    {
+                        Success = false,
+                        Message = "Order detail not found."
+                    };
+                }
+
+                // Validate the update data
+                if (request.OrderDetailUpdateDto == null)
+                {
+                    return new OrderDetailUpdateResponse
+                    {
+                        Success = false,
+                        Message = "Update data is required."
+                    };
+                }
+
+                // Update properties
+                orderDetail.UnitPrice = request.OrderDetailUpdateDto.UnitPrice;
+                orderDetail.Quantity = request.OrderDetailUpdateDto.Quantity;
+                orderDetail.ProductId = request.OrderDetailUpdateDto.ProductId;
+
+                orderDetailRepo.Update(orderDetail);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Map to DTO using AutoMapper
+                var dto = _mapper.Map<OrderDetailDto>(orderDetail);
+
                 return new OrderDetailUpdateResponse
                 {
                     Success = true,
-                    Message = "Order detail updated successfully",
-                    Data = orderDetail
+                    Data = dto,
+                    Message = "Order detail updated successfully."
                 };
             }
             catch (Exception ex)
@@ -32,9 +69,9 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Update
                 return new OrderDetailUpdateResponse
                 {
                     Success = false,
-                    Message = $"Failed to update order detail: {ex.Message}"
+                    Message = $"Error updating order detail: {ex.Message}"
                 };
             }
         }
     }
-} 
+}
