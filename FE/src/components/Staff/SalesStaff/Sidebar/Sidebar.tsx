@@ -14,12 +14,24 @@ import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
 import useAuth from "@/hooks/useAuth";
 import { getCustomer } from "@/services/accountApi";
+import { useDispatch } from 'react-redux';
+import { logout } from '@/store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
   const location = useLocation();
   const [active, setActive] = useState<string>("");
   const { AccountID } = useAuth();
   const [staff, setStaff] = useState<any>(null);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  // Handle logout
+  const handleLogout = () => {
+        dispatch(logout());
+        cookieUtils.clear();
+        navigate(config.routes.public.login);
+  };
 
   useEffect(() => {
     //Get staff info
@@ -124,7 +136,7 @@ const Sidebar = () => {
             <p className="accOut_role">{staff ? staff.Role.substring(5) : null}</p>
           </Styled.AccInfor>
         </Styled.Account>
-        <Link to={config.routes.public.login} onClick={() => cookieUtils.clear()}>
+        <Link to={config.routes.public.login} onClick={() => handleLogout()}>
           <LogoutOutlined className="outLogo"/>
         </Link>
       </Styled.AccOut>
