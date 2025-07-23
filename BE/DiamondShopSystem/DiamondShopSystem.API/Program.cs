@@ -24,6 +24,9 @@ using System.Collections;
 using System.Text;
 using DiamondShopSystem.DAL.Repositories.Contracts;
 using DiamondShopSystem.BLL.Services.Delivery;
+using DiamondShopSystem.API.Services;
+using DiamondShopSystem.BLL.Services.LoyaltyPoint;
+
 
 
 DotNetEnv.Env.Load(Path.Combine("..", "..", ".env")); // Load from parent of API folder
@@ -108,6 +111,10 @@ void ConfigureServices()
     // User Services
     builder.Services.AddScoped<IUserService, UserService>();
 
+    // Loyalty Point Services
+    builder.Services.AddScoped<ILoyaltyPointService, LoyaltyPointService>();
+
+   
     // Order Services
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 
