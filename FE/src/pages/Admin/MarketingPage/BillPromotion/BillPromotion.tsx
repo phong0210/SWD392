@@ -15,7 +15,6 @@ import {
   Space,
   DatePicker,
   notification,
-  Select
 } from "antd";
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import MarketingMenu from "@/components/Admin/MarketingMenu/MarketingMenu";
@@ -77,6 +76,8 @@ const BillPromotion = () => {
   const isEditing = (record: any) => record.key === editingKey;
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [api, contextHolder] = notification.useNotification();
+  const [filteredVouchers, setFilteredVouchers] = useState(vouchers);
+   
 
   type NotificationType = "success" | "info" | "warning" | "error";
 
@@ -172,17 +173,6 @@ const BillPromotion = () => {
     }
   };
 
-  // const handleDelete = async (voucherID: number) => {
-  //   try {
-      
-  //     await deleteVoucher(voucherID);
-  //     openNotification("success", "Delete", "");
-  //     fetchData();
-  //   } catch (error: any) {
-  //     console.error("Failed to delete collection:", error);
-  //     openNotification("error", "Delete", error.message);
-  //   }
-  // };
   const handleDelete = async (voucherID: number) => {
   try {
     await deleteVoucher(voucherID);
@@ -216,30 +206,6 @@ const BillPromotion = () => {
       editable: true,
       sorter: (a: any, b: any) => a.discountValue - b.discountValue,
     },
-    // {
-    //   title: "Start Date",
-    //   dataIndex: "startDate",
-    //   editable: true,
-    //   onChange: { onChangeDate },
-    //   render: (_: any, { startDate }: any) => {
-    //     return <>{startDate.replace("T", " ").replace(".000Z", " ")}</>
-    //   },
-    //   sorter: (a: any, b: any) =>
-    //     a.startDate.length - b.startDate.length,
-      
-    // },
-    // {
-    //   title: "End Date",
-    //   dataIndex: "endDate",
-    //   editable: true,
-    //   onChange: { onChangeDate },
-    //   render: (_: any, { endDate }: any) => {
-    //     // return <>{endDate.replace("T", " ").replace(".000Z", " ")}</>
-    //     return <>{endDate ? endDate.replace("T", " ").replace(".000Z", " ") : "N/A"}</>
-    //   },
-    //   sorter: (a: any, b: any) =>
-    //     a.endDate.length - b.endDate.length,
-    // },
     {
         title: "Start Date",
         dataIndex: "startDate",
@@ -327,9 +293,19 @@ const BillPromotion = () => {
   });
 
   // SEARCH AREA
+  // const onSearch = (value: string) => {
+  //   console.log("Search:", value);
+  // };
+
   const onSearch = (value: string) => {
-    console.log("Search:", value);
-  };
+  const filtered = vouchers.filter(voucher =>
+    voucher.name.toLowerCase().includes(value.toLowerCase())
+  );
+  setFilteredVouchers(filtered);
+};
+useEffect(() => {
+  setFilteredVouchers(vouchers);
+}, [vouchers]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -346,21 +322,6 @@ const BillPromotion = () => {
   const handleCancel = () => {
     setIsAdding(false);
   };
-
-      // const voucherValues = await form.validateFields();
-
-        // const newVoucher = {
-        //   promotionDto: {
-        //     name: voucherValues.Name,
-        //     description: voucherValues.Description,
-        //     startDate: voucherValues.StartDate?.toISOString(),
-        //     endDate: voucherValues.EndDate?.toISOString(),
-        //     discountType: "Percentage", // hoặc thêm field chọn từ Form nếu cần
-        //     discountValue: voucherValues.DiscountValue,
-        //     // appliesToProductId: selectedProductId, // thêm từ UI nếu cần chọn product
-        //   },
-        // };
-
 
  interface SubmitButtonProps {
     form: FormInstance;
@@ -434,7 +395,7 @@ const BillPromotion = () => {
                       placeholder="Search here..."
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={handleKeyPress}
+                      onKeyDown={handleKeyPress}
                       prefix={<SearchOutlined className="searchIcon" />}
                     />
                   </Styled.SearchArea>
@@ -573,7 +534,7 @@ const BillPromotion = () => {
                       },
                     }}
                     bordered
-                    dataSource={vouchers}
+                    dataSource={filteredVouchers}
                     columns={mergedColumns}
                     rowClassName="editable-row"
                     pagination={{
@@ -594,211 +555,4 @@ const BillPromotion = () => {
 
 export default BillPromotion;
 
-
-
-//   // SUBMIT FORM
-//   interface SubmitButtonProps {
-//     form: FormInstance;
-//   }
-
-//   const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({
-//     form,
-//     children,
-//   }) => {
-//     // const [submittable, setSubmittable] = React.useState<boolean>(false);
-//     const [submittable, setSubmittable] = useState(false);
-//     const values = Form.useWatch([], form);
-
-//     useEffect(() => {
-//       form
-//         .validateFields({ validateOnly: true })
-//         .then(() => setSubmittable(true))
-//         .catch(() => setSubmittable(false));
-//     }, [values]);
-
-//     const addVoucher = async () => {
-//       try {
-//         const voucherValues = await form.validateFields();
-//         const newVoucher = {
-//              promotionDto: {
-//           ...voucherValues,
-//              },
-//         };
-
-    
-//         const { data } = await createVoucher(newVoucher);
-//         if (data.statusCode !== 200) throw new Error(data.message);
-//         fetchData();
-//         setIsAdding(false);
-//         openNotification("success", "Add", "");
-//       } catch (error: any) {
-//         openNotification("error", "", error.message);
-//       }
-//     };
-
-//     return (
-//       <Button
-//         type="primary"
-//         htmlType="submit"
-//         disabled={!submittable}
-//         onClick={addVoucher}
-//       >
-//         {children}
-//       </Button>
-//     );
-//   };
-
-//   return (
-//     <>
-//       {contextHolder}
-//       <Styled.GlobalStyle />
-//       <Styled.ProductAdminArea>
-//         <Sidebar />
-//         <Styled.AdminPage>
-//           <MarketingMenu />
-//           <Styled.AdPageContent>
-//             <Styled.AdPageContent_Head>
-//               {(!isAdding && (
-//                 <>
-//                   <Styled.SearchArea>
-//                     <Input
-//                       className="searchInput"
-//                       type="text"
-//                       placeholder="Search here..."
-//                       value={searchText}
-//                       onChange={(e) => setSearchText(e.target.value)}
-//                       onKeyPress={handleKeyPress}
-//                       prefix={<SearchOutlined className="searchIcon" />}
-//                     />
-//                   </Styled.SearchArea>
-//                   <Styled.AddButton>
-//                     <button onClick={handleAddNew}>
-//                       <PlusCircleOutlined />
-//                       Add New Promotion
-//                     </button>
-//                   </Styled.AddButton>
-//                 </>
-//               )) || (
-//                   <>
-//                     <Styled.AddContent_Title>
-//                       <p>Add Promotion</p>
-//                     </Styled.AddContent_Title>
-//                   </>
-//                 )}
-//             </Styled.AdPageContent_Head>
-
-//             <Styled.AdminTable>
-//               {isAdding ? (
-//                 <>
-//                   <Form
-//                     form={form}
-//                     layout="vertical"
-//                     className="AdPageContent_Content"
-//                   >
-//                     <Styled.FormItem>
-//                       <Form.Item
-//                         label="Name"
-//                         name="Name"
-//                         rules={[{ required: true }]}
-//                       >
-//                         <Input className="formItem" placeholder="Sophia" />
-//                       </Form.Item>
-//                     </Styled.FormItem>
-//                     <Styled.FormItem>
-//                       <Form.Item
-//                         label="% discount"
-//                         name="DiscountValue"
-//                         rules={[{ required: true }]}
-//                       >
-//                         <InputNumber className="formItem" placeholder="15" />
-//                       </Form.Item>
-//                     </Styled.FormItem>
-//                     {/* <Form.Item label="Discount Type" name="DiscountType" rules={[{ required: true }]}>
-//                     <Select>
-//                       <Select.Option value="Percentage">Percentage</Select.Option>
-//                       <Select.Option value="Amount">Amount</Select.Option>
-//                     </Select>
-//                   </Form.Item> */}
-
-            
-
-//                     <Styled.FormItem>
-//                       <Form.Item
-//                         label="Start Time"
-//                         name="StartDate"
-//                         rules={[{ required: true }]}
-//                       >
-//                         <DatePicker
-//                           onChange={onChangeDate}
-//                           className="formItem"
-//                         />
-//                       </Form.Item>
-//                     </Styled.FormItem>
-//                     <Styled.FormItem>
-//                       <Form.Item
-//                         label="End Time"
-//                         name="EndDate"
-//                         rules={[{ required: true }]}
-//                       >
-//                         <DatePicker
-//                           onChange={onChangeDate}
-//                           className="formItem"
-//                         />
-//                       </Form.Item>
-//                     </Styled.FormItem>
-//                     <Styled.FormDescript>
-//                       <Form.Item
-//                         label="Description"
-//                         name="Description"
-//                         rules={[{ required: true }]}
-//                       >
-//                         <Input.TextArea className="formItem" />
-//                       </Form.Item>
-//                     </Styled.FormDescript>
-//                   </Form>
-
-//                   <Styled.ActionBtn>
-//                     <Form.Item>
-//                       <Space>
-//                         <SubmitButton form={form}>
-//                           <SaveOutlined />
-//                           Save
-//                         </SubmitButton>
-//                         <Button
-//                           onClick={handleCancel}
-//                           className="CancelBtn"
-//                           style={{ marginLeft: "10px" }}
-//                         >
-//                           Cancel
-//                         </Button>
-//                       </Space>
-//                     </Form.Item>
-//                   </Styled.ActionBtn>
-//                 </>
-//               ) : (
-//                 <Form form={form} component={false}>
-//                   <Table
-//                     components={{
-//                       body: {
-//                         cell: EditableCell,
-//                       },
-//                     }}
-//                     bordered
-//                     dataSource={vouchers}
-//                     columns={mergedColumns}
-//                     rowClassName="editable-row"
-//                     pagination={{
-//                       onChange: cancel,
-//                       pageSize: 6,
-//                     }}
-//                   />
-//                 </Form>
-//               )}
-//             </Styled.AdminTable>
-//           </Styled.AdPageContent>
-//         </Styled.AdminPage>
-//       </Styled.ProductAdminArea>
-//     </>
-//   );
-// };
 
