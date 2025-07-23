@@ -73,7 +73,7 @@ const MainRouter = () => {
     return <Navigate to={config.routes.admin.dashboard} />;
   if (role === Role.StoreManager)
     return <Navigate to={config.routes.admin.dashboard} />;
-  if (role === Role.Customer)
+  if (role === Role.SalesStaff)
     return <Navigate to={config.routes.salesStaff.order} />;
   if (role === Role.DeliveryStaff)
     return <Navigate to={config.routes.deliStaff.deliveryPending} />;

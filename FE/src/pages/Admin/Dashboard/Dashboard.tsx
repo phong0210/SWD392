@@ -54,7 +54,7 @@ const Dashboard = () => {
       const { data: jewelryData } = responseJewelry.data;
       const { data: discountsData } = responseDiscount.data;
 
-      console.log("Customers:", customersData);
+      // console.log("Customers:", customersData);
 
       const formattedCustomers = customersData
         .filter(
