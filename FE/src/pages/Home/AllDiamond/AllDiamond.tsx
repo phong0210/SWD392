@@ -18,6 +18,8 @@ import { Link } from "react-router-dom";
 import { showAllProduct } from "@/services/productAPI";
 import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
 import { UUID } from "crypto";
+import defaultImage from "@/assets/diamond/defaultImage.png";
+
 const { Title, Text } = Typography;
 
 const items = texts.map((text, index) => ({
@@ -167,30 +169,19 @@ const AllDiamond: React.FC = () => {
                   hoverable
                   className="product-card"
                   cover={
-                    <>
-                      <Link to={`/diamond/${diamond.id}`}>
-                        <img
-                          style={{ borderRadius: "0" }}
-                          src={
-                            diamond.images && diamond.images.length > 0
-                              ? diamond.name
-                              : "/default-image.jpg"
-                          }
-                          alt={diamond.name}
-                          className="product-image"
-                          onMouseOut={(e) =>
-                            (e.currentTarget.src =
-                              diamond.images && diamond.images.length > 0
-                                ? diamond.name
-                                : "/default-image.jpg")
-                          }
-                        />
-                      </Link>
-                      {/* {<diamond className="Price"></diamond> &&
-                        diamond.discountPrice !== diamond.price && (
-                          <div className="sale-badge">SALE</div>
-                        )} */}
-                    </>
+                    <Link to={`/diamond/${diamond.id}`}>
+                      <img
+                        style={{ borderRadius: "0" }}
+                        src={defaultImage}
+                        alt={diamond.name}
+                        className="product-image"
+                        onMouseOver={(e) =>
+                          (e.currentTarget.src = defaultImage)
+                        }
+                        onMouseOut={(e) => (e.currentTarget.src = defaultImage)}
+                      />
+                      {diamond.price && <div className="sale-badge">SALE</div>}
+                    </Link>
                   }
                 >
                   <div className="product-info">

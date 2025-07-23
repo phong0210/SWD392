@@ -59,6 +59,7 @@ import { Modal } from "antd";
 
 import { getProductDetails } from "@/services/productAPI";
 import { Product } from "@/models/Entities/Product";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 
 type NotificationType = "success" | "error";
 
@@ -381,7 +382,7 @@ const DiamondDetails: React.FC = () => {
                     </OuterThumb>
                     <OuterMain>
                       <MainImage>
-                        <img id="mainImage" src={mainImage} alt="Main" />
+                        <img id="mainImage" src={defaultImage} alt="Main" />
                       </MainImage>
                     </OuterMain>
                   </ImageContainer>
@@ -636,30 +637,23 @@ const DiamondDetails: React.FC = () => {
                     hoverable
                     className="product-card"
                     cover={
-                      <>
-                        <Link to={`/diamond/${diamond.id}`}>
-                          <img
-                            style={{ borderRadius: "0" }}
-                            src={
-                              diamond.images && diamond.images.length > 0
-                                ? diamond.images[0].url
-                                : "/default-image.jpg"
-                            }
-                            alt={diamond.name}
-                            className="product-image"
-                            onMouseOut={(e) =>
-                              (e.currentTarget.src =
-                                diamond.images && diamond.images.length > 0
-                                  ? diamond.images[0].url
-                                  : "/default-image.jpg")
-                            }
-                          />
-                        </Link>
-                        {diamond.discountPrice &&
-                          diamond.discountPrice !== diamond.price && (
-                            <div className="sale-badge">SALE</div>
-                          )}
-                      </>
+                      <Link to={`/diamond/${diamond.id}`}>
+                        <img
+                          style={{ borderRadius: "0" }}
+                          src={defaultImage}
+                          alt={diamond.name}
+                          className="product-image"
+                          onMouseOver={(e) =>
+                            (e.currentTarget.src = defaultImage)
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.src = defaultImage)
+                          }
+                        />
+                        {diamond.price && (
+                          <div className="sale-badge">SALE</div>
+                        )}
+                      </Link>
                     }
                   >
                     <div className="product-info">
