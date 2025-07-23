@@ -114,7 +114,6 @@ void ConfigureServices()
     // Loyalty Point Services
     builder.Services.AddScoped<ILoyaltyPointService, LoyaltyPointService>();
 
-   
     // Order Services
     builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 
