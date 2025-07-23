@@ -5,24 +5,23 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Sidebar from "@/components/Admin/Sidebar/Sidebar";
 import ProductMenu from "@/components/Admin/ProductMenu/ProductMenu";
 import { SaveOutlined } from "@ant-design/icons";
-import {
-  ClarityType_Option,
-  ColorType_Option,
-  FluorescenceType_Option,
-  ShapeType_Option,
-} from "../Diamond/Diamond.type";
-import {
-  getDiamondDetails,
-  updateDiamond,
-} from "@/services/diamondAPI";
+import { ClarityType_Option, ColorType_Option } from "../Diamond/Diamond.type";
+
 import { getImage } from "@/services/imageAPI";
+import {
+  deleteDiamond,
+  getProductDetails,
+  updateDiamond,
+} from "@/services/productAPI";
+import defaultImage from "@/assets/diamond/defaultImage.png";
+import { Product } from "@/models/Entities/Product";
 
 const DiamondDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeDiamond, setActiveDiamond] = useState<any | null>(null);
+  const [activeDiamond, setActiveDiamond] = useState<Product | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedDiamond, setEditedDiamond] = useState<any | null>(null);
+  const [editedDiamond, setEditedDiamond] = useState<Product | null>(null);
   const [isModalVisibleGIA, setIsModalVisibleGIA] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [diamondMainImage, setDiamondMainImage] = useState("");
@@ -44,19 +43,19 @@ const DiamondDetail = () => {
   };
 
   useEffect(() => {
+    if (!id) {
+      console.error("Missing product ID");
+      return;
+    }
     const fetchDiamond = async () => {
       try {
-        const response = await getDiamondDetails(Number(id));
-        console.log("API Response:", response.data.data);
-        const diamondData = response.data.data;
-        setActiveDiamond(diamondData);
-        setEditedDiamond(diamondData);
-        if (diamondData.usingImage && diamondData.usingImage.length > 0) {
-          const mainImageURL = `http://localhost:3000/usingImage/${diamondData.usingImage[0].UsingImageID}`;
-          setDiamondMainImage(mainImageURL);
-        } else {
-          setDiamondMainImage("");
-        }
+        const response = await getProductDetails(id);
+        console.log("Response from getProductDetails:", response.data);
+        const diamondData = response.data;
+        console.log("Diamond Data:", diamondData.product.id);
+        setActiveDiamond(diamondData.product);
+        // console.log("Active Diamond:", diamondData.product);
+        setDiamondMainImage(defaultImage);
         setDiamondSelectedThumb(0);
       } catch (error) {
         console.error("Error fetching diamond details:", error);
@@ -67,7 +66,10 @@ const DiamondDetail = () => {
 
   useEffect(() => {
     console.log("Active Diamond:", activeDiamond);
-  }, [activeDiamond]);
+    if (activeDiamond && isEditing) {
+      setEditedDiamond({ ...activeDiamond });
+    }
+  }, [activeDiamond, isEditing]);
 
   // GIA
   const showModalGIA = () => {
@@ -99,21 +101,19 @@ const DiamondDetail = () => {
   const saveChanges = async () => {
     try {
       const updateData = { ...editedDiamond };
-      console.log(`Updating diamond with ID: ${activeDiamond.DiamondID}`);
-      console.log("Update Data:", updateData);
-      const response = await updateDiamond(
-        editedDiamond.DiamondID,
-        editedDiamond
-      );
+
+      console.log(`Updating diamond with ID: ${activeDiamond.id}`);
+      console.log("Updating edited data", editedDiamond.id);
+      const response = await updateDiamond(editedDiamond.id, editedDiamond);
       console.log("Update Response:", response);
 
       // Check if the update was successful
       if (response.status === 200) {
-        const updatedDiamondResponse = await getDiamondDetails(
-          editedDiamond.DiamondID
+        const updatedDiamondResponse = await getProductDetails(
+          activeDiamond.id
         );
-        setActiveDiamond(updatedDiamondResponse.data.data);
-        setEditedDiamond(updatedDiamondResponse.data.data);
+        setActiveDiamond(updatedDiamondResponse.data);
+        setEditedDiamond(updatedDiamondResponse.data);
         openNotification("success", "Update", "");
         setIsEditing(false);
       } else {
@@ -132,9 +132,7 @@ const DiamondDetail = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await updateDiamond(activeDiamond.DiamondID, {
-        IsActive: false,
-      });
+      const response = await deleteDiamond(activeDiamond.id);
       console.log("Delete Response:", response.data);
       if (response.status === 200) {
         openNotification("success", "Delete", "");
@@ -180,24 +178,15 @@ const DiamondDetail = () => {
                       className="AdPageContent_Content"
                       layout="vertical"
                       initialValues={{
-                        diamondName: editedDiamond?.Name,
-                        price: editedDiamond?.Price,
-                        discountPrice: editedDiamond?.DiscountPrice,
-                        chargeRate: editedDiamond?.ChargeRate,
-                        description: editedDiamond?.Description,
-                        weightCarat: editedDiamond?.WeightCarat,
-                        shape: editedDiamond?.Shape,
-                        color: editedDiamond?.Color,
-                        polish: editedDiamond?.Polish,
-                        cut: editedDiamond?.Cut,
-                        symmetry: editedDiamond?.Symmetry,
-                        clarity: editedDiamond?.Clarity,
-                        fluorescence: editedDiamond?.Fluorescence,
-                        percentDepth: editedDiamond?.PercentDepth,
-                        percentTable: editedDiamond?.PercentTable,
-                        lengthOnWidthRatio: editedDiamond?.LengthOnWidthRatio,
-                        designer: editedDiamond?.Designer,
-                        cutter: editedDiamond?.Cutter,
+                        diamondName: activeDiamond?.name,
+                        giaCertNumber: activeDiamond?.giaCertNumber,
+                        price: activeDiamond?.price,
+                        description: activeDiamond?.description,
+                        weightCarat: activeDiamond?.carat,
+                        color: activeDiamond?.color,
+                        cut: activeDiamond?.cut,
+                        clarity: activeDiamond?.clarity,
+                        quantity: activeDiamond?.stockQuantity,
                       }}
                       onFinish={saveChanges}
                     >
@@ -209,27 +198,38 @@ const DiamondDetail = () => {
                           <Styled.PageDetail_Infor>
                             <Styled.ImageContainer>
                               <Styled.OuterThumb>
-                                <Styled.ThumbnailImage>
-                                {activeDiamond.usingImage?.map((image: any, index: any) => {
-                                if (image.CertificateID == null) {
-                                  const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
-                                  return (
-                                    <Styled.Item
-                                      key={index}
-                                      className={index === diamondSelectedThumb ? "selected" : ""}
-                                      onClick={() => changeDiamondImage(imageUrl, index)}
-                                    >
-                                      <img
-                                        key={index}
-                                        src={imageUrl}
-                                        alt={`Diamond Thumbnail ${index}`}
-                                      />
-                                    </Styled.Item>
-                                  );
-                                }
-                                return null;
-                              })}
-                                </Styled.ThumbnailImage>
+                                {/* <Styled.ThumbnailImage>
+                                  {activeDiamond.usingImage?.map(
+                                    (image: any, index: any) => {
+                                      if (image.CertificateID == null) {
+                                        const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
+                                        return (
+                                          <Styled.Item
+                                            key={index}
+                                            className={
+                                              index === diamondSelectedThumb
+                                                ? "selected"
+                                                : ""
+                                            }
+                                            onClick={() =>
+                                              changeDiamondImage(
+                                                imageUrl,
+                                                index
+                                              )
+                                            }
+                                          >
+                                            <img
+                                              key={index}
+                                              src={imageUrl}
+                                              alt={`Diamond Thumbnail ${index}`}
+                                            />
+                                          </Styled.Item>
+                                        );
+                                      }
+                                      return null;
+                                    }
+                                  )}
+                                </Styled.ThumbnailImage> */}
                               </Styled.OuterThumb>
                               <Styled.OuterMain>
                                 <Styled.MainImage>
@@ -254,12 +254,9 @@ const DiamondDetail = () => {
                                 className="InforLine_Title"
                               >
                                 <Input
-                                  value={activeDiamond?.DiamondID}
+                                  value={activeDiamond?.id}
                                   onChange={(e) =>
-                                    handleFieldChange(
-                                      "DiamondID",
-                                      e.target.value
-                                    )
+                                    handleFieldChange("id", e.target.value)
                                   }
                                   disabled
                                 />
@@ -277,7 +274,7 @@ const DiamondDetail = () => {
                               >
                                 <Input
                                   onChange={(e) =>
-                                    handleFieldChange("Name", e.target.value)
+                                    handleFieldChange("name", e.target.value)
                                   }
                                 />
                               </Form.Item>
@@ -294,77 +291,11 @@ const DiamondDetail = () => {
                               >
                                 <Input
                                   onChange={(e) =>
-                                    handleFieldChange("Price", e.target.value)
+                                    handleFieldChange("price", e.target.value)
                                   }
                                 />
                               </Form.Item>
-                              <Form.Item
-                                label="DiscountPrice"
-                                className="InforLine_Title"
-                                name="discountPrice"
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Discount is required.",
-                                  },
-                                ]}
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "DiscountPrice",
-                                      e.target.value
-                                    )
-                                  }
-                                  disabled
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                label="Charge Rate (%)"
-                                className="InforLine_Title"
-                                name="chargeRate"
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Rate is required.",
-                                  },
-                                ]}
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "ChargeRate",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                label="Shape"
-                                className="InforLine_Title"
-                                name="shape"
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Shape is required.",
-                                  },
-                                ]}
-                              >
-                                <Select
-                                  onChange={(value) =>
-                                    handleFieldChange("Shape", value)
-                                  }
-                                >
-                                  {ShapeType_Option.map((option) => (
-                                    <Select.Option
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </Select.Option>
-                                  ))}
-                                </Select>
-                              </Form.Item>
+
                               <Form.Item
                                 label="Color"
                                 className="InforLine_Title"
@@ -378,7 +309,7 @@ const DiamondDetail = () => {
                               >
                                 <Select
                                   onChange={(value) =>
-                                    handleFieldChange("Color", value)
+                                    handleFieldChange("color", value)
                                   }
                                 >
                                   {ColorType_Option.map((option) => (
@@ -404,24 +335,11 @@ const DiamondDetail = () => {
                               >
                                 <Input
                                   onChange={(e) =>
-                                    handleFieldChange(
-                                      "WeightCarat",
-                                      e.target.value
-                                    )
+                                    handleFieldChange("carat", e.target.value)
                                   }
                                 />
                               </Form.Item>
-                              <Form.Item
-                                label="Polish"
-                                className="InforLine_Title"
-                                name="polish"
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange("Polish", e.target.value)
-                                  }
-                                />
-                              </Form.Item>
+
                               <Form.Item
                                 label="Cut"
                                 className="InforLine_Title"
@@ -435,30 +353,11 @@ const DiamondDetail = () => {
                               >
                                 <Input
                                   onChange={(e) =>
-                                    handleFieldChange("Cut", e.target.value)
+                                    handleFieldChange("cut", e.target.value)
                                   }
                                 />
                               </Form.Item>
-                              <Form.Item
-                                label="Symmetry"
-                                className="InforLine_Title"
-                                name="symmetry"
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Symmetry is required.",
-                                  },
-                                ]}
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "Symmetry",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Form.Item>
+
                               <Form.Item
                                 label="Clarity"
                                 className="InforLine_Title"
@@ -472,7 +371,7 @@ const DiamondDetail = () => {
                               >
                                 <Select
                                   onChange={(value) =>
-                                    handleFieldChange("Clarity", value)
+                                    handleFieldChange("clarity", value)
                                   }
                                 >
                                   {ClarityType_Option.map((option) => (
@@ -486,102 +385,14 @@ const DiamondDetail = () => {
                                 </Select>
                               </Form.Item>
                               <Form.Item
-                                label="Fluorescence"
-                                className="InforLine_Title"
-                                name="fluorescence"
-                              >
-                                <Select
-                                  onChange={(value) =>
-                                    handleFieldChange("Fluorescence", value)
-                                  }
-                                >
-                                  {FluorescenceType_Option.map((option) => (
-                                    <Select.Option
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </Select.Option>
-                                  ))}
-                                </Select>
-                              </Form.Item>
-                              <Form.Item
-                                label="Percent Depth"
-                                className="InforLine_Title"
-                                name="percentDepth"
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "PercentDepth",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                label="Percent Table"
-                                className="InforLine_Title"
-                                name="percentTable"
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "PercentTable",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                label="Length on Width Ratio"
-                                className="InforLine_Title"
-                                name="lengthOnWidthRatio"
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "LengthOnWidthRatio",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                label="Designer"
-                                className="InforLine_Title"
-                                name="designer"
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      "Designer",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Form.Item>
-                              <Form.Item
-                                label="Cutter"
-                                className="InforLine_Title"
-                                name="cutter"
-                              >
-                                <Input
-                                  onChange={(e) =>
-                                    handleFieldChange("Cutter", e.target.value)
-                                  }
-                                />
-                              </Form.Item>
-                              <Form.Item
                                 label="Description"
                                 className="InforLine_Title"
                                 name="description"
                               >
                                 <Input.TextArea
-                                  value={editedDiamond?.Description}
                                   onChange={(e) =>
                                     handleFieldChange(
-                                      "Description",
+                                      "description",
                                       e.target.value
                                     )
                                   }
@@ -596,7 +407,6 @@ const DiamondDetail = () => {
                               type="primary"
                               htmlType="submit"
                               icon={<SaveOutlined />}
-                              onClick={saveChanges}
                             >
                               Save
                             </Button>
@@ -621,25 +431,33 @@ const DiamondDetail = () => {
                         <Styled.ImageContainer>
                           <Styled.OuterThumb>
                             <Styled.ThumbnailImage>
-                              {activeDiamond.usingImage?.map((image: any, index: any) => {
-                                if (image.CertificateID == null) {
-                                  const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
-                                  return (
-                                    <Styled.Item
-                                      key={index}
-                                      className={index === diamondSelectedThumb ? "selected" : ""}
-                                      onClick={() => changeDiamondImage(imageUrl, index)}
-                                    >
-                                      <img
+                              {activeDiamond.usingImage?.map(
+                                (image: any, index: any) => {
+                                  if (image.CertificateID == null) {
+                                    const imageUrl = `http://localhost:3000/usingImage/${image.UsingImageID}`;
+                                    return (
+                                      <Styled.Item
                                         key={index}
-                                        src={imageUrl}
-                                        alt={`Diamond Thumbnail ${index}`}
-                                      />
-                                    </Styled.Item>
-                                  );
+                                        className={
+                                          index === diamondSelectedThumb
+                                            ? "selected"
+                                            : ""
+                                        }
+                                        onClick={() =>
+                                          changeDiamondImage(imageUrl, index)
+                                        }
+                                      >
+                                        <img
+                                          key={index}
+                                          src={imageUrl}
+                                          alt={`Diamond Thumbnail ${index}`}
+                                        />
+                                      </Styled.Item>
+                                    );
+                                  }
+                                  return null;
                                 }
-                                return null;
-                              })}
+                              )}
                             </Styled.ThumbnailImage>
                           </Styled.OuterThumb>
                           <Styled.OuterMain>
@@ -662,87 +480,41 @@ const DiamondDetail = () => {
                         <Styled.ProductContent>
                           <Styled.InforLine>
                             <p className="InforLine_Title">Diamond ID</p>
-                            <span>{activeDiamond.DiamondID}</span>
+                            <span>{activeDiamond.id}</span>
                           </Styled.InforLine>
                           <Styled.InforLine>
                             <p className="InforLine_Title">Diamond Name</p>
-                            <span>{activeDiamond.Name}</span>
+                            <span>{activeDiamond.name}</span>
                           </Styled.InforLine>
                           <Styled.InforLine>
                             <p className="InforLine_Title">Price</p>
-                            <span>{activeDiamond.Price}</span>
+                            <span>{activeDiamond.price}</span>
                           </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Discount Price</p>
-                            <span>{activeDiamond.DiscountPrice}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Charge Rate (%)</p>
-                            <span>{activeDiamond.ChargeRate}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Shape</p>
-                            <span>
-                              {ShapeType_Option.find(
-                                (option) => option.value === activeDiamond.Shape
-                              )?.label ?? "N/A"}
-                            </span>
-                          </Styled.InforLine>
+
                           <Styled.InforLine>
                             <p className="InforLine_Title">Color</p>
                             <span>
                               {ColorType_Option.find(
-                                (option) => option.value === activeDiamond.Color
+                                (option: any) =>
+                                  option.value === activeDiamond.color
                               )?.label ?? "N/A"}
                             </span>
                           </Styled.InforLine>
                           <Styled.InforLine>
                             <p className="InforLine_Title">Weight (Carat)</p>
-                            <span>{activeDiamond.WeightCarat}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Polish</p>
-                            <span>{activeDiamond.Polish}</span>
+                            <span>{activeDiamond.carat}</span>
                           </Styled.InforLine>
                           <Styled.InforLine>
                             <p className="InforLine_Title">Cut</p>
-                            <span>{activeDiamond.Cut}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Length/Width Ratio</p>
-                            <span>{activeDiamond.LengthOnWidthRatio}</span>
+                            <span>{activeDiamond.cut}</span>
                           </Styled.InforLine>
                           <Styled.InforLine>
                             <p className="InforLine_Title">Clarity</p>
-                            <span>{activeDiamond.Clarity}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Symmetry</p>
-                            <span>{activeDiamond.Symmetry}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Fluorescence</p>
-                            <span>{activeDiamond.Fluorescence}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">% Depth</p>
-                            <span>{activeDiamond.PercentDepth}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">% Table</p>
-                            <span>{activeDiamond.PercentTable}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Designer</p>
-                            <span>{activeDiamond.Designer}</span>
-                          </Styled.InforLine>
-                          <Styled.InforLine>
-                            <p className="InforLine_Title">Cutter</p>
-                            <span>{activeDiamond.Cutter}</span>
+                            <span>{activeDiamond.clarity}</span>
                           </Styled.InforLine>
                           <Styled.InforLine_Descrip>
-                            <p className="InforLine_Title">Description</p>
-                            <span>{activeDiamond.Description}</span>
+                            <p className="InforLine_Title">GiaCertNumber</p>
+                            <span>{activeDiamond.giaCertNumber}</span>
                           </Styled.InforLine_Descrip>
 
                           <Modal
@@ -784,8 +556,9 @@ const DiamondDetail = () => {
                 >
                   <img
                     src={getImage(
-                      activeDiamond?.certificate?.[activeDiamond.certificate.length - 1]?.usingImages[0]
-                        ?.UsingImageID
+                      activeDiamond?.certificate?.[
+                        activeDiamond.certificate.length - 1
+                      ]?.usingImages[0]?.UsingImageID
                     )}
                     alt="GIA Certificate"
                     style={{ width: "100%" }}

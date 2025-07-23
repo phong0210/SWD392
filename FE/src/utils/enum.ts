@@ -1,43 +1,42 @@
 export enum PageEnum {
-    LOGIN = 'Login',
-    REGISTER = 'Register',
-    FORGOT_PASSWORD = 'ForgotPassword',
-    SET_PASSWORD = 'SetPassword'
+  LOGIN = "Login",
+  REGISTER = "Register",
+  FORGOT_PASSWORD = "ForgotPassword",
+  SET_PASSWORD = "SetPassword",
 }
 
-export const Role: {[key: string]: string} = {
-    Customer: 'Customer',
-    DeliveryStaff: 'DeliveryStaff',
-    SalesStaff: 'SaleStaff',
-    StoreManager: 'StoreManager',
-    HeadOfficeAdmin: 'HeadOfficeAdmin'
-}
+export const Role: { [key: string]: string } = {
+  Customer: "Customer",
+  DeliveryStaff: "DeliveryStaff",
+  SalesStaff: "SaleStaff",
+  StoreManager: "StoreManager",
+  HeadOfficeAdmin: "HeadOfficeAdmin",
+};
 
 export enum LinkEnum {
-    LINK = 'Link',
-    NAV_LINK = 'NavLink'
+  LINK = "Link",
+  NAV_LINK = "NavLink",
 }
 
 export enum CustomAction {
-    SET_SELECTED_DIAMOND = 'SetSelectedDimond',
-    SET_SELECTED_SETTING = 'SetSelectedSetting',
-    SET_COMPLETED_RING = 'SetCompletedRing'
+  SET_SELECTED_DIAMOND = "SetSelectedDimond",
+  SET_SELECTED_SETTING = "SetSelectedSetting",
+  SET_COMPLETED_RING = "SetCompletedRing",
 }
 
 export enum PaymentMethodEnum {
-    VNPAY = 'VNPay',
-    MOMO = 'Momo',
-    PAYPAL = 'Paypal',
-    COD = 'COD'
+  VNPAY = "VNPay",
+  MOMO = "Momo",
+  PAYPAL = "Paypal",
+  COD = "COD",
 }
 
 export enum OrderStatus {
-    PENDING = 'Pending',
-    ACCEPTED = 'Accepted',
-    ASSIGNED = 'Assigned',
-    DELIVERING = 'Delivering',
-    DELIVERED = 'Delivered',
-    COMPLETED = 'Completed',
-    CANCELLED = 'Cancelled'
+  PENDING = "Pending",
+  ACCEPTED = "Accepted",
+  ASSIGNED = "Assigned",
+  DELIVERING = "Delivering",
+  DELIVERED = "Delivered",
+  COMPLETED = "Completed",
+  CANCELLED = "Cancelled",
 }
-

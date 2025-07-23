@@ -26,6 +26,7 @@ const Login = () => {
       // await messageApi.success('Login successfully');
       const user = resultAction.payload.user;
       console.log(user.role);
+
       switch (user.role) {
         case Role.HeadOfficeAdmin:
           navigate(config.routes.admin.dashboard, { replace: true });

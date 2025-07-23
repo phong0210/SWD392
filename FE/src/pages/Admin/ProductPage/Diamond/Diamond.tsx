@@ -26,6 +26,7 @@ import { useDocumentTitle } from "@/hooks";
 import DiamondSteps from "./components/steps/DiamondSteps";
 import { showAllProduct } from "@/services/productAPI";
 import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 // import { RcFile, UploadChangeParam } from "antd/es/upload";
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
@@ -132,9 +133,9 @@ const Diamond = () => {
   const columns: TableColumnsType<any> = [
     {
       title: "Diamond ID",
-      dataIndex: "diamondID",
+      dataIndex: "id",
       // defaultSortOrder: "descend",
-      sorter: (a, b) => parseInt(a.diamondID) - parseInt(b.diamondID),
+      sorter: (a, b) => parseInt(a.id) - parseInt(b.id),
     },
     {
       title: "Image",
@@ -143,11 +144,7 @@ const Diamond = () => {
       render: (_, record) => (
         <a href="#" target="_blank" rel="noopener noreferrer">
           <img
-            src={
-              record.images && record.images[0]
-                ? record.images[0].url
-                : "default-image-url"
-            }
+            src={defaultImage}
             alt={record.diamondName}
             style={{ width: "50px", height: "50px" }}
           />
@@ -156,7 +153,7 @@ const Diamond = () => {
     },
     {
       title: "Diamond Name",
-      dataIndex: "diamondName",
+      dataIndex: "name",
       showSorterTooltip: { target: "full-header" },
       sorter: (a, b) => a.diamondName.length - b.diamondName.length,
       // sortDirections: ["descend"],
@@ -176,23 +173,23 @@ const Diamond = () => {
         return `${convertedPrice} ${currency}`;
       },
     },
-    {
-      title: "Charge Rate",
-      dataIndex: "chargeRate",
-      key: "chargeRate",
-      render: (_, record) => `${record.chargeRate}%`,
-    },
-    {
-      title: `Selling Price (${currency})`,
-      key: "sellingPrice",
-      render: (_, record) => {
-        const price = sellingPrice(
-          convertPrice(record.price, record.exchangeRate, currency),
-          record.chargeRate
-        );
-        return `${price.toFixed(2)} ${currency}`;
-      },
-    },
+    // {
+    //   title: "Charge Rate",
+    //   dataIndex: "chargeRate",
+    //   key: "chargeRate",
+    //   render: (_, record) => `${record.chargeRate}%`,
+    // },
+    // {
+    //   title: `Selling Price (${currency})`,
+    //   key: "sellingPrice",
+    //   render: (_, record) => {
+    //     const price = sellingPrice(
+    //       convertPrice(record.price, record.exchangeRate, currency),
+    //       record.chargeRate
+    //     );
+    //     return `${price.toFixed(2)} ${currency}`;
+    //   },
+    // },
     {
       title: "Color",
       dataIndex: "color",
@@ -202,22 +199,22 @@ const Diamond = () => {
       // sortDirections: ["descend"],
       sorter: (a, b) => a.color.length - b.color.length,
     },
-    {
-      title: "Shape",
-      dataIndex: "shape",
-      key: "shape",
-      filters: ShapeType,
-      onFilter: (value, record) => record.shape.indexOf(value as string) === 0,
-      sorter: (a, b) => a.shape.length - b.shape.length,
-      // sortDirections: ["descend"],
-    },
+    // {
+    //   title: "Shape",
+    //   dataIndex: "shape",
+    //   key: "shape",
+    //   filters: ShapeType,
+    //   onFilter: (value, record) => record.shape.indexOf(value as string) === 0,
+    //   sorter: (a, b) => a.shape.length - b.shape.length,
+    //   // sortDirections: ["descend"],
+    // },
     {
       title: "Detail",
       key: "detail",
       className: "TextAlign",
-      render: (_, { diamondID }) => (
+      render: (_, { id }) => (
         <Space size="middle">
-          <Link to={`/admin/product/diamond/detail/${diamondID}`}>
+          <Link to={`/admin/product/diamond/detail/${id}`}>
             <EyeOutlined />
           </Link>
         </Space>

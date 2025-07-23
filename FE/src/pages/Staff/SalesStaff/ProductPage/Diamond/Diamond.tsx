@@ -12,6 +12,7 @@ import ProductMenu from "@/components/Staff/SalesStaff/ProductMenu/ProductMenu";
 import { showAllProduct } from "@/services/productAPI";
 import { ColorType, ShapeType } from "./Diamond.type";
 import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 
 const Diamond = () => {
   useDocumentTitle("Diamond | Aphromas Diamond");
@@ -105,11 +106,7 @@ const Diamond = () => {
       render: (_, record) => (
         <a href="#" target="_blank" rel="noopener noreferrer">
           <img
-            src={
-              record.images && record.images[0]
-                ? record.images[0].url
-                : "default-image-url"
-            }
+            src={defaultImage}
             alt={record.name}
             style={{ width: "50px", height: "50px" }}
           />

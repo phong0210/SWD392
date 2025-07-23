@@ -233,7 +233,7 @@ const Home: React.FC = () => {
 
   const [wishList, setWishList] = useState<number[]>([]);
 
-  useEffect(() => {
+  useEffect(() => { 
     const savedWishList = sessionStorage.getItem("wishlist");
     if (savedWishList) {
       setWishList(JSON.parse(savedWishList));
