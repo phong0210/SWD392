@@ -37,7 +37,7 @@ const Login = () => {
           navigate(config.routes.deliStaff.dashboard, { replace: true });
           break;
         default:
-          navigate(config.routes.salesStaff.dashboard, { replace: true });
+          navigate(config.routes.public.home, { replace: true });
       }
     } else {
       const errorMsg =

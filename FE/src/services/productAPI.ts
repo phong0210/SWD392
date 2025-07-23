@@ -15,7 +15,7 @@ export const createProduct = (product: object) => {
   return post(`/api/Product`, product);
 };
 
-export const getProductDetails = (id: UUID) => {
+export const getProductDetails = (id: string) => {
   return get(`/api/Product/detail/${id}`);
 };
 

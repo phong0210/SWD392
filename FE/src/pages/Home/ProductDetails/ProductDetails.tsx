@@ -60,7 +60,11 @@ import { getImage } from "@/services/imageAPI";
 import { showAllFeedback } from "@/services/feedBackAPI";
 import useAuth from "@/hooks/useAuth";
 import config from "@/config";
-import { createOrderLine, OrderLineBody, showAllOrderLineForAdmin } from "@/services/orderLineAPI";
+import {
+  createOrderLine,
+  OrderLineBody,
+  showAllOrderLineForAdmin,
+} from "@/services/orderLineAPI";
 const ProductDetails: React.FC = () => {
   //tab description + cmt
   const [activeTab, setActiveTab] = useState("product-description");
@@ -183,20 +187,24 @@ const ProductDetails: React.FC = () => {
   const fetchProductDetails = async () => {
     try {
       console.log("Fetching product details...");
-      const response = await getProductDetails(Number(id));
+      const response = await getProductDetails(id);
       if (response.status === 200) {
         const product = response.data.data;
         setFoundProduct({
           ...product,
           FinalPrice: Number(
-            (product.TotalDiamondPrice +
-            product.JewelrySetting?.jewelrySettingVariant?.find((item: any) => item.MaterialJewelryID === Number(selectedMetal))?.Price)
+            product.TotalDiamondPrice +
+              product.JewelrySetting?.jewelrySettingVariant?.find(
+                (item: any) => item.MaterialJewelryID === Number(selectedMetal)
+              )?.Price
           ),
           DiscountFinalPrice: Number(
             (product.TotalDiamondPrice +
-            product.JewelrySetting?.jewelrySettingVariant?.find((item: any) => item.MaterialJewelryID === Number(selectedMetal))?.Price)
-            *((100 - product?.Discount?.PercentDiscounts) / 100)
-          )
+              product.JewelrySetting?.jewelrySettingVariant?.find(
+                (item: any) => item.MaterialJewelryID === Number(selectedMetal)
+              )?.Price) *
+              ((100 - product?.Discount?.PercentDiscounts) / 100)
+          ),
         });
         const productId = product.ProductID;
         setProductId(productId);
@@ -250,8 +258,8 @@ const ProductDetails: React.FC = () => {
               sameBrandProducts.length <= maxProductsToShow
                 ? sameBrandProducts
                 : sameBrandProducts
-                  .sort(() => 0.5 - Math.random())
-                  .slice(0, maxProductsToShow);
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, maxProductsToShow);
 
             setSameBrandProducts(productsToShow);
           } else {
@@ -290,7 +298,7 @@ const ProductDetails: React.FC = () => {
     };
 
     fetchCart();
-  }, [id])
+  }, [id]);
 
   const handleAddToCart = async () => {
     if (role) {
@@ -303,9 +311,10 @@ const ProductDetails: React.FC = () => {
           OrderID: null,
           Inscription: inscription !== "" ? inscription : null,
           InscriptionFont: null,
-          JewelrySettingVariantID: jewelrySettingVariant !== 0 ? jewelrySettingVariant : null,
-          SizeID: selectedSize
-        }
+          JewelrySettingVariantID:
+            jewelrySettingVariant !== 0 ? jewelrySettingVariant : null,
+          SizeID: selectedSize,
+        };
 
         if (cartList.find((cart) => cart.ProductID === id)) {
           api.warning({
@@ -320,14 +329,14 @@ const ProductDetails: React.FC = () => {
         }
       } catch (error: any) {
         api.error({
-          message: 'Error',
-          description: error.message || 'An error occurred'
+          message: "Error",
+          description: error.message || "An error occurred",
         });
       }
     } else {
       navigate(config.routes.public.login);
     }
-  }
+  };
 
   const handleCheckout = async () => {
     if (role) {
@@ -341,8 +350,8 @@ const ProductDetails: React.FC = () => {
           Inscription: inscription !== "" ? inscription : null,
           InscriptionFont: null,
           JewelrySettingVariantID: jewelrySettingVariant,
-          SizeID: selectedSize
-        }
+          SizeID: selectedSize,
+        };
 
         if (cartList.find((cart) => cart.ProductID === id)) {
           api.warning({
@@ -357,15 +366,15 @@ const ProductDetails: React.FC = () => {
         }
       } catch (error: any) {
         api.error({
-          message: 'Error',
-          description: error.message || 'An error occurred'
+          message: "Error",
+          description: error.message || "An error occurred",
         });
       }
       navigate(config.routes.customer.checkout);
     } else {
       navigate(config.routes.public.login);
     }
-  }
+  };
 
   if (!foundProduct) {
     return <div>Product not found</div>;
@@ -384,9 +393,9 @@ const ProductDetails: React.FC = () => {
     setMetalType(type);
     fetchProductDetails();
     const JewelrySettingVariantID = Number(
-      foundProduct?.JewelrySetting?.jewelrySettingVariant?.
-      find((item: any) => item.MaterialJewelryID === Number(selectedMetal))?.
-      JewelrySettingVariantID
+      foundProduct?.JewelrySetting?.jewelrySettingVariant?.find(
+        (item: any) => item.MaterialJewelryID === Number(selectedMetal)
+      )?.JewelrySettingVariantID
     );
     setJewelrySettingVariant(JewelrySettingVariantID);
   };
@@ -452,10 +461,14 @@ const ProductDetails: React.FC = () => {
                 <Heading>
                   <Title className="main-title">{foundProduct.Name}</Title>
                   <ProductRating>
-                    {foundProduct.Stars === 0 ? <>
-                      {foundProduct.Stars}
-                      <Rate disabled defaultValue={foundProduct.Stars} />
-                    </> : "No reviews"}
+                    {foundProduct.Stars === 0 ? (
+                      <>
+                        {foundProduct.Stars}
+                        <Rate disabled defaultValue={foundProduct.Stars} />
+                      </>
+                    ) : (
+                      "No reviews"
+                    )}
                   </ProductRating>
                 </Heading>
                 <ProductInfo>
@@ -487,15 +500,16 @@ const ProductDetails: React.FC = () => {
                 {foundProduct.JewelrySetting.jewelryType.Name !==
                   "Men Engagement Ring" &&
                   foundProduct.JewelrySetting.jewelryType.Name !==
-                  "Men Wedding Ring" && (
+                    "Men Wedding Ring" && (
                     <ProductMetal>
                       <span className="fill">Metal Type: {metalType}</span>
                       <div className="wrap">
                         {metalData.map((metal) => (
                           <button
                             key={metal.id}
-                            className={`metal-button ${metal.key} ${selectedMetal === metal.id ? "selected" : ""
-                              }`}
+                            className={`metal-button ${metal.key} ${
+                              selectedMetal === metal.id ? "selected" : ""
+                            }`}
                             onClick={() =>
                               handleButtonClick(metal.id, metal.type)
                             }
@@ -509,73 +523,74 @@ const ProductDetails: React.FC = () => {
                 {foundProduct.JewelrySetting.jewelryType.Name.includes(
                   "Ring"
                 ) && (
-                    <>
-                      <div>
-                        <RingSizeContainer>
-                          <RingSize>Select size</RingSize>
-                          <RingSizeHelp href="/find-ring-size">
-                            Ring size help
-                          </RingSizeHelp>
-                        </RingSizeContainer>
-                        <div className="button-container">
-                          {sizes.map((size) => (
-                            <button
-                              key={size.SizeValue}
-                              className={`size-button ${selectedSize === size.SizeID ? "selected" : ""
-                                }`}
-                              onClick={() => handleClick(size.SizeID)}
-                            >
-                              {parseInt(size.SizeValue)}
-                            </button>
-                          ))}
-                        </div>
+                  <>
+                    <div>
+                      <RingSizeContainer>
+                        <RingSize>Select size</RingSize>
+                        <RingSizeHelp href="/find-ring-size">
+                          Ring size help
+                        </RingSizeHelp>
+                      </RingSizeContainer>
+                      <div className="button-container">
+                        {sizes.map((size) => (
+                          <button
+                            key={size.SizeValue}
+                            className={`size-button ${
+                              selectedSize === size.SizeID ? "selected" : ""
+                            }`}
+                            onClick={() => handleClick(size.SizeID)}
+                          >
+                            {parseInt(size.SizeValue)}
+                          </button>
+                        ))}
                       </div>
+                    </div>
 
-                      <div className="inscription-container">
-                        {inscription ? (
-                          <Space>
-                            <span className="inscription">Your inscription</span>:{" "}
-                            <span
-                              className="inscription-content"
-                              onClick={showModal}
-                            >
-                              {inscription}
-                            </span>
-                            <CloseOutlined
-                              style={{
-                                fontSize: "12px",
-                                marginLeft: "3px",
-                                cursor: "pointer",
-                                backgroundColor: "#eee",
-                                borderRadius: "50%",
-                                color: "#DB7F67",
-                              }}
-                              onClick={handleDelete}
-                            />
-                          </Space>
-                        ) : (
-                          <Button onClick={showModal}>
-                            + Add free inscription
-                          </Button>
-                        )}
-                        <InscriptionModal
-                          visible={isModalVisible}
-                          onClose={handleClose}
-                          onSave={handleSave}
-                          reset={resetModal}
-                        />
-                      </div>
-                    </>
-                  )}
+                    <div className="inscription-container">
+                      {inscription ? (
+                        <Space>
+                          <span className="inscription">Your inscription</span>:{" "}
+                          <span
+                            className="inscription-content"
+                            onClick={showModal}
+                          >
+                            {inscription}
+                          </span>
+                          <CloseOutlined
+                            style={{
+                              fontSize: "12px",
+                              marginLeft: "3px",
+                              cursor: "pointer",
+                              backgroundColor: "#eee",
+                              borderRadius: "50%",
+                              color: "#DB7F67",
+                            }}
+                            onClick={handleDelete}
+                          />
+                        </Space>
+                      ) : (
+                        <Button onClick={showModal}>
+                          + Add free inscription
+                        </Button>
+                      )}
+                      <InscriptionModal
+                        visible={isModalVisible}
+                        onClose={handleClose}
+                        onSave={handleSave}
+                        reset={resetModal}
+                      />
+                    </div>
+                  </>
+                )}
                 <ProductPrice>
                   <div className="product-group">
                     <div className="product-price">
-                      <CurrentPrice>${foundProduct.DiscountFinalPrice.toFixed(2)}</CurrentPrice>
+                      <CurrentPrice>
+                        ${foundProduct.DiscountFinalPrice.toFixed(2)}
+                      </CurrentPrice>
                       {foundProduct.FirstPrice && (
                         <div className="wrap">
-                          <BeforePrice>
-                            ${foundProduct.FinalPrice}
-                          </BeforePrice>
+                          <BeforePrice>${foundProduct.FinalPrice}</BeforePrice>
                           <Discount>
                             - {foundProduct.Discount?.PercentDiscounts}%
                           </Discount>
@@ -596,7 +611,7 @@ const ProductDetails: React.FC = () => {
                   <ButtonAdd className="add" onClick={handleAddToCart}>
                     ADD TO CART
                   </ButtonAdd>
-                  <Button 
+                  <Button
                     className="checkout button_slide slide_right"
                     onClick={handleCheckout}
                   >
@@ -657,11 +672,11 @@ const ProductDetails: React.FC = () => {
                     {!foundProduct.JewelrySetting.jewelryType.Name.includes(
                       "Men"
                     ) && (
-                        <li>
-                          Diamond Shape:{" "}
-                          {foundProduct.JewelrySetting.DiamondShape}
-                        </li>
-                      )}
+                      <li>
+                        Diamond Shape:{" "}
+                        {foundProduct.JewelrySetting.DiamondShape}
+                      </li>
+                    )}
                     <li>
                       Quantity:{" "}
                       {foundProduct.TotalQuantityJewelrySettingVariants}
@@ -787,14 +802,14 @@ const ProductDetails: React.FC = () => {
                             alt={product.name}
                             className="product-image"
                             onMouseOver={(e) =>
-                            (e.currentTarget.src =
-                              product.images[1]?.url ||
-                              product.images[0]?.url ||
-                              "")
+                              (e.currentTarget.src =
+                                product.images[1]?.url ||
+                                product.images[0]?.url ||
+                                "")
                             }
                             onMouseOut={(e) =>
-                            (e.currentTarget.src =
-                              product.images[0]?.url || "")
+                              (e.currentTarget.src =
+                                product.images[0]?.url || "")
                             }
                           />
                         </Link>

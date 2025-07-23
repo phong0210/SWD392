@@ -48,7 +48,7 @@ import { useNavigate } from "react-router-dom";
 
 import useAuth from "@/hooks/useAuth";
 import config from "@/config";
-import { getDiamondDetails, showDiamonds } from "@/services/diamondAPI";
+
 import {
   createOrderLine,
   OrderLineBody,
@@ -56,7 +56,9 @@ import {
 } from "@/services/orderLineAPI";
 import { getImage } from "@/services/imageAPI";
 import { Modal } from "antd";
-import { showAllFeedback } from "@/services/feedBackAPI";
+
+import { getProductDetails } from "@/services/productAPI";
+import { Product } from "@/models/Entities/Product";
 
 type NotificationType = "success" | "error";
 
@@ -92,14 +94,14 @@ const DiamondDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const getParamsID = id ? parseInt(id) : 0;
   const { role, user } = useAuth();
-  const [foundProduct, setFoundProduct] = useState<any | null>(null);
+  const [foundProduct, setFoundProduct] = useState<Product | null>(null);
   const [mainImage, setMainImage] = useState("");
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [cartList, setCartList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [api, contextHolder] = notification.useNotification();
   const [sameBrandProducts, setSameBrandProducts] = useState<any[]>([]);
-  const [diamondId, setDiamondId] = useState<number | null>(null);
+  const [diamondId, setDiamondId] = useState("");
 
   const openNotification = async (type: NotificationType, message: string) => {
     api[type]({
@@ -109,15 +111,24 @@ const DiamondDetails: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!id) {
+      console.error("Missing product ID");
+      setIsLoading(false);
+      return;
+    }
     const fetchDiamondDetails = async () => {
       try {
         console.log("Fetching diamond details...");
-        const response = await getDiamondDetails(Number(id));
+        const response = await getProductDetails(id);
+        console.log("Response from getProductDetails:", response.data);
         if (response.status === 200) {
-          const product = response.data.data;
-          setFoundProduct(product);
-          const diamondId = product.DiamondID; 
+          const product = response.data;
+          const foundProduct = product.product;
+          setFoundProduct(foundProduct);
+          console.log("Found product:", foundProduct);
+          const diamondId = product.product.id;
           setDiamondId(diamondId);
+          console.log("Diamond ID:", diamondId);
 
           if (product.usingImage && product.usingImage.length > 0) {
             const mainImageUrl = getImage(product.usingImage[0].UsingImageID);
@@ -127,54 +138,54 @@ const DiamondDetails: React.FC = () => {
           }
           setSelectedThumb(0);
 
-          const weightCarat = product.WeightCarat;
-          const params = { weightCarat };
-          const sameWeightProductsResponse = await showDiamonds(params);
+          // const weightCarat = product.WeightCarat;
+          // const params = { weightCarat };
+          // const sameWeightProductsResponse = await showDiamonds(params);
 
-          if (sameWeightProductsResponse.status === 200) {
-            if (
-              sameWeightProductsResponse.data &&
-              Array.isArray(sameWeightProductsResponse.data.data)
-            ) {
-              const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
-                (item: any) => ({
-                  id: item.DiamondID,
-                  name: item.Name,
-                  cut: item.Cut,
-                  stars: item.Stars,
-                  price: item.Price,
-                  color: item.Color,
-                  description: item.Description,
-                  isActive: item.IsActive,
-                  clarity: item.Clarity,
-                  cutter: item.Cutter,
-                  discountPrice: item.DiscountPrice,
-                  images: item.usingImage.map((image: any) => ({
-                    id: image.UsingImageID,
-                    name: image.Name,
-                    url: getImage(image.UsingImageID),
-                  })),
-                })
-              );
+          // if (sameWeightProductsResponse.status === 200) {
+          //   if (
+          //     sameWeightProductsResponse.data &&
+          //     Array.isArray(sameWeightProductsResponse.data.data)
+          //   ) {
+          //     const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
+          //       (item: any) => ({
+          //         id: item.DiamondID,
+          //         name: item.Name,
+          //         cut: item.Cut,
+          //         stars: item.Stars,
+          //         price: item.Price,
+          //         color: item.Color,
+          //         description: item.Description,
+          //         isActive: item.IsActive,
+          //         clarity: item.Clarity,
+          //         cutter: item.Cutter,
+          //         discountPrice: item.DiscountPrice,
+          //         images: item.usingImage.map((image: any) => ({
+          //           id: image.UsingImageID,
+          //           name: image.Name,
+          //           url: getImage(image.UsingImageID),
+          //         })),
+          //       })
+          //     );
 
-              const maxProductsToShow = 4;
-              const productsToShow =
-                fetchedDiamonds.length <= maxProductsToShow
-                  ? fetchedDiamonds
-                  : fetchedDiamonds
-                      .sort(() => 0.5 - Math.random())
-                      .slice(0, maxProductsToShow);
+          //     const maxProductsToShow = 4;
+          //     const productsToShow =
+          //       fetchedDiamonds.length <= maxProductsToShow
+          //         ? fetchedDiamonds
+          //         : fetchedDiamonds
+          //             .sort(() => 0.5 - Math.random())
+          //             .slice(0, maxProductsToShow);
 
-              setSameBrandProducts(productsToShow);
-            } else {
-              setSameBrandProducts([]);
-            }
-          } else {
-            setSameBrandProducts([]);
-          }
-          if (diamondId !== null) {
-            await fetchFeedbackDetail(diamondId);
-          }
+          //     setSameBrandProducts(productsToShow);
+          //   } else {
+          //     setSameBrandProducts([]);
+          //   }
+          // } else {
+          //   setSameBrandProducts([]);
+          // }
+          // if (diamondId !== null) {
+          //   await fetchFeedbackDetail(diamondId);
+          // }
         } else {
           setFoundProduct(null);
         }
@@ -186,30 +197,31 @@ const DiamondDetails: React.FC = () => {
       }
     };
 
-    const fetchFeedbackDetail = async (diamondId: number) => {
-      try {
-        console.log("Fetching feedback details for diamond ID:", diamondId);
-        const response = await showAllFeedback(diamondId);
-        if (response.status === 200) {
-          setReviewsData(
-            response.data.data.map((feedback: any) => ({
-              name: feedback.account ? feedback.account.Name : "Anonymous",
-              rating: feedback.Stars,
-              date: new Date(feedback.CommentTime).toLocaleDateString(),
-              highlight: "For AD",
-              comment: feedback.Comment,
-              diamondId: feedback.DiamondID,
-            }))
-          );
-        } else {
-          console.error("Error fetching feedback:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Failed to fetch feedback details:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // const fetchFeedbackDetail = async (diamondId: number) => {
+    //   try {
+    //     console.log("Fetching feedback details for diamond ID:", diamondId);
+    //     const response = await showAllFeedback(diamondId);
+    //     console.log("Feedback response:", response.data);
+    //     if (response.status === 200) {
+    //       setReviewsData(
+    //         response.data.data.map((feedback: any) => ({
+    //           name: feedback.account ? feedback.account.Name : "Anonymous",
+    //           rating: feedback.Stars,
+    //           date: new Date(feedback.CommentTime).toLocaleDateString(),
+    //           highlight: "For AD",
+    //           comment: feedback.Comment,
+    //           diamondId: feedback.DiamondID,
+    //         }))
+    //       );
+    //     } else {
+    //       console.error("Error fetching feedback:", response.statusText);
+    //     }
+    //   } catch (error) {
+    //     console.error("Failed to fetch feedback details:", error);
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
 
     fetchDiamondDetails();
   }, [id, diamondId]);
@@ -235,16 +247,16 @@ const DiamondDetails: React.FC = () => {
     return <div>Diamond not found</div>;
   }
 
-  const thumbnailImages =
-    foundProduct?.usingImage?.map((img: any) => getImage(img.UsingImageID)) ||
-    [];
+  // const thumbnailImages =
+  //   foundProduct?.usingImage?.map((img: any) => getImage(img.UsingImageID)) ||
+  //   [];
 
   const changeImage = (src: string, index: number) => {
     setMainImage(src);
     setSelectedThumb(index);
   };
   const matchingReviews = reviewsData.filter(
-    (review) => foundProduct && foundProduct.DiamondID === review.diamondId
+    (review) => foundProduct && foundProduct.id === review.diamondId
   );
   //Avg rating
   const totalReviews = matchingReviews.length;
@@ -353,7 +365,7 @@ const DiamondDetails: React.FC = () => {
                 <Wrapper>
                   <ImageContainer>
                     <OuterThumb>
-                      <ThumbnailImage>
+                      {/* <ThumbnailImage>
                         {thumbnailImages.map((src: any, index: any) => (
                           <Item
                             key={index}
@@ -365,7 +377,7 @@ const DiamondDetails: React.FC = () => {
                             <img src={src} alt={`Thumb ${index + 1}`} />
                           </Item>
                         ))}
-                      </ThumbnailImage>
+                      </ThumbnailImage> */}
                     </OuterThumb>
                     <OuterMain>
                       <MainImage>
@@ -378,21 +390,21 @@ const DiamondDetails: React.FC = () => {
               <ProductDetail>
                 <Entry>
                   <Heading>
-                    <Title className="main-title">{foundProduct.Name}</Title>
+                    <Title className="main-title">{foundProduct.name}</Title>
                     <ProductRating>
-                      {foundProduct.Stars} <StarFilled />
+                      {foundProduct.price} <StarFilled />
                     </ProductRating>
                   </Heading>
                   <ProductInfo>
                     <div className="container">
                       <div className="wrap">
-                        <div className="info-box">{foundProduct.Clarity}</div>
+                        <div className="info-box">{foundProduct.clarity}</div>
+                        <div className="info-box">{foundProduct.carat}</div>
+                        <div className="info-box">{foundProduct.color}</div>
                         <div className="info-box">
-                          {foundProduct.WeightCarat}
+                          {foundProduct.description}
                         </div>
-                        <div className="info-box">{foundProduct.Color}</div>
-                        <div className="info-box">{foundProduct.Shape}</div>
-                        <div className="info-box">{foundProduct.Cut}</div>
+                        <div className="info-box">{foundProduct.cut}</div>
                       </div>
                       <GIA>
                         <div>
@@ -412,21 +424,21 @@ const DiamondDetails: React.FC = () => {
                             width={600}
                             closeIcon={<span>✕</span>}
                           >
-                            <img
+                            {/* <img
                               src={getImage(
                                 foundProduct?.certificate[0]?.usingImages[0]
                                   ?.UsingImageID
                               )}
                               alt="GIA img"
                               style={{ width: "100%", height: "auto" }}
-                            />
+                            /> */}
                           </Modal>
                         </div>
                       </GIA>
                     </div>
                   </ProductInfo>
                   <hr style={{ borderTop: "1px solid #d9d9d9" }}></hr>
-                  <ProductPrice>
+                  {/* <ProductPrice>
                     <div className="product-group">
                       <div className="product-price">
                         <CurrentPrice>
@@ -444,7 +456,7 @@ const DiamondDetails: React.FC = () => {
                           )}
                       </div>
                     </div>
-                  </ProductPrice>
+                  </ProductPrice> */}
                 </Entry>
 
                 <div className="outlet">
@@ -504,23 +516,20 @@ const DiamondDetails: React.FC = () => {
             >
               {/* Product detail content */}
               <TextBlock>
-                <h3>{foundProduct.Name}</h3>
-                <p>{foundProduct.Description}</p>
+                <h3>{foundProduct.name}</h3>
+                <p>{foundProduct.description}</p>
               </TextBlock>
               <DotGrid>
                 <div className="wrapper2">
                   <ListBlock>
                     <h4>What is this?</h4>
                     <ul>
-                      <li>ID Number: {foundProduct.DiamondID}</li>
-                      <li>Shape: {foundProduct.Shape}</li>
-                      <li>Total Carat (Average): {foundProduct.WeightCarat}</li>
-                      <li>Color: {foundProduct.Color}</li>
-                      <li>Clarity: {foundProduct.Clarity}</li>
-                      <li>Cut: {foundProduct.Cut}</li>
-                      <li>Cutter: {foundProduct.Cutter}</li>
-                      <li>Percent Depth: {foundProduct.PercentDepth}</li>
-                      <li>Length: {foundProduct.LengthOnWidthRatio}</li>
+                      <li>ID Number: {foundProduct.id}</li>
+                      <li>Shape: {foundProduct.price}</li>
+                      <li>Total Carat (Average): {foundProduct.carat}</li>
+                      <li>Color: {foundProduct.color}</li>
+                      <li>Clarity: {foundProduct.clarity}</li>
+                      <li>Cut: {foundProduct.cut}</li>
                     </ul>
                   </ListBlock>
                   <ListBlock>

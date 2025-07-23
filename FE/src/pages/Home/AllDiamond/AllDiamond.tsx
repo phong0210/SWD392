@@ -15,9 +15,9 @@ import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { labels, texts } from "./AllDiamond.props";
 import { useDocumentTitle } from "@/hooks";
 import { Link } from "react-router-dom";
-import { Product } from "../shared/ListOfProducts";
 import { showAllProduct } from "@/services/productAPI";
-import { ProductApiResponseItem } from "@/models/Entities/Product";
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import { UUID } from "crypto";
 const { Title, Text } = Typography;
 
 const items = texts.map((text, index) => ({
@@ -39,7 +39,7 @@ const AllDiamond: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
 
-  const toggleWishList = (productId: string) => {
+  const toggleWishList = (productId: UUID) => {
     setWishList((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
@@ -160,7 +160,7 @@ const AllDiamond: React.FC = () => {
         <Row gutter={[16, 16]}>
           {diamonds
             .slice((currentPage - 1) * pageSize, currentPage * pageSize)
-            .map((diamond: any) => (
+            .map((diamond: Product) => (
               <Col key={diamond.id} span={6}>
                 <Card
                   style={{ borderRadius: "0" }}
@@ -173,7 +173,7 @@ const AllDiamond: React.FC = () => {
                           style={{ borderRadius: "0" }}
                           src={
                             diamond.images && diamond.images.length > 0
-                              ? diamond.images[0].url
+                              ? diamond.name
                               : "/default-image.jpg"
                           }
                           alt={diamond.name}
@@ -181,15 +181,15 @@ const AllDiamond: React.FC = () => {
                           onMouseOut={(e) =>
                             (e.currentTarget.src =
                               diamond.images && diamond.images.length > 0
-                                ? diamond.images[0].url
+                                ? diamond.name
                                 : "/default-image.jpg")
                           }
                         />
                       </Link>
-                      {diamond.discountPrice &&
+                      {/* {<diamond className="Price"></diamond> &&
                         diamond.discountPrice !== diamond.price && (
                           <div className="sale-badge">SALE</div>
-                        )}
+                        )} */}
                     </>
                   }
                 >
@@ -208,7 +208,7 @@ const AllDiamond: React.FC = () => {
                         />
                       )}
                     </Title>
-                    <div className="price-container">
+                    {/* <div className="price-container">
                       <Text className="product-price">
                         $
                         {diamond.discountPrice &&
@@ -222,7 +222,7 @@ const AllDiamond: React.FC = () => {
                             ${diamond.price}
                           </Text>
                         )}
-                    </div>
+                    </div> */}
                   </div>
                 </Card>
               </Col>
