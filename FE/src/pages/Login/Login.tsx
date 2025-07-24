@@ -2,7 +2,7 @@ import Link from "@/components/Link";
 import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
 import { useDispatch, useSelector } from 'react-redux';
-import { login as loginThunk } from '@/store/slices/authSlice';
+import { login as loginThunk, googleLogin } from '@/store/slices/authSlice';
 import { RootState } from '@/store';
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,8 @@ import {
     requestPasswordReset, 
     confirmPasswordReset 
 } from "@/services/authAPI";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { FcGoogle } from 'react-icons/fc';
 
 // Login step types - removed OTP_VERIFICATION since login is direct
 enum LoginStep {
@@ -245,6 +247,109 @@ const Login = () => {
         </Link>
     );
 
+    const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+        if (credentialResponse.credential) {
+            const resultAction = await dispatch(googleLogin(credentialResponse.credential));
+            if (googleLogin.fulfilled.match(resultAction)) {
+                await messageApi.success('Login successfully');
+                const user = resultAction.payload.user;
+                console.log("User Check:", user);
+                
+                switch (user.role) {
+                    case Role.HeadOfficeAdmin:
+                        navigate(config.routes.admin.dashboard, { replace: true });
+                        break;
+                    case Role.SalesStaff:
+                        navigate(config.routes.salesStaff.dashboard, { replace: true });
+                        break;
+                    case Role.DeliveryStaff:
+                        navigate(config.routes.deliStaff.dashboard, { replace: true });
+                        break;
+                    default:
+                        navigate(config.routes.public.home, { replace: true });
+                }
+            } else {
+                const errorMsg = typeof resultAction.payload === 'string' 
+                    ? resultAction.payload 
+                    : 'Login failed';
+                throw new Error(errorMsg);
+            }
+        }
+    };
+
+    const handleGoogleLoginError = () => {
+        messageApi.error('Google login failed. Please try again.');
+    };
+
+    const googleLoginButton = (
+        <div style={{ marginTop: '24px' }}>
+            {/* Hidden Google Login component for handling authentication */}
+            <div style={{ display: 'none' }}>
+                <GoogleLogin
+                    onSuccess={handleGoogleLoginSuccess}
+                    onError={handleGoogleLoginError}
+                />
+            </div>
+            
+            {/* Custom styled Google button */}
+            <div 
+                onClick={() => {
+                    // Trigger the hidden Google login
+                    const googleLoginButton = document.querySelector('[role="button"][data-testid]:not([style*="display: none"])') as HTMLButtonElement;
+                    if (googleLoginButton) {
+                        googleLoginButton.click();
+                    } else {
+                        // Fallback: create a temporary GoogleLogin component and trigger it
+                        const tempDiv = document.createElement('div');
+                        tempDiv.style.position = 'absolute';
+                        tempDiv.style.left = '-9999px';
+                        document.body.appendChild(tempDiv);
+                        
+                        // You might need to implement a more sophisticated solution here
+                        // For now, we'll use the styled button approach
+                        messageApi.info('Please use the Google login button that appears.');
+                    }
+                }}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    columnGap: '8px',
+                    height: '50px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '6px',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    fontSize: '1.2rem',
+                    fontWeight: '500',
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#1890ff';
+                    e.currentTarget.style.color = '#1890ff';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#d9d9d9';
+                    e.currentTarget.style.color = '#666';
+                }}
+            >
+                <FcGoogle style={{ fontSize: '1.8rem' }} />
+                <span>Continue with Google</span>
+            </div>
+            
+            {/* Actual Google Login component positioned to overlay the custom button */}
+            <div style={{ marginTop: '-50px', opacity: 0, pointerEvents: 'auto' }}>
+                <GoogleLogin
+                    onSuccess={handleGoogleLoginSuccess}
+                    onError={handleGoogleLoginError}
+                    theme="outline"
+                    size="large"
+                    width="100%"
+                />
+            </div>
+        </div>
+    );
+
     return (
         <>
             {contextHolder}
@@ -261,6 +366,7 @@ const Login = () => {
                 showBackToLogin={formConfig.showBackToLogin}
                 onForgotPasswordClick={goToForgotPassword}
                 onBackToLoginClick={goBackToLogin}
+                googleLoginButton={googleLoginButton}
             />
         </>
     );

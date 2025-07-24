@@ -33,6 +33,7 @@ type AuthFormProps = {
     showBackToLogin?: boolean;
     onForgotPasswordClick?: () => void;
     onBackToLoginClick?: () => void;
+    googleLoginButton?: JSX.Element;
 }
 
 const AuthForm = ({
@@ -51,6 +52,7 @@ const AuthForm = ({
     showBackToLogin = false,
     onForgotPasswordClick,
     onBackToLoginClick,
+    googleLoginButton,
 }: AuthFormProps) => (
     <Container>
         <FormStyled.AuthForm className={className}>
@@ -96,6 +98,7 @@ const AuthForm = ({
                                 </FormStyled.FormButton>
                             </FormStyled.FormItem>
                         </FormStyled.FormWrapper>
+                        
 
                         {/* Forgot Password Link */}
                         {showForgotPassword && page === PageEnum.LOGIN && (
@@ -117,10 +120,7 @@ const AuthForm = ({
                             </FormStyled.FormForgotPasswordButton>
                         )}
 
-                        {/* <FormStyled.FormGoogleButton to={LOGIN_GOOGLE_URL}>
-                            <FcGoogle />
-                            <Text>Login with Google</Text>
-                        </FormStyled.FormGoogleButton> */}
+                        {googleLoginButton}
 
                         <FormStyled.FormRedirect>
                             {redirect.description}
