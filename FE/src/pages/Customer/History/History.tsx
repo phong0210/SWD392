@@ -95,9 +95,9 @@ const statusColors: Record<string, string> = {
   Unknown: "green",
 };
 
-const fetchAllOrder = async (userId: string) => {
+const fetchAllOrder = async () => {
   try {
-    const { data } = await showAllOrder(userId);
+    const { data } = await showAllOrder();
     console.log("Check API response:", data);
     const orders = Array.isArray(data) ? data : data.data || [];
     // Filter orders with status "Completed" (4) or "Canceled" (6)
@@ -120,7 +120,7 @@ const History = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (AccountID) {
-        const ordersData = await fetchAllOrder(AccountID.toString());
+        const ordersData = await fetchAllOrder();
         console.log("Orders data:", ordersData);
         setOrders(ordersData);
       }

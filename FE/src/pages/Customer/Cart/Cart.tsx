@@ -46,6 +46,18 @@ const Cart = () => {
         });
     };
 
+    const handleView = (itemId: string) => {
+        const item = cartItems.find((item) => item.id === itemId);
+        if (item) {
+            if (item.productId) {
+                navigate(config.routes.public.productDetail.replace(':id', item.productId));
+            } else if (item.diamondId) {
+                navigate(config.routes.public.diamondDetail.replace(':id', item.diamondId));
+            }
+        }
+      };
+
+
     const handleCheckout = () => {
         if (cartItems.length === 0) {
             api.warning({
@@ -99,6 +111,7 @@ const Cart = () => {
                                     quantity={item.quantity}
                                     image={item.image}
                                     handleRemove={() => handleRemove(item.id)}
+                                    handleView={() => handleView(item.id)}
                                 />
                             ))}
                         </>

@@ -375,7 +375,7 @@ const ProductDetails: React.FC = () => {
                     <div className="info-box">{foundProduct.name}</div>
                   </div>
                 </ProductInfo>
-                {foundProduct.name !== "Men Engagement Ring" &&
+                {/* {foundProduct.name !== "Men Engagement Ring" &&
                   foundProduct.name !== "Men Wedding Ring" && (
                     <ProductMetal>
                       <span className="fill">Metal Type: {metalType}</span>
@@ -395,7 +395,7 @@ const ProductDetails: React.FC = () => {
                         ))}
                       </div>
                     </ProductMetal>
-                  )}
+                  )} */}
 
                 <div>
                   <RingSizeContainer>

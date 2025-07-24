@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { fetchAllOrderByUserId, updateOrder } from "@/services/orderAPI";
 import useAuth from "@/hooks/useAuth";
 
+
 const onChange: TableProps<DataType>["onChange"] = (
   pagination,
   filters,
@@ -129,14 +130,13 @@ const OrderList = () => {
   const { AccountID } = useAuth();
 
   useEffect(() => {
-    console.log("useAuth AccountID:", AccountID);
     const fetchData = async () => {
       if (AccountID) {
         const ordersData = await fetchAllOrder(AccountID.toString());
+        console.log("Orders data:", ordersData);
         setOrders(ordersData);
       }
     };
-
     fetchData();
   }, [AccountID]);
 

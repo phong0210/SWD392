@@ -1,12 +1,14 @@
 import styled from "styled-components";
-import { Link, NavLink as RouterNavLink } from "react-router-dom";
+import { Link, NavLink as RouterNavLink, useNavigate } from "react-router-dom";
 import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getCustomer } from "@/services/accountApi";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/slices/authSlice";
 
-const fetchCustomerInfo = async (AccountID: number) => {
+const fetchCustomerInfo = async (AccountID: string) => {
   try {
     const { data } = await getCustomer(AccountID);
     console.log("getCustomerAPICalled", data);
@@ -17,12 +19,20 @@ const fetchCustomerInfo = async (AccountID: number) => {
   }
 };
 
+
 const AccountCus = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { AccountID } = useAuth();
+  const handleLogout = () => {
+    dispatch(logout());
+    cookieUtils.clear();
+    navigate(config.routes.public.login);
+};
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {
-    if (AccountID && AccountID !== 0) {
+    if (AccountID && AccountID !== "null") {
       const getCustomerInfo = async () => {
         const info = await fetchCustomerInfo(AccountID);
         if (info) {
@@ -51,7 +61,7 @@ const AccountCus = () => {
             </span>
             <Link
               to={config.routes.public.home}
-              onClick={() => cookieUtils.clear()}
+              onClick={handleLogout}
             >
               Sign Out
             </Link>

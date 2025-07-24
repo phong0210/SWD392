@@ -13,6 +13,7 @@ import { updateCartItemQuantity } from '@/store/slices/cartSlice';
 
 type CartItemProps = CartItemType & {
   handleRemove?: () => void;
+  handleView?: () => void;
 };
 
 const QuantityControl = ({ value, onChange }: { value: number, onChange: (value: number) => void }) => {
@@ -31,7 +32,7 @@ const QuantityControl = ({ value, onChange }: { value: number, onChange: (value:
   );
 };
 
-const CartItem = ({ id, productId, diamondId, name, price, quantity, image, handleRemove }: CartItemProps) => {
+const CartItem = ({ id, productId, diamondId, name, price, quantity, image, handleRemove, handleView }: CartItemProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [details, setDetails] = useState<any>(null);
@@ -43,8 +44,8 @@ const CartItem = ({ id, productId, diamondId, name, price, quantity, image, hand
           const { data } = await getProductDetails(productId);
           setDetails(data.product);
         } else if (diamondId) {
-          const { data } = await getDiamondDetails(diamondId);
-          setDetails(data.data);
+          // const { data } = await getDiamondDetails(diamondId);
+          // setDetails(data.data);
         }
       } catch (error) {
         console.error("Failed to fetch item details:", error);
@@ -59,13 +60,6 @@ const CartItem = ({ id, productId, diamondId, name, price, quantity, image, hand
     }
   };
 
-  const handleView = () => {
-    if (productId) {
-      navigate(config.routes.public.productDetail.replace(':id', productId));
-    } else if (diamondId) {
-      navigate(config.routes.public.diamondDetail.replace(':id', diamondId));
-    }
-  };
 
   const renderTags = () => {
     if (!details) return null;
