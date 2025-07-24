@@ -8,7 +8,7 @@ import useAuth from "@/hooks/useAuth";
 import { getCustomer } from "@/services/accountApi";
 import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
-import { showAllOrder } from "@/services/orderAPI";
+import { showAllOrder, updateOrder } from "@/services/orderAPI";
 import { OrderStatus } from "@/utils/enum";
 
 interface DataType {
@@ -119,7 +119,7 @@ const DeliveryCompleted = () => {
 
       // Filter for orders with status 0 (Pending) and format the data
       const orderFormatted = orderRes.data
-        .filter((order: any) => order.status === 4) // Filter for status 0
+        .filter((order: any) => order.status >= 4) // Filter for status 0
         .map((order: any) => ({
           key: order.id,
           orderID: order.id,
@@ -222,43 +222,6 @@ const DeliveryCompleted = () => {
           <Tag color={color} key={status}>
             {status?.toUpperCase()}
           </Tag>
-        );
-      },
-    },
-    {
-      title: "Action",
-      key: "action",
-      dataIndex: "orderID",
-      render: (_, { orderID }) => {
-        const handleStartDelivery = async () => {
-          try {
-            // Update the order status from 0 (Pending) to 4 (Delivering)
-            const { data } = await updateOrder(orderID, {
-              status: 4, // Set to Delivering status
-              // Add other fields as needed based on your API requirements
-            });
-
-            if (data.statusCode !== 200) throw new Error(data.message);
-
-            api.success({
-              message: "Notification",
-              description: "Started delivery successfully",
-            });
-            fetchData(); // Refresh the data
-          } catch (error: any) {
-            api.error({
-              message: "Error",
-              description: error.message || "An error occurred",
-            });
-          }
-        };
-
-        return (
-          <Space size="middle">
-            <Button className="confirmBtn" onClick={handleStartDelivery}>
-              Start Delivery
-            </Button>
-          </Space>
         );
       },
     },

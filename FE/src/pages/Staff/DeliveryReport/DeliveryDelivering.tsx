@@ -1,5 +1,5 @@
 import * as Styled from "./DeliveryDeliveingstyled";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button, notification, Space, Table, Tag } from "antd";
 import { PoweroffOutlined, SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
@@ -20,7 +20,7 @@ const DeliveryDelivering = () => {
   const [orderList, setOrderList] = useState<any[]>([]);
 
   const [searchText, setSearchText] = useState("");
-
+  const [loading, setLoading] = useState(false);
   const [api, contextHolder] = notification.useNotification();
 
   // Function to convert numeric status to string
@@ -38,14 +38,15 @@ const DeliveryDelivering = () => {
     return statusMap[statusNumber] || "Unknown";
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
       const orderRes = await showAllOrder();
       console.log(orderRes.data);
 
       // Filter for orders with status 0 (Pending) and format the data
       const orderFormatted = orderRes.data
-        .filter((order: any) => order.status === 2) 
+        .filter((order: any) => order.status === 2)
         .map((order: any) => ({
           key: order.id,
           orderID: order.id,
@@ -65,17 +66,18 @@ const DeliveryDelivering = () => {
         message: "Error",
         description: "Failed to fetch orders",
       });
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [api]);
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
 
-    if (searchText.trim() === "") {
-      //nếu search k có value sẽ giá trị bảng ban đầu
-      // setFilteredData(initialData);
-      return;
-    }
+  // Optimized search effect
+  useEffect(() => {
+    // Không cần làm gì đặc biệt ở đây vì filtering được handle ở filteredOrderList
   }, [searchText]);
 
   // Filter orders based on search text
@@ -156,33 +158,44 @@ const DeliveryDelivering = () => {
       key: "action",
       dataIndex: "orderID",
       render: (_, { orderID }) => {
-        const handleStartDelivery = async () => {
+        const handleStartDelivery = async (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
           try {
+            setLoading(true);
             // Update the order status from 0 (Pending) to 4 (Delivering)
-            const { data } = await updateOrder(orderID, {
-              status: 4, // Set to Delivering status
-              // Add other fields as needed based on your API requirements
-            });
-
-            if (data.statusCode !== 200) throw new Error(data.message);
+            const response = await updateOrder(orderID);
+            console.log(response.data);
+            // Kiểm tra response structure
+            if (!response?.data?.success) {
+              throw new Error(response?.data?.error || "Update failed");
+            }
 
             api.success({
               message: "Notification",
-              description: "Started delivery successfully",
+              description: "Delivered",
             });
-            fetchData(); // Refresh the data
+            await fetchData(); // Refresh the data
           } catch (error: any) {
             api.error({
               message: "Error",
               description: error.message || "An error occurred",
             });
+          } finally {
+            setLoading(false);
           }
         };
 
         return (
           <Space size="middle">
-            <Button className="confirmBtn" onClick={handleStartDelivery}>
-              Start Delivery
+            <Button
+              type="primary"
+              className="confirmBtn"
+              onClick={handleStartDelivery}
+              loading={loading}
+              disabled={loading}
+            >
+              Arrival
             </Button>
           </Space>
         );
@@ -205,6 +218,10 @@ const DeliveryDelivering = () => {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+  };
+
   return (
     <>
       {contextHolder}
@@ -212,7 +229,7 @@ const DeliveryDelivering = () => {
         <Styled.AdminPage>
           <Styled.HeaderContainer>
             <Styled.TitlePage>
-              <h1>Delivery - Pending Orders</h1>
+              <h1>Delivery </h1>
               <p>View and manage pending delivery orders</p>
             </Styled.TitlePage>
             <Styled.DeliveryStaff>
@@ -235,7 +252,7 @@ const DeliveryDelivering = () => {
                   type="text"
                   placeholder="Search customer, order ID, or address..."
                   value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
+                  onChange={handleSearchChange}
                   onKeyPress={handleKeyPress}
                 />
               </Styled.SearchArea>
@@ -249,6 +266,7 @@ const DeliveryDelivering = () => {
                 pagination={{ pageSize: 6 }}
                 onChange={onChange}
                 showSorterTooltip={{ target: "sorter-icon" }}
+                loading={loading}
               />
             </Styled.Pending_Table>
           </Styled.OrderContent>

@@ -1,5 +1,5 @@
 import * as Styled from "./DeliveryDeliveredstyled";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button, notification, Space, Table, Tag } from "antd";
 import { PoweroffOutlined, SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
@@ -8,7 +8,7 @@ import useAuth from "@/hooks/useAuth";
 import { getCustomer } from "@/services/accountApi";
 import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
-import { showAllOrder } from "@/services/orderAPI";
+import { showAllOrder, updateOrder } from "@/services/orderAPI";
 import { OrderStatus } from "@/utils/enum";
 
 const DeliveryDelivered = () => {
@@ -19,6 +19,7 @@ const DeliveryDelivered = () => {
   const [orderList, setOrderList] = useState<any[]>([]);
 
   const [searchText, setSearchText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -37,8 +38,9 @@ const DeliveryDelivered = () => {
     return statusMap[statusNumber] || "Unknown";
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
+      setLoading(true);
       const orderRes = await showAllOrder();
       console.log(orderRes.data);
 
@@ -64,17 +66,18 @@ const DeliveryDelivered = () => {
         message: "Error",
         description: "Failed to fetch orders",
       });
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [api]);
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
 
-    if (searchText.trim() === "") {
-      //nếu search k có value sẽ giá trị bảng ban đầu
-      // setFilteredData(initialData);
-      return;
-    }
+  // Optimized search effect
+  useEffect(() => {
+    // Không cần làm gì đặc biệt ở đây vì filtering được handle ở filteredOrderList
   }, [searchText]);
 
   // Filter orders based on search text
@@ -155,33 +158,44 @@ const DeliveryDelivered = () => {
       key: "action",
       dataIndex: "orderID",
       render: (_, { orderID }) => {
-        const handleStartDelivery = async () => {
+        const handleStartDelivery = async (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
           try {
+            setLoading(true);
             // Update the order status from 0 (Pending) to 4 (Delivering)
-            const { data } = await updateOrder(orderID, {
-              status: 4, // Set to Delivering status
-              // Add other fields as needed based on your API requirements
-            });
-
-            if (data.statusCode !== 200) throw new Error(data.message);
+            const response = await updateOrder(orderID);
+            console.log(response.data);
+            // Kiểm tra response structure
+            if (!response?.data?.success) {
+              throw new Error(response?.data?.error || "Update failed");
+            }
 
             api.success({
               message: "Notification",
-              description: "Started delivery successfully",
+              description: "Delivered",
             });
-            fetchData(); // Refresh the data
+            await fetchData();
           } catch (error: any) {
             api.error({
               message: "Error",
               description: error.message || "An error occurred",
             });
+          } finally {
+            setLoading(false);
           }
         };
 
         return (
           <Space size="middle">
-            <Button className="confirmBtn" onClick={handleStartDelivery}>
-              Start Delivery
+            <Button
+              type="primary"
+              className="confirmBtn"
+              onClick={handleStartDelivery}
+              loading={loading}
+              disabled={loading}
+            >
+              Complete
             </Button>
           </Space>
         );
@@ -204,6 +218,9 @@ const DeliveryDelivered = () => {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+  };
   return (
     <>
       {contextHolder}
@@ -234,7 +251,7 @@ const DeliveryDelivered = () => {
                   type="text"
                   placeholder="Search customer, order ID, or address..."
                   value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
+                  onChange={handleSearchChange}
                   onKeyPress={handleKeyPress}
                 />
               </Styled.SearchArea>
@@ -248,6 +265,7 @@ const DeliveryDelivered = () => {
                 pagination={{ pageSize: 6 }}
                 onChange={onChange}
                 showSorterTooltip={{ target: "sorter-icon" }}
+                loading={loading}
               />
             </Styled.Pending_Table>
           </Styled.OrderContent>
