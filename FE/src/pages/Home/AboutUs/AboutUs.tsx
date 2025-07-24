@@ -81,40 +81,28 @@ const About = () => {
               alt="Article's featured image"
             />
             <Paragraph>
-              Aphromas Diamond, a premier diamond store, was founded in 1975 in
-              New York City by three visionaries: Richard Morgan, Isabella
-              Rossi, and Ahmed Khan. Richard, a renowned gemologist from London,
-              Isabella, an artistic jewelry designer from Italy, and Ahmed, a
-              strategic businessman from Dubai, combined their expertise to
-              create a brand synonymous with quality and elegance.
+              Aphromas Diamond, a premier diamond store, was founded in 1975 in New York City by three visionaries: Richard Morgan,
+               Isabella Rossi, and Ahmed Khan. Richard, a renowned gemologist from London, Isabella, a diamond design expert from Italy,
+              and Ahmed, a strategic businessman from Dubai, combined their expertise to build a brand synonymous with quality and elegance.
             </Paragraph>
             <Paragraph>
-              In 1975, the trio launched Aphromas Diamond in New York's Diamond
-              District, naming it after Aphrodite, the Greek goddess of love and
-              beauty. Their mission was to offer unmatched quality and
-              craftsmanship with a personal touch. Their commitment to
-              excellence quickly earned them a reputation for exquisite diamond
-              collections and bespoke jewelry.
+              Launched in New York's Diamond District, the name "Aphromas" was inspired by Aphrodite—the Greek goddess of love and 
+              beauty—reflecting the timeless allure of natural diamonds. Their mission was clear: to provide ethically sourced, 
+              certified diamonds with unmatched brilliance and precision.
             </Paragraph>
             <Paragraph>
-              Throughout the 1980s and 1990s, Aphromas Diamond expanded to Los
-              Angeles, Paris, and Dubai. They emphasized ethical sourcing,
-              ensuring all diamonds were conflict-free. Their dedication to
-              quality and innovation solidified their global presence.
+              During the 1980s and 1990s, Aphromas Diamond expanded its presence to Los Angeles, Paris, and Dubai.
+               The company focused on strict quality standards and transparency, ensuring that every diamond was 
+               conflict-free and responsibly sourced.
             </Paragraph>
             <Paragraph>
-              Today, Aphromas Diamond is a globally recognized brand, led by the
-              second generation. They have embraced technology with an
-              e-commerce platform, maintaining the founders' vision of
-              exceptional quality and personalized service. The store offers a
-              diverse range of jewelry, from classic to contemporary designs.
+              Today, Aphromas Diamond is a globally recognized name in the diamond industry. Now led by the second generation, 
+              the brand has embraced digital innovation through a state-of-the-art e-commerce platform, making its premium 
+              diamond collections accessible worldwide.
             </Paragraph>
             <Paragraph>
-              The founders' passion and commitment to excellence transformed
-              Aphromas Diamond into a global leader. As the company looks to the
-              future, it remains dedicated to innovation and ethical practices,
-              ensuring its legacy of beauty and brilliance continues for
-              generations.
+              Driven by the founders’ original vision, Aphromas Diamond continues to set the standard for excellence—offering only
+               the finest natural diamonds with a legacy built on trust, ethics, and brilliance.
             </Paragraph>
           </Article>
         </Main>
@@ -136,8 +124,7 @@ const About = () => {
                 <Text className="section_subtitle">
                   Where timeless elegance meets exceptional craftsmanship.
                   <br />
-                  Discover the brilliance of our exquisite diamond collections
-                  and bespoke jewelry designs.
+                  Discover the brilliance of our exquisite diamond collections.
                 </Text>
               </div>
             </Col>
@@ -151,8 +138,6 @@ const About = () => {
               OUR COLLABORATOR
             </Title>
             <Text className="subtitle_team">
-              We proudly partner with esteemed designers and brands to bring you
-              the finest in jewelry design. <br />
               These collaborations ensure a diverse range of exquisite and
               unique pieces for every special moment.
             </Text>
@@ -379,7 +364,7 @@ const About = () => {
                 <p>
                   At Aphromas Diamond, we deliver unparalleled service and
                   personalized attention. Our expert team guides you through
-                  every step of your jewelry journey to find the perfect piece
+                  every step of your diamond journey to find the perfect piece
                   that tells your unique story.{" "}
                 </p>
                 <br />
@@ -470,7 +455,7 @@ const About = () => {
           </Row>
         </div>
       </Why>
-      <Design>
+      {/* <Design>
         <div style={{ maxWidth: "1320px", margin: "0 auto" }}>
           <Row gutter={[8, 8]}>
             <Col span={6}>
@@ -594,7 +579,7 @@ const About = () => {
             </Col>
           </Row>
         </div>
-      </Design>
+      </Design> */}
       <Commitment>
         <div className="container">
           <Row>
@@ -605,7 +590,7 @@ const About = () => {
                 </Title>
                 <Text className="section_subtitle">
                   Our commitment at Aphromas Diamond extends beyond providing
-                  exquisite diamond jewelry; it's a promise to uphold the
+                  exquisite diamond; it's a promise to uphold the
                   highest standards of quality, integrity, and customer
                   satisfaction. We are dedicated to exceeding expectations,
                   ensuring ethical practices, and creating lasting relationships
@@ -635,7 +620,7 @@ const About = () => {
             </Stars>
             <p>
               Aphromas Diamond is my go-to choice when it comes to high-quality
-              diamond jewelry. Every purchase I've made here has exceeded my
+              diamond. Every purchase I've made here has exceeded my
               expectations in terms of craftsmanship and aesthetics. The staff
               is always very dedicated and professional in their consultations.
               Highly satisfied!
@@ -652,7 +637,7 @@ const About = () => {
               <StarFilled style={{ color: "#D8A25A" }} />
             </Stars>
             <p>
-              I bought a diamond necklace from Aphromas Diamond as an
+              I bought a diamond from Aphromas Diamond as an
               anniversary gift for my wife. She absolutely loves it and keeps
               saying how exquisite the design is, and how brilliant and
               luxurious the diamond looks. The product truly lives up to its
@@ -670,7 +655,7 @@ const About = () => {
               <StarFilled style={{ color: "#D8A25A" }} />
             </Stars>
             <p>
-              I recently purchased a diamond ring from Aphromas Diamond and
+              I recently purchased a diamond from Aphromas Diamond and
               couldn't be happier! The quality of the diamond is absolutely
               stunning, sparkling more than I expected. The customer service was
               also exceptional and very attentive, making me feel very confident

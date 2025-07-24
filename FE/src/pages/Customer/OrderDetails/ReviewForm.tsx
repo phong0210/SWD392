@@ -8,9 +8,9 @@ interface ReviewFormProps {
   onCreate: (values: any) => void;
   onCancel: () => void;
   orderId: string | null;
-  accountId: number | null;
+  accountId: string | null;
   diamondId: number | null;
-  productId: number | null;
+  productId: string | null;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({
@@ -24,7 +24,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
 }) => {
   const [form] = Form.useForm();
 
-   React.useEffect(() => {
+  React.useEffect(() => {
     form.setFieldsValue({
       diamondId: diamondId || null,
       productId: productId || null,
@@ -46,19 +46,17 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
         Comment: values.comment,
         CommentTime: new Date().toISOString(),
         IsActive: true,
-        DiamondID: values.diamondId ||diamondId || null,
+        DiamondID: values.diamondId || diamondId || null,
         JewelrySettingID: null,
         OrderID: orderId,
         AccountID: accountId,
-        ProductID:  values.productId || productId || null,
+        ProductID: values.productId || productId || null,
       };
-      
 
       await createFeedback(feedbackData);
       onCreate(feedbackData);
 
       form.resetFields();
-
     } catch (error) {
       console.error("Error submitting feedback:", error);
     }
@@ -94,7 +92,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           <Input.TextArea rows={4} />
         </Form.Item>
         <Form.Item name="diamondId" style={{ display: "none" }}>
-          <Input  type="hidden"/>
+          <Input type="hidden" />
         </Form.Item>
         <Form.Item name="productId" style={{ display: "none" }}>
           <Input type="hidden" />

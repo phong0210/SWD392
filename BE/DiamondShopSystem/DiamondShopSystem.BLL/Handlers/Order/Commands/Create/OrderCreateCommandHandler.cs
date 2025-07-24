@@ -41,7 +41,7 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Create
                 SaleStaff = request.Dto.SaleStaff,
                 Status = 0, // Default status, e.g., "Pending"
                 VipApplied = false, // Logic for this would go here
-                TotalPrice = request.Dto.OrderItems.Sum(item => item.UnitPrice * item.Quantity)
+                TotalPrice = request.Dto.TotalPrice
             };
 
             // Create OrderDetail and Payment entities

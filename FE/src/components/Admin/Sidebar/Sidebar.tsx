@@ -75,9 +75,11 @@ const Sidebar = () => {
       setActive("Product");
     } else if (path === "/admin/marketing") {
       setActive("Marketing");
-    } else if (path === "/admin/client-caring") {
+    }
+     else if (path === "/admin/client-caring") {
       setActive("ClientCaring");
-    } else if (path === "/admin/customer") {
+    }
+     else if (path === "/admin/customer") {
       setActive("Customer");
     } else if (path === "/admin/sales-staff") {
       setActive("Staff");
@@ -172,7 +174,7 @@ const Sidebar = () => {
               </div>
             </Styled.SBContent>
 
-            <Styled.SBContent>
+            {/* <Styled.SBContent>
               <div
                 className={`btn ${
                   active === "ClientCaring" ? "active-line" : ""
@@ -187,7 +189,7 @@ const Sidebar = () => {
                   </Link>
                 </Styled.MenuElement>
               </div>
-            </Styled.SBContent>
+            </Styled.SBContent> */}
 
             <Styled.SBContent>
               <div

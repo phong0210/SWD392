@@ -114,7 +114,7 @@ const Sidebar = () => {
             </div>
           </Styled.SBContent>
 
-          <Styled.SBContent>
+          {/* <Styled.SBContent>
             <div
               className={`btn ${active === "ClientCaring" ? "active-line" : ""}`}
               onClick={() => handleSetActive("ClientCaring")}
@@ -127,7 +127,7 @@ const Sidebar = () => {
                 </Link>
               </Styled.MenuElement>
             </div>
-          </Styled.SBContent>
+          </Styled.SBContent> */}
         </Styled.SBMenu>
       </Styled.SidebarTop>
       <Styled.AccOut>
