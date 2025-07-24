@@ -29,7 +29,7 @@ const DeliveryDelivered = () => {
       0: "Pending",
       1: "Confirmed",
       2: "Processing",
-      3: "Assigned",
+      3: "ARRIVED",
       4: "Delivering",
       5: "Delivered",
       6: "Completed",

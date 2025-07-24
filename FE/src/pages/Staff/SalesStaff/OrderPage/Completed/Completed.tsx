@@ -1,12 +1,12 @@
 import * as Styled from "./Completed.styled";
 import { useEffect, useState } from "react";
-import { Space, Table, Tag, Input } from "antd";
+import { Button, Space, Table, Tag, Input, notification } from "antd";
 import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
 import { Link } from "react-router-dom";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import OrderMenu from "@/components/Staff/SalesStaff/OrderMenu/OrderMenu";
-import { showAllOrder, orderRelation } from "@/services/orderAPI";
+import { showAllOrder, orderRelation, updateOrder } from "@/services/orderAPI";
 import { showAllAccounts } from "@/services/authAPI";
 import { OrderStatus } from "@/utils/enum";
 
@@ -84,82 +84,8 @@ interface DataType {
   paymentMethod: string;
   status: string;
   deliveryStaff?: string;
+  key: string;
 }
-
-const columns: TableColumnsType<DataType> = [
-  {
-    title: "Order ID",
-    dataIndex: "orderID",
-    defaultSortOrder: "descend",
-    sorter: (a: DataType, b: DataType) => a.orderID.localeCompare(b.orderID),
-  },
-  {
-    title: "Date",
-    dataIndex: "date",
-    defaultSortOrder: "descend",
-    sorter: (a: DataType, b: DataType) => {
-      const dateA = a.date || '';
-      const dateB = b.date || '';
-      return dateA.localeCompare(dateB);
-    },
-    render: (_, { date }) => <>{date ? date.replace("T", " ").replace(".000Z", " ") : ''}</>,
-  },
-  {
-    title: "Customer",
-    dataIndex: "cusName",
-    showSorterTooltip: { target: "full-header" },
-    sorter: (a: DataType, b: DataType) => a.cusName.length - b.cusName.length,
-    sortDirections: ["descend"],
-  },
-  {
-    title: "Delivery Staff",
-    dataIndex: "deliveryStaff",
-    showSorterTooltip: { target: "full-header" },
-    filters: [
-      { text: "Joe", value: "Joe" },
-      { text: "Jim", value: "Jim" },
-      { text: "Esther", value: "Esther" },
-      { text: "Ajmal", value: "Ajmal" },
-    ],
-    onFilter: (value, record) =>
-      record.deliveryStaff?.indexOf(value as string) === 0 || false,
-    sorter: (a: DataType, b: DataType) => (a.deliveryStaff?.length || 0) - (b.deliveryStaff?.length || 0),
-    sortDirections: ["descend"],
-    render: (_, { deliveryStaff }) => <>{deliveryStaff || "N/A"}</>,
-  },
-  {
-    title: "Status",
-    key: "status",
-    dataIndex: "status",
-    render: (_, { status, orderID }) => {
-      let color = "green";
-      if (status === OrderStatus.PENDING) color = "volcano";
-      else if (status === OrderStatus.ACCEPTED) color = "yellow";
-      else if (status === OrderStatus.ASSIGNED) color = "orange";
-      else if (status === OrderStatus.DELIVERING) color = "blue";
-      else if (status === OrderStatus.DELIVERED) color = "purple";
-      else if (status === OrderStatus.COMPLETED) color = "green";
-      else if (status === OrderStatus.CANCELLED) color = "grey";
-      return (
-        <Tag color={color} key={orderID}>
-          {status.toUpperCase()}
-        </Tag>
-      );
-    },
-  },
-  {
-    title: "Detail",
-    key: "detail",
-    className: "TextAlign",
-    render: (_, { orderID }) => (
-      <Space size="middle">
-        <Link to={`/sales-staff/order/detail/${orderID}`}>
-          <EyeOutlined />
-        </Link>
-      </Space>
-    ),
-  },
-];
 
 const onChange: TableProps<DataType>["onChange"] = (
   pagination,
@@ -171,6 +97,7 @@ const onChange: TableProps<DataType>["onChange"] = (
 };
 
 const CompletedOrder = () => {
+  const [api, contextHolder] = notification.useNotification();
   const statusMap: { [key: number]: string } = {
   0: OrderStatus.PENDING,
   1: OrderStatus.ACCEPTED,
@@ -179,6 +106,107 @@ const CompletedOrder = () => {
   4: OrderStatus.COMPLETED,
   6: OrderStatus.CANCELLED,
 };
+
+  const handleCancel = async (orderID: string) => {
+    try {
+      const response = await updateOrder(orderID, {
+        status: 6, // Set status to CANCELLED
+      });
+      if (response.status === 200) {
+        api.success({
+          message: "Order Cancelled",
+          description: `Order ${orderID} has been successfully cancelled.`,
+        });
+        fetchData(); // Refresh data after cancellation
+      } else {
+        throw new Error(response.data?.message || "Failed to cancel order.");
+      }
+    } catch (error: any) {
+      console.error("Error cancelling order:", error);
+      api.error({
+        message: "Error",
+        description: error.message || "An error occurred while cancelling the order.",
+      });
+    }
+  };
+  const columns: TableColumnsType<DataType> = [
+    {
+      title: "Order ID",
+      dataIndex: "orderID",
+      defaultSortOrder: "descend",
+      sorter: (a: DataType, b: DataType) => a.orderID.localeCompare(b.orderID),
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      defaultSortOrder: "descend",
+      sorter: (a: DataType, b: DataType) => {
+        const dateA = a.date || '';
+        const dateB = b.date || '';
+        return dateA.localeCompare(dateB);
+      },
+      render: (_, { date }) => <>{date ? date.replace("T", " ").replace(".000Z", " ") : ''}</>,
+    },
+    {
+      title: "Customer",
+      dataIndex: "cusName",
+      showSorterTooltip: { target: "full-header" },
+      sorter: (a: DataType, b: DataType) => a.cusName.length - b.cusName.length,
+      sortDirections: ["descend"],
+    },
+    {
+      title: "Delivery Staff",
+      dataIndex: "deliveryStaff",
+      showSorterTooltip: { target: "full-header" },
+      filters: [
+        { text: "Joe", value: "Joe" },
+        { text: "Jim", value: "Jim" },
+        { text: "Esther", value: "Esther" },
+        { text: "Ajmal", value: "Ajmal" },
+      ],
+      onFilter: (value, record) =>
+        record.deliveryStaff?.indexOf(value as string) === 0 || false,
+      sorter: (a: DataType, b: DataType) => (a.deliveryStaff?.length || 0) - (b.deliveryStaff?.length || 0),
+      sortDirections: ["descend"],
+      render: (_, { deliveryStaff }) => <>{deliveryStaff || "N/A"}</>,
+    },
+    {
+      title: "Status",
+      key: "status",
+      dataIndex: "status",
+      render: (_, { status, orderID }) => {
+        let color = "green";
+        if (status === OrderStatus.PENDING) color = "volcano";
+        else if (status === OrderStatus.ACCEPTED) color = "yellow";
+        else if (status === OrderStatus.ASSIGNED) color = "orange";
+        else if (status === OrderStatus.DELIVERING) color = "blue";
+        else if (status === OrderStatus.DELIVERED) color = "purple";
+        else if (status === OrderStatus.COMPLETED) color = "green";
+        else if (status === OrderStatus.CANCELLED) color = "grey";
+        return (
+          <Tag color={color} key={orderID}>
+            {status.toUpperCase()}
+          </Tag>
+        );
+      },
+    },
+    
+    {
+      title: "Action",
+      key: "action",
+      render: (_, { orderID }) => (
+        <Space size="middle">
+          <Button
+            type="primary"
+            danger
+            onClick={() => handleCancel(orderID)}
+          >
+            Cancel
+          </Button>
+        </Space>
+      ),
+    },
+  ];
   const [searchText, setSearchText] = useState("");
   const [order, setOrder] = useState<DataType[]>([]);
   const [userCache, setUserCache] = useState<Record<string, { name: string; phoneNumber: string; address: string }>>({}); // Cache for orderId to user info mapping
@@ -270,6 +298,7 @@ const CompletedOrder = () => {
 
   return (
     <>
+      {contextHolder}
       <Styled.GlobalStyle />
       <Styled.OrderAdminArea>
         <Sidebar />

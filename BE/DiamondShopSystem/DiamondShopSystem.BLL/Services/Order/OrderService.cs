@@ -111,12 +111,30 @@ namespace DiamondShopSystem.BLL.Services.Order
 
             // Determine the next status
             OrderStatus currentStatus = (OrderStatus)existingOrder.Status;
-            OrderStatus nextStatus = GetNextStatus(currentStatus);
+            OrderStatus nextStatus = updateOrderDto.Status == 0
+                ? GetNextStatus(currentStatus)
+                : (OrderStatus)updateOrderDto.Status;
 
-            // Check if transitioning from Pending to Confirmed
-            if (currentStatus == OrderStatus.Pending && nextStatus == OrderStatus.Confirmed)
+            // Validate status transition
+            if (currentStatus == OrderStatus.Delivered && nextStatus == OrderStatus.Cancelled)
             {
-                // Check and update inventory
+                // Restore inventory for cancelled order
+                foreach (var orderDetail in existingOrder.OrderDetails)
+                {
+                    var product = orderDetail.Product;
+                    if (product == null)
+                    {
+                        return new UpdateOrderResponseDto { Success = false, Error = $"Product not found for OrderDetail {orderDetail.Id}." };
+                    }
+
+                    // Restore the stock quantity
+                    product.StockQuantity += orderDetail.Quantity;
+                    _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>().Update(product);
+                }
+            }
+            else if (currentStatus == OrderStatus.Pending && nextStatus == OrderStatus.Confirmed)
+            {
+                // Check and update inventory for confirmation
                 foreach (var orderDetail in existingOrder.OrderDetails)
                 {
                     var product = orderDetail.Product;

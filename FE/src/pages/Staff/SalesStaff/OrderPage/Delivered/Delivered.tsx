@@ -168,18 +168,7 @@ const columns: TableColumnsType<DataType> = [
       );
     },
   },
-  {
-    title: "Detail",
-    key: "detail",
-    className: "TextAlign",
-    render: (_, { orderID }) => (
-      <Space size="middle">
-        <Link to={`/sales-staff/order/detail/${orderID}`}>
-          <EyeOutlined />
-        </Link>
-      </Space>
-    ),
-  },
+  
 ];
 
 const onChange: TableProps<DataType>["onChange"] = (
