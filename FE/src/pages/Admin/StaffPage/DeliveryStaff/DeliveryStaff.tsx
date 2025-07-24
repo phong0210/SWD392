@@ -6,9 +6,10 @@ import { Form, Input, InputNumber, Popconfirm, Table, Button, notification, Auto
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import StaffMenu from "@/components/Admin/SalesStaffMenu/StaffMenu";
 import { SortOrder } from "antd/es/table/interface";
-import { deleteAccount, showAllAccounts, updateAccount } from "@/services/authAPI";
-import { promoteToStaff } from "@/services/accountApi";
+import { deleteStaff, promoteToStaff } from "@/services/accountApi";
+import { showAllAccounts } from "@/services/authAPI";
 import { Role } from "@/utils/enum";
+
 
 interface EditableCellProps {
   editing: boolean;
@@ -99,7 +100,8 @@ const DeliveryStaff = () => {
             user.roleName !== "SaleStaff" &&
             user.roleName !== "Manager" &&
             user.roleName !== "HeadOfficeAdmin"
-        )
+        &&
+        user.isActive !== false ) 
         .map((user: any) => ({
           key: user.id || user.AccountID,
           email: user.email || user.Email || "",
@@ -128,32 +130,16 @@ const DeliveryStaff = () => {
     fetchData();
   }, []);
 
-  const handleDelete = async (staffID: string | number) => {
-    try {
-      await deleteAccount(staffID);
-      openNotification("success", "Delete", "");
-      fetchData();
-    } catch (error: any) {
-      console.error("Failed to delete staff:", error);
-      openNotification("error", "Delete", error.message || "Failed to delete staff");
-    }
-  };
-
-  const handleBan = async (email: string) => {
-    try {
-      const response = await updateAccount(email, { Role: "ROLE_BAN" });
-      console.log("Ban Response:", response.data);
-      if (response.status === 200) {
-        openNotification("success", "Ban", "Staff has been banned successfully.");
+  const handleDemote = async (staffID: string) => {
+      try {
+        await deleteStaff(staffID);
+        openNotification("success", "Demote", "Staff demoted to Customer successfully.");
         fetchData();
-      } else {
-        openNotification("error", "Ban", "Failed to ban staff.");
+      } catch (error: any) {
+        openNotification("error", "Demote", error.message || "Failed to demote staff");
       }
-    } catch (error: any) {
-      console.error("Failed to ban staff:", error);
-      openNotification("error", "Ban", error.message);
-    }
-  };
+    };
+
 
   const columns = [
     {
@@ -193,27 +179,19 @@ const DeliveryStaff = () => {
       },
     },
     {
-      title: "Delete",
-      dataIndex: "delete",
-      className: "TextAlign",
-      render: (_: unknown, record: any) =>
-        staffs.length >= 1 ? (
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
-            <a>Delete</a>
-          </Popconfirm>
-        ) : null,
-    },
-    {
-      title: "Ban",
-      dataIndex: "ban",
-      className: "TextAlign",
-      render: (_: unknown, record: any) =>
-        staffs.length >= 1 ? (
-          <Popconfirm title="Sure to ban?" onConfirm={() => handleBan(record.email)}>
-            <a>Ban</a>
-          </Popconfirm>
-        ) : null,
-    },
+          title: "Demote",
+          dataIndex: "delete",
+          className: "TextAlign",
+          render: (_: unknown, record: any) =>
+            staffs.length >= 1 ? (
+              <Popconfirm
+                title="Are you sure you want to demote this staff to Customer?"
+                onConfirm={() => handleDemote(record.key)}
+              >
+                <a>Demote</a>
+              </Popconfirm>
+            ) : null,
+        },
   ];
 
   const mergedColumns = columns.map((col) => {
@@ -417,7 +395,7 @@ const DeliveryStaff = () => {
                   </Styled.FormItem>
                   <Styled.ActionBtn>
                     <SubmitButton form={form}>
-                      <SaveOutlined /> Promote
+                      <SaveOutlined /> Demote
                     </SubmitButton>
                     <Button onClick={handleCancel} style={{ marginLeft: "10px" }}>
                       Cancel
