@@ -182,6 +182,9 @@ const AllProduct: React.FC = () => {
                           <div>{product.name}</div>
                         </Link>
                       </Title>
+                      <div className="price-container">
+                        <Text className="product-price">${product.price}</Text>
+                      </div>
                     </div>
                   </Card>
                 </Col>
