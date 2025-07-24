@@ -59,10 +59,10 @@ const AddressDetails: React.FC<{
           </p>
         </EditPTag>
         <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleFormSubmit}
-        >
+            form={form}
+            layout="vertical"
+            onFinish={handleFormSubmit}
+          >
           <InputRow>
             <InputGroup>
               <Form.Item
@@ -203,9 +203,10 @@ const AddressDetails: React.FC<{
             label="Payment Method"
             name="Method"
             rules={[{ required: true, message: 'Payment Method is required' }]}
+            initialValue="VNPay"
           >
             <StyledSelect placeholder="Select Payment Method" onChange={handlePaymentChange}>
-              <Option value="Paypal">Paypal</Option>
+              <Option value="VNPay">VNPay</Option>
               <Option value="COD">COD</Option>
             </StyledSelect>
           </Form.Item>
@@ -213,10 +214,10 @@ const AddressDetails: React.FC<{
           {selectedPaymentMethod && (
             <PaymentImage
               src={
-                selectedPaymentMethod === "Paypal" ? paypal : cod
+                selectedPaymentMethod === "VNPay" ? paypal : cod
               }
               alt={
-                selectedPaymentMethod === "Paypal" ? "Paypal" : "COD"
+                selectedPaymentMethod === "VNPay" ? "VNPay" : "COD"
               }
             />
           )}

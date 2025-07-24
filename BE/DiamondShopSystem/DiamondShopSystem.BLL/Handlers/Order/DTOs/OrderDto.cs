@@ -18,6 +18,7 @@ namespace DiamondShopSystem.BLL.Handlers.Order.DTOs
         public Guid CustomerId { get; set; }
         public string SaleStaff { get; set; } = string.Empty;
         public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
+        public string PaymentMethod { get; set; } = string.Empty;
     }
 
     // The response after creating an order

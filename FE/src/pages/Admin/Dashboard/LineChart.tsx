@@ -10,7 +10,7 @@ const LineChart = ({ isDashboard = false }) => {
         try {
             const response = await showDailyRevenueSummary();
             // Assuming the API response structure is { data: { data: { DailyRevenueResults: [...] } } }
-            const dailyData = response.data;
+            const dailyData = Array.isArray(response.data) ? response.data : [];
 
             const formattedData = dailyData.map((item: any) => {
                 const date = new Date(item.date);
