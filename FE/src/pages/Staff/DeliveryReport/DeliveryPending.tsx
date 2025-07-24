@@ -42,20 +42,28 @@ const DeliveryPending = () => {
       const orderRes = await showAllOrder();
       console.log(orderRes.data);
 
+      // In ra toàn bộ userId
+      orderRes.data.forEach((order: any, index: number) => {
+        console.log(`Order ${index + 1} - userId: ${order.userId}`);
+      });
+
       // Filter for orders with status 1 (Confirmed) and format the data
       const orderFormatted = orderRes.data
         .filter((order: any) => order.status === 1)
-        .map((order: any) => ({
-          key: order.id,
-          orderID: order.id,
-          receiver: order.delivery?.shippingAddress?.split(",")[0] || "N/A",
-          phoneNumber: "N/A",
-          address: order.delivery?.shippingAddress || "N/A",
-          status: getStatusString(order.status),
-          totalPrice: order.totalPrice,
-          orderDate: order.orderDate,
-          saleStaff: order.saleStaff,
-        }));
+        .map((order: any) => {
+          console.log(`Mapping order ${order.id} - userId: ${order.userId}`); // ➕ Thêm log này
+
+          return {
+            key: order.id,
+            orderID: order.id,
+            receiver: order.userId, // ➕ Gán userId vào receiver
+            address: order.delivery?.shippingAddress || "N/A",
+            status: getStatusString(order.status),
+            totalPrice: order.totalPrice,
+            orderDate: order.orderDate,
+            saleStaff: order.saleStaff,
+          };
+        });
 
       setOrderList(orderFormatted);
     } catch (error) {
@@ -99,10 +107,6 @@ const DeliveryPending = () => {
       showSorterTooltip: { target: "full-header" },
       sorter: (a, b) => a.receiver.length - b.receiver.length,
       sortDirections: ["descend"],
-    },
-    {
-      title: "Phone Number",
-      dataIndex: "phoneNumber",
     },
     {
       title: "Address",

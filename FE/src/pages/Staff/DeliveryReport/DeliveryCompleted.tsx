@@ -123,8 +123,7 @@ const DeliveryCompleted = () => {
         .map((order: any) => ({
           key: order.id,
           orderID: order.id,
-          receiver: order.delivery?.shippingAddress?.split(",")[0] || "N/A", // Extract name from address or use N/A
-          phoneNumber: "N/A", // Not available in new API structure
+          receiver: order.userId, // Extract name from address or use N/A // Not available in new API structure
           address: order.delivery?.shippingAddress || "N/A",
           status: getStatusString(order.status),
           totalPrice: order.totalPrice,
@@ -173,10 +172,6 @@ const DeliveryCompleted = () => {
       showSorterTooltip: { target: "full-header" },
       sorter: (a, b) => a.receiver.length - b.receiver.length,
       sortDirections: ["descend"],
-    },
-    {
-      title: "Phone Number",
-      dataIndex: "phoneNumber",
     },
     {
       title: "Address",
