@@ -7,15 +7,17 @@ interface OrderState {
     order: OrderResponseFE | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
+    voucherID: string | null;
 }
 
 const initialState: OrderState = {
     order: null,
     status: 'idle',
     error: null,
+    voucherID: null,
 };
 
-// Thunk to create an order and then fetch the full details
+/// Thunk to create an order and then fetch the full details
 export const createOrderAsync = createAsyncThunk(
     'order/createOrder',
     async (orderData: CreateOrderRequest, { rejectWithValue }) => {
@@ -51,7 +53,7 @@ export const createOrderAsync = createAsyncThunk(
             }
 
             console.log('[createOrderAsync] Order details fetched successfully:', detailResponse.data.order);
-            return detailResponse.data.order; // Fix: Use .order instead of .data
+            return detailResponse.data.order;
         } catch (error: any) {
             console.error('[createOrderAsync] Error occurred:', {
                 message: error.response?.data?.message || error.message || 'An unknown error occurred',
@@ -61,6 +63,7 @@ export const createOrderAsync = createAsyncThunk(
         }
     }
 );
+
 
 // Thunk to handle the return from PayPal
 export const captureOrderPaypalAsync = createAsyncThunk(
@@ -126,7 +129,13 @@ const orderSlice = createSlice({
             state.status = 'idle';
             state.error = null;
             state.order = null;
+            state.voucherID = null; // Also reset voucherID
             console.log('[orderSlice/resetOrderStatus] State reset:', state);
+        },
+        // <--- ADD THIS NEW REDUCER
+        setVoucherID: (state, action: PayloadAction<string | null>) => {
+            console.log(`[orderSlice/setVoucherID] Setting voucher ID to: ${action.payload}`);
+            state.voucherID = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -166,5 +175,6 @@ const orderSlice = createSlice({
     },
 });
 
-export const { resetOrderStatus } = orderSlice.actions;
+// <--- EXPORT BOTH ACTION CREATORS NOW
+export const { resetOrderStatus, setVoucherID } = orderSlice.actions; 
 export default orderSlice.reducer;

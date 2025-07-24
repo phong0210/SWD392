@@ -66,6 +66,7 @@ import WeddingDesignerList from "@/pages/Home/List/WeddingDesignerList/WeddingDe
 import SaleJewelryPage from "@/pages/Home/SaleJewelryPage/SaleJewelryPage";
 import Loyalty from "@/pages/Customer/Loyalty/Loyalty";
 import ReviewFB from "@/pages/Customer/ReviewFB/ReviewFB";
+import Vip from "@/pages/Customer/Vip/Vip";
 
 const MainRouter = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -171,6 +172,7 @@ const customerRoutes = {
     { path: config.routes.customer.orderDetails, element: <OrderDetail /> },
     { path: config.routes.customer.reviewFeedBack, element: <ReviewFB /> },
     { path: config.routes.customer.loyalty, element: <Loyalty /> },
+    { path: config.routes.customer.vip, element: <Vip /> },
   ],
 };
 
