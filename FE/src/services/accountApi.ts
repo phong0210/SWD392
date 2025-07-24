@@ -4,6 +4,7 @@ export const getCustomer = (id: string) => {
   return get(`/api/User/detail/${id}`);
 };
 
+
 export const promoteToStaff = (
   email: string,
   roleName: string,
