@@ -7,7 +7,7 @@ export const ColorType = [
   { text: "F", value: "F" },
   { text: "E", value: "E" },
   { text: "D", value: "D" },
-]
+];
 
 export const ShapeType = [
   { text: "Round", value: "Round" },
@@ -20,7 +20,7 @@ export const ShapeType = [
   { text: "Heart", value: "Heart" },
   { text: "Radiant", value: "Radiant" },
   { text: "Marquise", value: "Marquise" },
-]
+];
 
 export const ShapeType_Option = [
   { value: "Round", label: "Round" },
@@ -72,5 +72,12 @@ export const CertificateType_Option = [
   { value: "GIA Certificate", label: "GIA Certificate" },
   { value: "AGS Certificate", label: "AGS Certificate" },
   { value: "IGI Certificate", label: "IGI Certificate" },
-  { value: "HRD Certificate", label: "HRD Certificate" }
-]
+  { value: "HRD Certificate", label: "HRD Certificate" },
+];
+
+export const Category_Option = [
+  { value: "75bd7a1a-ac67-4e86-a2d3-805d797b567b", label: "Diamond Rings" },
+  { value: "e985869a-56fd-449a-887e-15a006c6c6b6", label: "Diamond Necklaces" },
+  { value: "acdfb9db-56f7-4afe-91ed-930f01e86fb2", label: "Diamond Earrings" },
+  { value: "f3df6bfc-1575-45cd-8c22-54b73bf41c71", label: "Diamond Bracelets" },
+];

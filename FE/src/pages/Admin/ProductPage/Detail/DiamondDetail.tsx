@@ -106,14 +106,17 @@ const DiamondDetail = () => {
       console.log("Updating edited data", editedDiamond.id);
       const response = await updateDiamond(editedDiamond.id, editedDiamond);
       console.log("Update Response:", response);
-
+      const id = editedDiamond.id;
       // Check if the update was successful
       if (response.status === 200) {
-        const updatedDiamondResponse = await getProductDetails(
-          activeDiamond.id
+        console.log("id", id);
+        const updatedDiamondResponse = await getProductDetails(id);
+        console.log(
+          "update data diamond response",
+          updatedDiamondResponse.data.product
         );
-        setActiveDiamond(updatedDiamondResponse.data);
-        setEditedDiamond(updatedDiamondResponse.data);
+        setActiveDiamond(updatedDiamondResponse.data.product);
+        setEditedDiamond(updatedDiamondResponse.data.product);
         openNotification("success", "Update", "");
         setIsEditing(false);
       } else {
