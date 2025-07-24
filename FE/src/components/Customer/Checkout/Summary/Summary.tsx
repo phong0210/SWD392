@@ -32,9 +32,11 @@ const CartItem: React.FC<CartItemProps> = ({ name, image, sku, price }) => (
 interface SummaryProps {
   cartItems: CartItemType[];
   onTotalChange?: (total: number) => void;
+  isVip?: boolean;
+  vipDiscountPercentage?: number;
 }
 
-const Summary: React.FC<SummaryProps> = ({ cartItems, onTotalChange }) => {
+const Summary: React.FC<SummaryProps> = ({ cartItems, onTotalChange, isVip, vipDiscountPercentage }) => {
   const [discount, setDiscount] = useState(0);
 
   const onApplyVoucher = (discount: number) => {
@@ -44,9 +46,12 @@ const Summary: React.FC<SummaryProps> = ({ cartItems, onTotalChange }) => {
   const calculateTotal = (
     subtotal: number,
     discount: number,
-    shippingCost: number
+    shippingCost: number,
+    vipDiscount: number
   ) => {
-    return subtotal - (subtotal * discount) / 100 + shippingCost;
+    const totalAfterPromo = subtotal - (subtotal * discount) / 100;
+    const totalAfterVip = totalAfterPromo - (totalAfterPromo * vipDiscount) / 100;
+    return totalAfterVip + shippingCost;
   };
 
   const shippingCost = cartItems.length === 1 ? 15 : 0;
@@ -55,7 +60,7 @@ const Summary: React.FC<SummaryProps> = ({ cartItems, onTotalChange }) => {
     return acc + item.price * item.quantity;
   }, 0);
 
-  const total = calculateTotal(subtotalNumber, discount, shippingCost).toFixed(
+  const total = calculateTotal(subtotalNumber, discount, shippingCost, vipDiscountPercentage || 0).toFixed(
     2
   );
 
@@ -106,6 +111,13 @@ const Summary: React.FC<SummaryProps> = ({ cartItems, onTotalChange }) => {
         <p>Subtotal: </p>
         <p>${subtotalNumber.toFixed(2)}</p>
       </EditTotal>
+
+      {isVip && vipDiscountPercentage && vipDiscountPercentage > 0 && (
+        <EditTotal>
+          <p>VIP Discount ({vipDiscountPercentage}%): </p>
+          <p>-{((subtotalNumber * vipDiscountPercentage) / 100).toFixed(2)}</p>
+        </EditTotal>
+      )}
 
       <PromoCodeSection onApplyVoucher={onApplyVoucher} />
       <EditTotal1>

@@ -15,6 +15,7 @@ import { PaymentMethodEnum } from "@/utils/enum";
 import { useAppDispatch, useAppSelector } from "@/hooks";
 import { createOrderAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 import { createOrderPaypal, createVnPayPayment } from "@/services/paymentAPI";
+import vipAPI from "@/services/vipAPI";
 import { clearCart } from "@/store/slices/cartSlice";
 
 const Checkout: React.FC = () => {
@@ -39,6 +40,8 @@ const Checkout: React.FC = () => {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState(false);
   const [calculatedTotalPrice, setCalculatedTotalPrice] = useState(0);
+  const [isVip, setIsVip] = useState(false);
+  const [vipDiscountPercentage, setVipDiscountPercentage] = useState(0);
 
   // Fetch customer details
   const getCustomerDetail = React.useCallback(async () => {
@@ -75,6 +78,34 @@ const Checkout: React.FC = () => {
     getCustomerDetail();
     fetchProvincesData();
   }, [getCustomerDetail, fetchProvincesData]);
+
+  useEffect(() => {
+    const checkVipStatus = async () => {
+      if (AccountID) {
+        try {
+          const response = await vipAPI.getVipByUserId(AccountID);
+          if (response.status === 200 && response.data) {
+            setIsVip(true);
+            setVipDiscountPercentage(10); // 10% discount for VIP users
+          } else {
+            setIsVip(false);
+            setVipDiscountPercentage(0);
+          }
+        } catch (error: any) {
+          if (error.response && error.response.status === 404) {
+            // User is not VIP (404 Not Found)
+            setIsVip(false);
+            setVipDiscountPercentage(0);
+          } else {
+            console.error("[Checkout] Error checking VIP status:", error);
+            setIsVip(false);
+            setVipDiscountPercentage(0);
+          }
+        }
+      }
+    };
+    checkVipStatus();
+  }, [AccountID]);
 
   // Cleanup on unmount only if order creation failed
   useEffect(() => {
@@ -300,7 +331,12 @@ const Checkout: React.FC = () => {
               loading={loading || orderStatus === "loading"}
             />
           </Formm>
-          <StyledSummary cartItems={cartItems} onTotalChange={setCalculatedTotalPrice} />
+          <StyledSummary
+            cartItems={cartItems}
+            onTotalChange={setCalculatedTotalPrice}
+            isVip={isVip}
+            vipDiscountPercentage={vipDiscountPercentage}
+          />
         </Content>
       </Wrapper>
     </main>
