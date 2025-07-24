@@ -3,68 +3,59 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Table from "antd/es/table";
-import { Button, Space, TableColumnGroupType, Tag, notification } from "antd";
+import { TableColumnGroupType, Tag, notification } from "antd";
 import ReviewForm from "./ReviewForm";
 import { Link, useLocation } from "react-router-dom";
-import {
-  OrderLineDetail,
-  showAllOrderLineForAdmin,
-} from "@/services/orderLineAPI";
-import { getDiamondDetails } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
-import { orderDetail, showAllOrder } from "@/services/orderAPI";
+
+import { getOrderDetailDetail } from "@/services/orderAPI";
 import useAuth from "@/hooks/useAuth";
-import { getProductDetails } from "@/services/productAPI";
-// import { ColumnType } from "antd/lib/table";
-
-// interface OrderDetailsDataType {
-//   DiamondID: number;
-//   ProductID: number;
-// }
-
-interface DiamondDetail {
-  DiamondID: number;
-  Name: string;
-  Description: string;
-  Price: number;
-  UsingImage?: string;
-}
+import vnpay from "@/assets/diamond/vnpay.png";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 
 interface ProductDetail {
-  ProductID: number;
+  ProductID: string;
   Name: string;
   Description: string;
   Price: number;
   UsingImage?: string;
-  Inscription?: string;
+  orderDetailId: string;
+  quantity: number;
+  sku: string;
 }
 
-const StatusTag = ({ status }: { status: string }) => {
+const StatusTag = ({ status }: { status: number }) => {
   let color = "green";
+  let statusText = "";
 
   switch (status) {
-    case "Pending":
+    case 0:
       color = "grey";
+      statusText = "Pending";
       break;
-    case "Delivering":
+    case 1:
       color = "geekblue";
+      statusText = "Delivering";
       break;
-    case "Delivered":
+    case 2:
       color = "green";
+      statusText = "Delivered";
       break;
-    case "Canceled":
+    case 3:
       color = "volcano";
+      statusText = "Canceled";
       break;
-    case "Completed":
+    case 4:
       color = "#32CD32";
+      statusText = "Completed";
       break;
     default:
       color = "default";
+      statusText = "Unknown";
   }
 
   return (
     <Tag color={color} key={status}>
-      {status.toUpperCase()}
+      {statusText.toUpperCase()}
     </Tag>
   );
 };
@@ -82,25 +73,17 @@ const formatDate = (dateString: string) => {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(date);
 };
 
 const OrderDetail: React.FC = () => {
-  // const [order, setOrder] = useState([]);
-  // const [diamondDetails, setDiamondDetails] = useState<{ [key: string]: any }>(
-  //   {}
-  // );
-  const [diamondDetails, setDiamondDetails] = useState<{
-    [key: number]: DiamondDetail;
-  }>({});
-  const [productDetails, setProductDetails] = useState<{
-    [key: number]: ProductDetail;
-  }>({});
+  const [productDetails, setProductDetails] = useState<ProductDetail[]>([]);
   const [shippingFee, setShippingFee] = useState<number>(0);
-  const [order, setOrder] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
   const [subTotal, setSubTotal] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { AccountID } = useAuth();
 
@@ -114,194 +97,82 @@ const OrderDetail: React.FC = () => {
   const [selectedDiamondID, setSelectedDiamondID] = useState<number | null>(
     null
   );
-  const [selectedProductID, setSelectedProductID] = useState<number | null>(
+  const [selectedProductID, setSelectedProductID] = useState<string | null>(
     null
   );
+
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const orderId = searchParams.get("orderId");
+
   console.log("OrderID:", orderId);
-  const fetchCustomerInfo = async () => {
-    try {
-      const { data } = await showAllOrder();
-      const res = data.data;
-      console.log(res);
 
-      // Check if orderId exists in fetched orders
-      const order = res.find(
-        (order: { OrderID: number }) =>
-          order.OrderID === parseInt(orderId || "", 10)
-      );
-
-      if (order) {
-        console.log("Order found:", order);
-        setOrder(order);
-
-        //Price Order
-        const res = await orderDetail(order.OrderID);
-        const priceRes = res.data.data;
-        console.log(res.data.data);
-        const paymentMethod = priceRes.PaymentID;
-        setPaymentMethod(paymentMethod);
-        if (priceRes.VoucherPrice) {
-          const shippingFee = Number(res.data.data.Shippingfee);
-          setShippingFee(shippingFee);
-
-          const totalVoucherPrice = Number(priceRes.VoucherPrice);
-
-          const totalPrice = priceRes.Price;
-          if (priceRes.VoucherID) {
-            const discount = parseInt(
-              ((totalVoucherPrice / totalPrice) * 10).toFixed(0)
-            );
-            console.log(discount);
-            setDiscount(discount);
-          }
-        }
-        //
-      } else {
-        console.log("No order found with OrderID:", orderId);
-      }
-    } catch (error) {
-      console.error("Error fetching customer info:", error);
+  const fetchOrderDetails = async () => {
+    if (!orderId) {
+      console.error("No order ID provided");
+      notification.error({
+        message: "Error",
+        description: "No order ID provided in URL",
+      });
+      return;
     }
-  };
 
-  useEffect(() => {
-    fetchCustomerInfo();
-  }, []);
+    console.log("Fetching order details for orderId:", orderId);
 
-  const fetchAllOrderLine = async () => {
     try {
-      const res = await showAllOrderLineForAdmin();
+      const response = await getOrderDetailDetail(orderId);
 
-      if (res.data.data) {
-        const filteredOrders = res.data.data.filter(
-          (order: { OrderID: number }) =>
-            order.OrderID === parseInt(orderId || "", 10)
+      console.log("Order details response:", response.data);
+
+      if (response.data) {
+        const orderDetails = response.data.data;
+
+        // Transform data to match component interface
+        const transformedDetails = orderDetails.map((item) => ({
+          ProductID: item.product.id,
+          Name: item.product.name,
+          Description: item.product.description,
+          Price: item.unitPrice,
+          UsingImage: defaultImage,
+          orderDetailId: item.id,
+          quantity: item.quantity,
+          sku: item.product.sku,
+        }));
+
+        setProductDetails(transformedDetails);
+
+        // Calculate subtotal
+        const calculatedSubTotal = orderDetails.reduce(
+          (total, item) => total + item.unitPrice * item.quantity,
+          0
         );
+        setSubTotal(calculatedSubTotal);
 
-        if (filteredOrders.length > 0) {
-          fetchDetails(filteredOrders);
-        } else {
-          console.log("No orders found with OrderID:", orderId);
-        }
+        console.log("Transformed product details:", transformedDetails);
+        console.log("Calculated subtotal:", calculatedSubTotal);
+      } else {
+        console.error("Failed to fetch order details:", response.data.message);
+        notification.error({
+          message: "Error",
+          description: response.data.message || "Failed to fetch order details",
+        });
       }
     } catch (error) {
-      console.error("Error fetching order lines:", error);
+      console.error("Error fetching order details:", error);
+      notification.error({
+        message: "Error",
+        description: "An error occurred while fetching order details",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchDetails = async (orders: any) => {
-    try {
-      const diamondDetails: { [key: number]: DiamondDetail } = {};
-      const productDetails: { [key: number]: ProductDetail } = {};
-      let subTotal = 0;
-
-      console.log(orders);
-      for (const order of orders) {
-        if (order.DiamondID) {
-          const res = await getDiamondDetails(order.DiamondID);
-          const diamond = res.data.data;
-          console.log(diamond.Price);
-          let diamondImage = "https://via.placeholder.com/150";
-
-          if (diamond.usingImage && diamond.usingImage.length > 0) {
-            const imageIDPromises = diamond.usingImage.map(
-              async (image: any) => {
-                try {
-                  const imageRes = await getImage(image.UsingImageID);
-                  return imageRes || image.url;
-                } catch (error) {
-                  console.error("Error fetching image:", error);
-                  return image.url;
-                }
-              }
-            );
-            const imageURLs = await Promise.all(imageIDPromises);
-            diamondImage = imageURLs[0];
-          }
-
-          diamondDetails[order.DiamondID] = {
-            ...diamond,
-            UsingImage: diamondImage,
-          };
-          subTotal += Number(diamond.Price || 0);
-        } else if (order.ProductID) {
-          const [orderLineRes, productRes] = await Promise.all([
-            OrderLineDetail(order.OrderLineID),
-            getProductDetails(order.ProductID),
-          ]);
-          console.log(orderLineRes.data.data);
-          const jewelrySettingVariantPrice =
-            productRes.data.data.JewelrySetting.jewelrySettingVariant[0].Price;
-          // console.log(productRes.data.data.JewelrySetting.jewelrySettingVariant[0].Price);
-          const inscription = orderLineRes.data.data.Inscription;
-          const totalDimondPrice = productRes.data.data.TotalDiamondPrice;
-
-          const productPrice =
-            orderLineRes.data.data.DiscountPrice +
-            totalDimondPrice +
-            jewelrySettingVariantPrice;
-
-          // console.log(totalDimondPrice)
-          // console.log(productPrice);
-          const productData = productRes.data.data;
-          // console.log(productData);
-
-          // console.log(order.ProductID);
-
-          let productImage = "https://via.placeholder.com/150";
-          console.log(productData.UsingImage);
-          if (productData.UsingImage && productData.UsingImage.length > 0) {
-            const imageIDPromises = productData.UsingImage.map(
-              async (image: any) => {
-                try {
-                  const imageRes = await getImage(image.UsingImageID);
-                  console.log(imageRes);
-                  return imageRes || image.url;
-                } catch (error) {
-                  console.log("Error fetching image product:", error);
-                  return image.url;
-                }
-              }
-            );
-            const imageURLs = await Promise.all(imageIDPromises);
-            productImage = imageURLs[0];
-          }
-          productDetails[order.ProductID] = {
-            ...productData,
-            UsingImage: productImage,
-            Price: productPrice,
-            Inscription: inscription,
-          };
-          subTotal += productPrice || 0;
-        }
-      }
-      console.log("Before setting state:", { productDetails });
-      setDiamondDetails(diamondDetails);
-      setProductDetails(productDetails);
-      setSubTotal(subTotal);
-      console.log("State updated", { diamondDetails, productDetails });
-    } catch (error) {
-      console.error("Error fetching details:", error);
-    }
-  };
   useEffect(() => {
-    console.log("Diamond Details:", diamondDetails);
-    console.log("Product Details:", productDetails);
-  }, [diamondDetails, productDetails]);
+    fetchOrderDetails();
+  }, [orderId]);
 
-  useEffect(() => {
-    if (orderId) {
-      fetchAllOrderLine();
-    }
-  }, [orderId]); // Chạy khi orderId thay đổi
-
-  const hasProductID = (data: (DiamondDetail | ProductDetail)[]) =>
-    data.some((item) => "ProductID" in item);
-
-  const columns: TableColumnGroupType<DiamondDetail | ProductDetail>[] = [
+  const columns: TableColumnGroupType<ProductDetail>[] = [
     {
       title: "Product",
       children: [
@@ -309,12 +180,11 @@ const OrderDetail: React.FC = () => {
           title: "Image",
           dataIndex: "UsingImage",
           key: "UsingImage",
-          // width: "20%",
           render: (usingImage: string | undefined) =>
             usingImage ? (
               <img
                 src={usingImage}
-                alt="Using Image"
+                alt="Product Image"
                 style={{ width: "100px", height: "auto" }}
               />
             ) : (
@@ -325,81 +195,36 @@ const OrderDetail: React.FC = () => {
           title: "Name",
           dataIndex: "Name",
           key: "Name",
-          // width: "10%",
         },
-        ...(hasProductID([...Object.values(productDetails)])
-          ? [
-              {
-                title: "Product Inscription",
-                dataIndex: "Inscription",
-                key: "Inscription",
-              },
-            ]
-          : []),
         {
-          title: "Price",
-          dataIndex: "Price",
+          title: "SKU",
+          dataIndex: "sku",
+          key: "sku",
+        },
+        {
+          title: "Description",
+          dataIndex: "Description", // ✅
+          key: "Description",
+        },
+        {
+          title: "Quantity",
+          dataIndex: "quantity",
+          key: "quantity",
+        },
+        {
+          title: "Unit Price",
+          dataIndex: "Price", // ✅
           key: "Price",
           render: (price: number) => formatPrice(price),
           sorter: (a: any, b: any) => a.Price - b.Price,
           sortDirections: ["descend", "ascend"],
-          // width: "8%",
         },
         {
-          title: "Action",
-          key: "action",
-          render: (_: any, record: DiamondDetail | ProductDetail) => {
-            const isReviewedDiamond = reviewedDiamonds.has(
-              (record as DiamondDetail).DiamondID
-            );
-            const isReviewedProduct = reviewedProducts.has(
-              (record as ProductDetail).ProductID
-            );
-
-            const shouldShowFeedback = order?.OrderStatus === "Completed";
-            if ((record as DiamondDetail).DiamondID) {
-              // Show feedback button only for diamonds if not reviewed
-              return shouldShowFeedback && !isReviewedDiamond ? (
-                <Space size="middle">
-                  <Button
-                    type="link"
-                    onClick={() => {
-                      setSelectedDiamondID((record as DiamondDetail).DiamondID);
-                      setSelectedProductID(null); // Ensure only Diamond ID is set
-                      setIsModalVisible(true);
-                    }}
-                  >
-                    Feedback
-                  </Button>
-                </Space>
-              ) : isReviewedDiamond ? (
-                <span>Feedback Given</span>
-              ) : (
-                <></>
-              );
-            } else if ((record as ProductDetail).ProductID) {
-              // Show feedback button only for products if not reviewed
-              return shouldShowFeedback && !isReviewedProduct ? (
-                <Space size="middle">
-                  <Button
-                    type="link"
-                    onClick={() => {
-                      setSelectedDiamondID(null); // Ensure only Product ID is set
-                      setSelectedProductID((record as ProductDetail).ProductID);
-                      setIsModalVisible(true);
-                    }}
-                  >
-                    Feedback
-                  </Button>
-                </Space>
-              ) : isReviewedProduct ? (
-                <span>Feedback Given</span>
-              ) : (
-                <></>
-              );
-            }
-
-            return <></>;
+          title: "Total",
+          key: "total",
+          render: (_: any, record: ProductDetail) => {
+            const total = record.Price * (record.quantity || 1);
+            return formatPrice(total);
           },
         },
       ],
@@ -410,7 +235,6 @@ const OrderDetail: React.FC = () => {
     console.log("Feedback submitted: ", values);
 
     const { DiamondID, ProductID } = values;
-    console.log(values.DiamondID);
 
     setIsModalVisible(false);
     if (DiamondID) {
@@ -436,6 +260,7 @@ const OrderDetail: React.FC = () => {
       description: "Thank you for your feedback!",
     });
   };
+
   useEffect(() => {
     localStorage.setItem(
       "reviewedDiamonds",
@@ -447,64 +272,29 @@ const OrderDetail: React.FC = () => {
     );
   }, [reviewedDiamonds, reviewedProducts]);
 
-  // useEffect(() => {
-  //   const savedReviewedDiamonds = localStorage.getItem("reviewedDiamonds");
-  //   const savedReviewedProducts = localStorage.getItem("reviewedProducts");
-  //   console.log(localStorage.getItem("reviewedDiamonds"));
-  //   console.log(localStorage.getItem("reviewedProducts"));
-
-  //   if (savedReviewedDiamonds) {
-  //     setReviewedDiamonds(new Set(JSON.parse(savedReviewedDiamonds)));
-  //   }
-
-  //   if (savedReviewedProducts) {
-  //     setReviewedProducts(new Set(JSON.parse(savedReviewedProducts)));
-  //   }
-  // }, []);
-
   return (
     <MainContainer>
       <Container>
         <OrderWrapper>
-          <OrderTitle>Order Detail</OrderTitle>
-
-          {order && (
-            <OrderDetailsContainer>
-              <OrderDetails>
-                <CustomerInfo>{order.NameReceived}</CustomerInfo>
-                <CustomerInfo>{order.PhoneNumber || "0354033629"}</CustomerInfo>
-                <CustomerInfo>
-                  {order.Email || "Hqz0M@example.com"}
-                </CustomerInfo>
-                <CustomerInfo>
-                  {order.Address || "123 Main Street"}
-                </CustomerInfo>
-              </OrderDetails>
-              <InvoiceDetails>
-                <InvoiceInfo>
-                  Invoice Date: {formatDate(order.OrderDate)}
-                </InvoiceInfo>
-                <InvoiceInfo>
-                  Due Date: {formatDate(order.CompleteDate)}
-                </InvoiceInfo>
-                <InvoiceInfo>
-                  Status: <StatusTag status={order.OrderStatus} />
-                </InvoiceInfo>
-              </InvoiceDetails>
-            </OrderDetailsContainer>
-          )}
+          <OrderTitle>Order Information</OrderTitle>
+          <OrderDetailsContainer>
+            <OrderDetails>
+              <CustomerInfo>Order ID: {orderId}</CustomerInfo>
+              <CustomerInfo>
+                Status: <StatusTag status={2} /> {/* Default to Delivered */}
+              </CustomerInfo>
+            </OrderDetails>
+          </OrderDetailsContainer>
         </OrderWrapper>
+
         <ProductsWrapper>
-          <OrderID>Order ID #{orderId}</OrderID>
           <Table
             style={{ backgroundColor: "#e8e8e8" }}
             columns={columns}
-            dataSource={[
-              ...Object.values(diamondDetails),
-              ...Object.values(productDetails),
-            ]}
+            dataSource={productDetails}
             pagination={false}
-            rowKey="id"
+            rowKey="orderDetailId"
+            loading={loading}
           />
           <ReviewForm
             visible={isModalVisible}
@@ -523,13 +313,7 @@ const OrderDetail: React.FC = () => {
             <img
               style={{ width: "150px", objectFit: "contain", maxWidth: "100%" }}
               className="payment-method"
-              src={
-                paymentMethod === "COD"
-                  ? "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Customer%2FCheckout%2FPayment%20-%20Img%2F122290830_132545211952745_2371548508191512996_n.jpg?alt=media&token=13186094-eb53-4e6c-98a0-1e7fe06b3664"
-                  : paymentMethod === "Paypal"
-                  ? "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Customer%2FOrderDetails%2FPaypal.png?alt=media&token=239e4919-44d4-4018-98ed-abcd2ff4a350"
-                  : ""
-              }
+              src={vnpay}
               alt="Payment method"
             />
           </Row>
@@ -540,36 +324,28 @@ const OrderDetail: React.FC = () => {
             </InfoTextBold>
 
             <InfoText>
-              <div> Shipping:</div>
-              <div> {shippingFee > 0 ? formatPrice(shippingFee) : "Free"}</div>
+              <div>Shipping:</div>
+              <div>{shippingFee > 0 ? formatPrice(shippingFee) : "Free"}</div>
             </InfoText>
             <InfoText>
-              <div> Subtotal:</div>
-              <div> {formatPrice(subTotal)}</div>
+              <div>Subtotal:</div>
+              <div>{formatPrice(subTotal)}</div>
             </InfoText>
 
             <br />
             <InfoTextBold style={{ color: "red" }}>
-              <div> Total:</div>
+              <div>Total:</div>
               <div>
-                {" "}
                 {formatPrice(
                   subTotal - (subTotal * discount) / 100 + shippingFee
                 )}
               </div>
-              {paymentMethod === "PayPal" && (
-                <div style={{ color: "green" }}>Payment Received</div>
-              )}
-            </InfoTextBold>
-            <InfoTextBold>
-              {paymentMethod === "Paypal" && (
-                <div style={{ color: "green" }}>Payment Received</div>
-              )}
             </InfoTextBold>
           </Column>
         </OrderInfo>
+
         <EditButton>
-          <Link to={`/history`}>Back </Link>
+          <Link to={`/history`}>Back</Link>
         </EditButton>
       </Container>
     </MainContainer>
@@ -583,7 +359,6 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* padding: 80px 60px 43px; */
   padding-top: 2rem;
   width: 1400px;
   padding-bottom: 3rem;
@@ -628,18 +403,6 @@ const OrderDetails = styled.div`
   }
 `;
 
-const InvoiceDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-  font-size: 18px;
-  font-weight: 400;
-  width: 40%;
-
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-`;
-
 const OrderTitle = styled.h1`
   font-weight: 600;
   font-size: 24px;
@@ -651,15 +414,6 @@ const OrderTitle = styled.h1`
 
 const CustomerInfo = styled.p`
   margin-top: 24px;
-
-  @media (max-width: 768px) {
-    margin-top: 10px;
-    font-size: 16px;
-  }
-`;
-
-const InvoiceInfo = styled.p`
-  margin-top: 20px;
 
   @media (max-width: 768px) {
     margin-top: 10px;
@@ -710,7 +464,7 @@ const InfoText = styled.p`
   margin-top: 20px;
   font-size: 18px;
   display: flex;
-  justify-content: space-between; /* Căn chỉnh các phần tử con */
+  justify-content: space-between;
   align-items: center;
 
   @media (max-width: 768px) {
@@ -723,7 +477,6 @@ const InfoTextBold = styled.p`
   color: #151542;
   margin-top: 20px;
   font-size: 18px;
-  /* font-weight: bold; */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -732,15 +485,6 @@ const InfoTextBold = styled.p`
   @media (max-width: 768px) {
     margin-top: 10px;
     font-size: 16px;
-  }
-`;
-
-const OrderID = styled.h2`
-  font-weight: 600;
-  font-size: 24px;
-
-  @media (max-width: 768px) {
-    font-size: 20px;
   }
 `;
 
@@ -769,7 +513,6 @@ const EditButton = styled.div`
   font-size: 16px;
   border: 1px solid #000;
   background-color: #fff;
-  /* color: #000; */
   align-self: center;
   width: 100px;
   font-weight: 400;
