@@ -7,13 +7,14 @@ import {
   Tag,
   TableProps,
   Button,
+  message,
 } from "antd";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchAllOrderByUserId, updateOrder } from "@/services/orderAPI";
 import useAuth from "@/hooks/useAuth";
-
+import config from "@/config";
 
 const onChange: TableProps<DataType>["onChange"] = (
   pagination,
@@ -97,7 +98,7 @@ const statusColors: Record<string, string> = {
   Accepted: "orange",
   Delivering: "purple",
   Delivered: "blue",
-  Completed: "#32CD32", // Lime green
+  Completed: "#95db95ff", // Lime green
   Confirmed: "cyan",
   Canceled: "volcano",
   Unknown: "green",
@@ -114,38 +115,48 @@ const fetchAllOrder = async (userId: string) => {
   }
 };
 
-const handleConfirm = async (orderId: string) => {
-  try {
-    await updateOrder(orderId);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 const OrderList = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orders, setOrders] = useState<DataType[]>([]);
   const navigate = useNavigate();
   const { AccountID } = useAuth();
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (AccountID) {
-        const ordersData = await fetchAllOrder(AccountID.toString());
-        console.log("Orders data:", ordersData);
-        setOrders(ordersData);
-      }
-    };
-    fetchData();
-  }, [AccountID]);
-
-  const handleOk = () => {
-    setShowModal(false);
-    if (selectedOrderId) {
-      handleConfirm(selectedOrderId);
+  // Function to fetch orders and update state
+  const fetchAndUpdateOrders = async () => {
+    if (AccountID) {
+      const ordersData = await fetchAllOrder(AccountID.toString());
+      console.log("Orders data:", ordersData);
+      setOrders(ordersData);
     }
   };
+
+  useEffect(() => {
+    fetchAndUpdateOrders();
+  }, [AccountID, refreshKey]);
+
+  const handleConfirm = async (orderId: string) => {
+    try {
+      await updateOrder(orderId);
+      message.success("Your Order Is Completed");
+      fetchAndUpdateOrders();
+    } catch (error) {
+      console.error("Failed to confirm order:", error);
+      message.error("Failed to confirm order");
+    }
+  };
+
+const handleOk = async () => {
+  setShowModal(false);
+  if (selectedOrderId) {
+    try {
+      await handleConfirm(selectedOrderId); 
+    } catch (error) {
+      console.error("[handleOk] Error confirming order:", error);
+    }
+  }
+};
 
   const handleCancel = () => {
     setShowModal(false);
@@ -171,29 +182,29 @@ const OrderList = () => {
       sorter: (a: DataType, b: DataType) => a.totalPrice - b.totalPrice,
     },
     {
-  title: "Status",
-  dataIndex: "status",
-  render: (_, { status }) => {
-    const statusText = getStatusText(status);
-    const color = statusColors[statusText] || statusColors.Unknown;
+      title: "Status",
+      dataIndex: "status",
+      render: (_, { status }) => {
+        const statusText = getStatusText(status);
+        const color = statusColors[statusText] || statusColors.Unknown;
 
-    return (
-      <Tag color={color} key={statusText}>
-        {statusText.toUpperCase()}
-      </Tag>
-    );
-  },
-  filters: [
-    { text: "Pending", value: 0 },
-    { text: "Accepted", value: 1 },
-    { text: "Delivering", value: 2 },
-    { text: "Delivered", value: 3 },
-    { text: "Completed", value: 4 },
-    { text: "Confirmed", value: 5 },
-    { text: "Canceled", value: 6 },
-  ],
-  onFilter: (value, record) => record.status === value,
-},
+        return (
+          <Tag color={color} key={statusText}>
+            {statusText.toUpperCase()}
+          </Tag>
+        );
+      },
+      filters: [
+        { text: "Pending", value: 0 },
+        { text: "Accepted", value: 1 },
+        { text: "Delivering", value: 2 },
+        { text: "Delivered", value: 3 },
+        { text: "Completed", value: 4 },
+        { text: "Confirmed", value: 5 },
+        { text: "Canceled", value: 6 },
+      ],
+      onFilter: (value, record) => record.status === value,
+    },
     {
       title: "Action",
       key: "action",
@@ -204,7 +215,7 @@ const OrderList = () => {
           >
             View
           </a>
-          {record.status === 5 && (
+          {record.status === 4 && (
             <Button
               type="primary"
               onClick={() => {

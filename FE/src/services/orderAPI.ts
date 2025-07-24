@@ -129,12 +129,10 @@ export const createOrder = (order: CreateOrderRequest) => {
 };
 
 export const updateOrder = (id: string) => {
-  // ID is Guid, so string
   return put(`/api/Orders/${id}`);
 };
 
 export const deleteOrder = (id: string) => {
-  // ID is Guid, so string
   return remove(`/api/orders/${id}`);
 };
 
