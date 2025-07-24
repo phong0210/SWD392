@@ -18,6 +18,7 @@ import {
 } from "@/services/authAPI";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { FcGoogle } from 'react-icons/fc';
+import { loadCart } from "@/store/slices/cartSlice";
 
 // Login step types - removed OTP_VERIFICATION since login is direct
 enum LoginStep {
@@ -87,34 +88,37 @@ const Login = () => {
     const handleLogin = async (values: LoginFormValues) => {
         setEmail(values.Email);
 
-        // Directly attempt login without OTP
         const resultAction = await dispatch(loginThunk(values));
-        
+
+        // Directly attempt login without OTP
         if (loginThunk.fulfilled.match(resultAction)) {
-            await messageApi.success('Login successfully');
-            const user = resultAction.payload.user;
-            console.log("User Check:", user);
-            
-            switch (user.role) {
-                case Role.HeadOfficeAdmin:
-                    navigate(config.routes.admin.dashboard, { replace: true });
-                    break;
-                case Role.SalesStaff:
-                    navigate(config.routes.salesStaff.dashboard, { replace: true });
-                    break;
-                case Role.DeliveryStaff:
-                    navigate(config.routes.deliStaff.dashboard, { replace: true });
-                    break;
-                default:
-                    navigate(config.routes.public.home, { replace: true });
-            }
-        } else {
-            const errorMsg = typeof resultAction.payload === 'string' 
-                ? resultAction.payload 
-                : 'Login failed';
-            throw new Error(errorMsg);
-        }
-    };
+      await messageApi.success("Login successful");
+      dispatch(loadCart());
+      const user = resultAction.payload.user;
+      console.log("User Check:", user);
+
+      switch (user.role) {
+        case Role.HeadOfficeAdmin:
+          navigate(config.routes.admin.dashboard, { replace: true });
+          break;
+        case Role.SalesStaff:
+          navigate(config.routes.salesStaff.dashboard, { replace: true });
+          break;
+        case Role.DeliveryStaff:
+          navigate(config.routes.deliStaff.dashboard, { replace: true });
+          break;
+        default:
+          navigate(config.routes.public.home, { replace: true });
+      }
+    } else {
+      // Handle error case
+      const errorMsg =
+        typeof resultAction.payload === "string"
+          ? resultAction.payload // If payload is a string, use it directly
+          :  "Login failed"; // Fallback to generic message
+      await messageApi.error(errorMsg); // Use error method for error messages
+    }
+  };
 
     const handleForgotPasswordEmail = async (values: ForgotPasswordEmailValues) => {
         setEmail(values.Email);
@@ -252,6 +256,7 @@ const Login = () => {
             const resultAction = await dispatch(googleLogin(credentialResponse.credential));
             if (googleLogin.fulfilled.match(resultAction)) {
                 await messageApi.success('Login successfully');
+                dispatch(loadCart());
                 const user = resultAction.payload.user;
                 console.log("User Check:", user);
                 

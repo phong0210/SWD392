@@ -9,12 +9,15 @@ type JwtType = {
   iat: number;
 };
 
-export const getAccountID = (): string | null => {
-  const decoded = cookieUtils.decodeJwt() as JwtType;
-  if (!decoded || !decoded.AccountID) return null;
 
+export const getAccountID = (): string | null => {
+    const decoded = cookieUtils.decodeJwt() as JwtType;
+  console.log('[getAccountID] Decoded JWT:', decoded);
+
+  if (!decoded || !decoded.AccountID) return null;
   return decoded.AccountID;
 };
+
 
 export const getRoleFromToken = (): string | null => {
     const decoded = cookieUtils.decodeJwt() as JwtType;

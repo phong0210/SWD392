@@ -17,6 +17,7 @@ import { getCustomer } from "@/services/accountApi";
 import { useDispatch } from 'react-redux';
 import { logout } from '@/store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { clearCart } from "@/services/cartAPI";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -27,16 +28,17 @@ const Sidebar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // Handle logout
-  const handleLogout = () => {
-        dispatch(logout());
-        cookieUtils.clear();
-        navigate(config.routes.public.login);
-  };
+      const handleLogout = () => {
+          clearCart();
+          dispatch(logout());
+          cookieUtils.clear();
+          navigate(config.routes.public.login);
+      };
 
   useEffect(() => {
     //Get staff info
     const getInfo = async () => {
-      const { data } = await getCustomer(AccountID ? AccountID : 0);
+      const { data } = await getCustomer(AccountID ? AccountID : "");
       setStaff(data.data);
     }
     getInfo();
@@ -112,7 +114,7 @@ const Sidebar = () => {
             </div>
           </Styled.SBContent>
 
-          <Styled.SBContent>
+          {/* <Styled.SBContent>
             <div
               className={`btn ${active === "ClientCaring" ? "active-line" : ""}`}
               onClick={() => handleSetActive("ClientCaring")}
@@ -125,7 +127,7 @@ const Sidebar = () => {
                 </Link>
               </Styled.MenuElement>
             </div>
-          </Styled.SBContent>
+          </Styled.SBContent> */}
         </Styled.SBMenu>
       </Styled.SidebarTop>
       <Styled.AccOut>

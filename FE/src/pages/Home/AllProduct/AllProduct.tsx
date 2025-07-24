@@ -121,19 +121,14 @@ const AllProduct: React.FC = () => {
           <div className="bannerContent">
             <LeftSection>
               <h2>FOR LIFE'S MOST JOYFUL OCCASIONS</h2>
-              <h1>All Jewelry</h1>
+              <h1>All Diamond</h1>
               <div className="subheading">
-                Welcome to our All Jewelry Collection, where timeless elegance
-                meets exquisite craftsmanship. Whether you're searching for a
-                stunning ring, a delicate bracelet, an elegant necklace, or
-                dazzling earrings, our diverse selection has something for every
-                taste and occasion. Each piece is meticulously crafted to
-                enhance your unique style and make every moment memorable. From
-                classic designs to contemporary masterpieces, explore our
-                collection and find the perfect jewelry to elevate your look and
-                express your individuality. Discover the beauty and
-                sophistication that our jewelry brings, making every day a
-                special occasion.
+                Welcome to our Diamond Collection
+Experience the brilliance of natural diamonds with our curated collection of timeless elegance and exceptional quality.
+Whether you're seeking the perfect loose diamond or a certified gem for a special occasion, our selection offers something for every taste.
+Each diamond is carefully selected for its cut, clarity, color, and carat—ensuring unmatched beauty and lasting value.
+From classic round cuts to rare fancy shapes, find the diamond that reflects your unique style and story.
+Discover true sophistication—because every diamond tells a story of its own.
               </div>
             </LeftSection>
           </div>

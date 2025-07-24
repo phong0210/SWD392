@@ -188,7 +188,7 @@ const DiamondDetails: React.FC = () => {
             setSameBrandProducts([]);
           }
           if (diamondId !== null) {
-            await fetchFeedbackDetail(diamondId);
+            // await fetchFeedbackDetail(diamondId);
           }
         } else {
           setFoundProduct(null);
@@ -259,19 +259,19 @@ const DiamondDetails: React.FC = () => {
   //   setMainImage(src);
   //   setSelectedThumb(index);
   // };
-  const matchingReviews = reviewsData.filter(
-    (review) => foundProduct && foundProduct.id === review.diamondId
-  );
-  //Avg rating
-  const totalReviews = matchingReviews.length;
-  const totalRating = matchingReviews.reduce(
-    (acc, curr) => acc + curr.rating,
-    0
-  );
-  const averageRating = totalRating / totalReviews;
-  const summaryRating =
-    matchingReviews.length > 0 ? averageRating.toFixed(1) : "0.0";
-  const reviewsCount = matchingReviews.length > 0 ? matchingReviews.length : 0;
+  // const matchingReviews = reviewsData.filter(
+  //   (review) => foundProduct && foundProduct.id === review.diamondId
+  // );
+  // //Avg rating
+  // const totalReviews = matchingReviews.length;
+  // const totalRating = matchingReviews.reduce(
+  //   (acc, curr) => acc + curr.rating,
+  //   0
+  // );
+  // const averageRating = totalRating / totalReviews;
+  // const summaryRating =
+  //   matchingReviews.length > 0 ? averageRating.toFixed(1) : "0.0";
+  // const reviewsCount = matchingReviews.length > 0 ? matchingReviews.length : 0;
 
   const handleAddToCart = async () => {
     if (role) {
@@ -279,7 +279,7 @@ const DiamondDetails: React.FC = () => {
         const OrderLineChild: OrderLineBody = {
           Quantity: 1,
           DiamondID: getParamsID,
-          CustomerID: user?.CustomerID,
+          CustomerID: user?.AccountID,
           ProductID: null,
           OrderID: null,
         };

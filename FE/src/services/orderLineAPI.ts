@@ -5,7 +5,7 @@ export interface OrderLineBody {
   OrderID?: number | null;
   DiamondID?: number | null;
   ProductID?: number | null;
-  CustomerID?: number | null;
+  CustomerID?: number | null | string;
   Inscription?: string | null;
   InscriptionFont?: string | null;
   JewelrySettingVariantID?: number | null;

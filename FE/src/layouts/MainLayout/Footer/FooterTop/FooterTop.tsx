@@ -18,10 +18,6 @@ const NavigationContent = [
         subTitle: "Diamond",
       },
       {
-        id: 2,
-        subTitle: "Gifts",
-      },
-      {
         id: 3,
         subTitle: "Learn About",
       },
@@ -111,12 +107,9 @@ const FooterTop = () => {
           <Styled.ContactUs>
             <Styled.TitleCategory>Information</Styled.TitleCategory>
             <Styled.DescriptionContact>
-              Lorem ipsum dolor sit amet consectetur. Bibendum consequat laoreet
-              turpis in pellentesque sem id ut. Feugiat quam porttitor in augue
-              sed quis pellentesque quam purus. Ac euismod ac proin vitae
-              vulputate. Urna facilisis varius vestibulum at gravida turpis.
-              Viverra imperdiet convallis elementum sed mauris. Ultricies in
-              morbi eu felis nibh tellus.
+              Welcome to APHROMAS, where elegance meets authenticity.
+              We offer certified natural diamonds with premium quality and timeless beauty.
+              Explore our exclusive collection and let each diamond tell your story.
             </Styled.DescriptionContact>
             <Input
               size="large"

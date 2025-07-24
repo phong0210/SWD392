@@ -6,491 +6,270 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 export const items: MenuItem[] = [
   {
+    key: "home",
+    label: (
+      <Link to={config.routes.public.home} underline zoom scroll>
+        Home
+      </Link>
+    ),
+  },
+  {
     key: "diamond",
     label: (
-      <Link to={config.routes.public.diamond} underline zoom scroll>
+      <Link to={config.routes.public.allProduct} underline zoom scroll>
         Diamond
       </Link>
     ),
-    children: [
-      {
-        key: "diamond-shape",
-        label: "Diamond By Shape",
-        type: "group",
-        children: [
-          {
-            key: "shape-1",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "round-shape"
-                )}`}
-              >
-                Round
-              </Link>
-            ),
-          },
-          {
-            key: "shape-2",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "princess-shape"
-                )}`}
-              >
-                Princess
-              </Link>
-            ),
-          },
-          {
-            key: "shape-3",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "cushion-shape"
-                )}`}
-              >
-                Cushion
-              </Link>
-            ),
-          },
-          {
-            key: "shape-4",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "oval-shape"
-                )}`}
-              >
-                Oval
-              </Link>
-            ),
-          },
-          {
-            key: "shape-5",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "emerald-shape"
-                )}`}
-              >
-                Emerald
-              </Link>
-            ),
-          },
-          {
-            key: "shape-6",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "pear-shape"
-                )}`}
-              >
-                Pear
-              </Link>
-            ),
-          },
-          {
-            key: "shape-7",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "asscher-shape"
-                )}`}
-              >
-                Asscher
-              </Link>
-            ),
-          },
-          {
-            key: "shape-8",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "heart-shape"
-                )}`}
-              >
-                Heart
-              </Link>
-            ),
-          },
-          {
-            key: "shape-9",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "radiant-shape"
-                )}`}
-              >
-                Radiant
-              </Link>
-            ),
-          },
-          {
-            key: "shape-10",
-            label: (
-              <Link
-                to={`${config.routes.public.diamondList.replace(
-                  ":diamondShape",
-                  "marquise-shape"
-                )}`}
-              >
-                Marquise
-              </Link>
-            ),
-          },
-        ],
-      },
 
-      {
-        key: "diamond-cutter",
-        label: "Diamond Cutter",
-        type: "group",
-        children: [
-          {
-            key: "cutter-1",
-            label: (
-              <Link
-                to={`${config.routes.public.cutterList.replace(
-                  ":diamondCutter",
-                  "lucara"
-                )}`}
-              >
-                Lucara Diamond
-              </Link>
-            ),
-          },
-          {
-            key: "cutter-2",
-            label: (
-              <Link
-                to={`${config.routes.public.cutterList.replace(
-                  ":diamondCutter",
-                  "petra"
-                )}`}
-              >
-                Petra Diamonds
-              </Link>
-            ),
-          },
-          {
-            key: "cutter-3",
-            label: (
-              <Link
-                to={`${config.routes.public.cutterList.replace(
-                  ":diamondCutter",
-                  "riotinto"
-                )}`}
-              >
-                Rio Tinto Diamonds
-              </Link>
-            ),
-          },
-          {
-            key: "cutter-4",
-            label: (
-              <Link
-                to={`${config.routes.public.cutterList.replace(
-                  ":diamondCutter",
-                  "arlosa"
-                )}`}
-              >
-                Arlosa
-              </Link>
-            ),
-          },
-          {
-            key: "cutter-5",
-            label: (
-              <Link
-                to={`${config.routes.public.cutterList.replace(
-                  ":diamondCutter",
-                  "debeers"
-                )}`}
-              >
-                De Beers Group
-              </Link>
-            ),
-          },
-        ],
-      },
-      {
-        key: "learn-about",
-        label: "Learn About",
-        type: "group",
-        children: [
-          {
-            key: "about-1",
-            label: (
-              <Link to={config.routes.public.shape} underline zoom scroll>
-                Diamond Shape
-              </Link>
-            ),
-          },
-          {
-            key: "about-2",
-            label: (
-              <Link to={config.routes.public.cs} underline zoom scroll>
-                Learn About the 4Cs
-              </Link>
-            ),
-          },
-          {
-            key: "about-3",
-            label: (
-              <Link
-                to={config.routes.public.certification}
-                underline
-                zoom
-                scroll
-              >
-                Diamond Certification
-              </Link>
-            ),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    key: "gift",
-    label: "Gift",
-    children: [
-      {
-        key: "jewelry-type",
-        label: "Jewelry Classification",
-        type: "group",
-        children: [
-          {
-            key: "gift-jewelry-type-1",
-            label: (
-              <Link
-                to={`${config.routes.public.gift.replace(
-                  ":jewelryType",
-                  "top-ten-ring"
-                )}`}
-              >
-                Rings
-              </Link>
-            ),
-          },
-          {
-            key: "gift-jewelry-type-2",
-            label: (
-              <Link
-                to={`${config.routes.public.gift.replace(
-                  ":jewelryType",
-                  "top-ten-necklace"
-                )}`}
-              >
-                Necklaces
-              </Link>
-            ),
-          },
-          {
-            key: "gift-jewelry-type-3",
-            label: (
-              <Link
-                to={`${config.routes.public.gift.replace(
-                  ":jewelryType",
-                  "top-ten-earrings"
-                )}`}
-              >
-                Earrings
-              </Link>
-            ),
-          },
-          {
-            key: "gift-jewelry-type-4",
-            label: (
-              <Link
-                to={`${config.routes.public.gift.replace(
-                  ":jewelryType",
-                  "top-ten-bracelet"
-                )}`}
-              >
-                Bracelet
-              </Link>
-            ),
-          },
-        ],
-      },
-      {
-        key: "gift-ring",
-        label: "Gifts By Occasion",
-        type: "group",
-        children: [
-          {
-            key: "gift-ring-1",
-            label: (
-              <Link
-                to={`${config.routes.public.gift.replace(
-                  ":jewelryType",
-                  "top-ten-engagement-ring"
-                )}`}
-                underline
-                zoom
-                scroll
-              >
-                Engagement Rings
-              </Link>
-            ),
-          },
-          {
-            key: "gift-ring-2",
-            label: (
-              <Link
-                to={`${config.routes.public.gift.replace(
-                  ":jewelryType",
-                  "top-ten-wedding-ring"
-                )}`}
-                underline
-                zoom
-                scroll
-              >
-                Wedding Rings
-              </Link>
-            ),
-          },
-        ],
-      },
-      {
-        key: "gift-jewelry-firm",
-        label: "Jewelry Firm",
-        type: "group",
-        children: [
-          {
-            key: "jewelry-gift-firm-1",
-            label: (
-              <Link
-                to={`${config.routes.public.giftFirm.replace(
-                  ":jewelryFirm",
-                  "top-ten-vancleef&arpels"
-                )}`}
-              >
-                Van Cleef & Arpels
-              </Link>
-            ),
-          },
-          {
-            key: "jewelry-gift-firm-2",
-            label: (
-              <Link
-                to={`${config.routes.public.giftFirm.replace(
-                  ":jewelryFirm",
-                  "top-ten-harrywinston"
-                )}`}
-              >
-                Harry Winston
-              </Link>
-            ),
-          },
-          {
-            key: "jewelry-gift-firm-3",
-            label: (
-              <Link
-                to={`${config.routes.public.giftFirm.replace(
-                  ":jewelryFirm",
-                  "top-ten-cartier"
-                )}`}
-              >
-                Cartier
-              </Link>
-            ),
-          },
-          {
-            key: "jewelry-gift-firm-4",
-            label: (
-              <Link
-                to={`${config.routes.public.giftFirm.replace(
-                  ":jewelryFirm",
-                  "top-ten-tiffany&co"
-                )}`}
-              >
-                Tiffany & Co
-              </Link>
-            ),
-          },
-          {
-            key: "jewelry-gift-firm-5",
-            label: (
-              <Link
-                to={`${config.routes.public.giftFirm.replace(
-                  ":jewelryFirm",
-                  "top-ten-bvlgari"
-                )}`}
-              >
-                Bvlgari
-              </Link>
-            ),
-          },
-        ],
-      },
-      {
-        key: "learn-about-gift",
-        label: "Learn About",
-        type: "group",
-        children: [
-          {
-            key: "learn-jewelry-gift-1",
-            label: (
-              <Link to={config.routes.public.buying} underline zoom scroll>
-                Buying Guide
-              </Link>
-            ),
-          },
-          {
-            key: "learn-jewelry-gift-2",
-            label: (
-              <Link to={config.routes.public.cs} underline zoom scroll>
-                Learn About the 4Cs
-              </Link>
-            ),
-          },
-          {
-            key: "learn-jewelry-gift-3",
-            label: (
-              <Link to={config.routes.public.size} underline zoom scroll>
-                Find your ring size
-              </Link>
-            ),
-          },
-          {
-            key: "learn-jewelry-gift-4",
-            label: (
-              <Link to={config.routes.public.necklaceEdu} underline zoom scroll>
-                Necklace Education
-              </Link>
-            ),
-          },
-          {
-            key: "learn-jewelry-gift-5",
-            label: (
-              <Link to={config.routes.public.braceletEdu} underline zoom scroll>
-                Bracelet Education
-              </Link>
-            ),
-          },
-          {
-            key: "learn-jewelry-gift-6",
-            label: (
-              <Link to={config.routes.public.earringEdu} underline zoom scroll>
-                Earrings Education
-              </Link>
-            ),
-          },
-        ],
-      },
-    ],
+   
+    // children: [
+  //     {
+  //       key: "diamond-shape",
+  //       label: "Diamond By Shape",
+  //       type: "group",
+  //       children: [
+  //         {
+  //           key: "shape-1",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "round-shape"
+  //               )}`}
+  //             >
+  //               Round
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-2",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "princess-shape"
+  //               )}`}
+  //             >
+  //               Princess
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-3",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "cushion-shape"
+  //               )}`}
+  //             >
+  //               Cushion
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-4",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "oval-shape"
+  //               )}`}
+  //             >
+  //               Oval
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-5",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "emerald-shape"
+  //               )}`}
+  //             >
+  //               Emerald
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-6",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "pear-shape"
+  //               )}`}
+  //             >
+  //               Pear
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-7",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "asscher-shape"
+  //               )}`}
+  //             >
+  //               Asscher
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-8",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "heart-shape"
+  //               )}`}
+  //             >
+  //               Heart
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-9",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "radiant-shape"
+  //               )}`}
+  //             >
+  //               Radiant
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "shape-10",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.diamondList.replace(
+  //                 ":diamondShape",
+  //                 "marquise-shape"
+  //               )}`}
+  //             >
+  //               Marquise
+  //             </Link>
+  //           ),
+  //         },
+  //       ],
+  //     },
+
+  //     {
+  //       key: "diamond-cutter",
+  //       label: "Diamond Cutter",
+  //       type: "group",
+  //       children: [
+  //         {
+  //           key: "cutter-1",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.cutterList.replace(
+  //                 ":diamondCutter",
+  //                 "lucara"
+  //               )}`}
+  //             >
+  //               Lucara Diamond
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "cutter-2",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.cutterList.replace(
+  //                 ":diamondCutter",
+  //                 "petra"
+  //               )}`}
+  //             >
+  //               Petra Diamonds
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "cutter-3",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.cutterList.replace(
+  //                 ":diamondCutter",
+  //                 "riotinto"
+  //               )}`}
+  //             >
+  //               Rio Tinto Diamonds
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "cutter-4",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.cutterList.replace(
+  //                 ":diamondCutter",
+  //                 "arlosa"
+  //               )}`}
+  //             >
+  //               Arlosa
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "cutter-5",
+  //           label: (
+  //             <Link
+  //               to={`${config.routes.public.cutterList.replace(
+  //                 ":diamondCutter",
+  //                 "debeers"
+  //               )}`}
+  //             >
+  //               De Beers Group
+  //             </Link>
+  //           ),
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       key: "learn-about",
+  //       label: "Learn About",
+  //       type: "group",
+  //       children: [
+  //         {
+  //           key: "about-1",
+  //           label: (
+  //             <Link to={config.routes.public.shape} underline zoom scroll>
+  //               Diamond Shape
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "about-2",
+  //           label: (
+  //             <Link to={config.routes.public.cs} underline zoom scroll>
+  //               Learn About the 4Cs
+  //             </Link>
+  //           ),
+  //         },
+  //         {
+  //           key: "about-3",
+  //           label: (
+  //             <Link
+  //               to={config.routes.public.certification}
+  //               underline
+  //               zoom
+  //               scroll
+  //             >
+  //               Diamond Certification
+  //             </Link>
+  //           ),
+  //         },
+  //       ],
+  //     },
+  //   ],
   },
   {
     key: "learn-about",
@@ -508,6 +287,7 @@ export const items: MenuItem[] = [
       </Link>
     ),
   },
+];
   // {
   //   key: "diamond-ring",
   //   label: "Diamond Ring",
@@ -1598,4 +1378,3 @@ export const items: MenuItem[] = [
   //     },
   //   ],
   // },
-];
