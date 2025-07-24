@@ -2,80 +2,85 @@ import { Link, useNavigate } from "react-router-dom";
 import * as CartStyled from "./Cart.styled";
 import PromoCodeSection from "../../../components/Customer/Checkout/PromoCode";
 import { useAppDispatch, useDocumentTitle, useAppSelector } from "@/hooks";
-import {  useState } from "react";
+import { useState } from "react";
 import CartItem from "@/components/Customer/Cart/CartItem";
 import config from "@/config";
 import { Empty, notification } from "antd";
 import { removeFromCart, clearCart } from "@/store/slices/cartSlice";
 
-
 const Cart = () => {
-    useDocumentTitle("Cart | Aphromas Diamond");
+  useDocumentTitle("Cart | Aphromas Diamond");
 
-    const navigate = useNavigate();
-    const [api, contextHolder] = notification.useNotification();
-    const dispatch = useAppDispatch();
-    const cartItems = useAppSelector((state) => state.cart.items);
+  const navigate = useNavigate();
+  const [api, contextHolder] = notification.useNotification();
+  const dispatch = useAppDispatch();
+  const cartItems = useAppSelector((state) => state.cart.items);
 
-    const [discount, setDiscount] = useState(0);
-    const onApplyVoucher = (discount: number, voucherID: number) => {
-        setDiscount(discount);
-        localStorage.setItem("selectedVoucher", JSON.stringify({ discount, voucherID }));
-    };
+  const [discount, setDiscount] = useState(0);
+  const onApplyVoucher = (discount: number, voucherID: number) => {
+    setDiscount(discount);
+    localStorage.setItem(
+      "selectedVoucher",
+      JSON.stringify({ discount, voucherID })
+    );
+  };
 
-    const calculateTotal = (
-        subtotal: number,
-        discount: number,
-        shippingCost: number
-    ) => {
-        return subtotal - (subtotal * discount) / 100 + shippingCost;
-    };
+  const calculateTotal = (
+    subtotal: number,
+    discount: number,
+    shippingCost: number
+  ) => {
+    return subtotal - (subtotal * discount) / 100 + shippingCost;
+  };
 
-    const subtotal = cartItems.reduce((acc, item) => {
-        return acc + item.price * item.quantity;
-    }, 0);
+  const subtotal = cartItems.reduce((acc, item) => {
+    return acc + item.price * item.quantity;
+  }, 0);
 
-    const shippingCost = cartItems.length > 0 ? 15 : 0;
-    const total = calculateTotal(subtotal, discount, shippingCost).toFixed(2);
+  const shippingCost = cartItems.length > 0 ? 15 : 0;
+  const total = calculateTotal(subtotal, discount, shippingCost).toFixed(2);
 
-    const handleRemove = (itemId: string) => {
-        dispatch(removeFromCart(itemId));
-        api.success({
-            message: 'Notification',
-            description: 'Remove product successfully!'
-        });
-    };
+  const handleRemove = (itemId: string) => {
+    dispatch(removeFromCart(itemId));
+    api.success({
+      message: "Notification",
+      description: "Remove product successfully!",
+    });
+  };
 
-    const handleView = (itemId: string) => {
-        const item = cartItems.find((item) => item.id === itemId);
-        if (item) {
-            if (item.productId) {
-                navigate(config.routes.public.productDetail.replace(':id', item.productId));
-            } else if (item.diamondId) {
-                navigate(config.routes.public.diamondDetail.replace(':id', item.diamondId));
-            }
-        }
-      };
+  const handleView = (itemId: string) => {
+    const item = cartItems.find((item) => item.id === itemId);
+    if (item) {
+      if (item.productId) {
+        navigate(
+          config.routes.public.productDetail.replace(":id", item.productId)
+        );
+      } else if (item.diamondId) {
+        navigate(
+          config.routes.public.diamondDetail.replace(":id", item.diamondId)
+        );
+      }
+    }
+  };
 
+  const handleCheckout = () => {
+    if (cartItems.length === 0) {
+      api.warning({
+        message: "Notification",
+        description: "Your cart doesn't have any products!",
+      });
+    } else {
+      navigate(config.routes.customer.checkout);
+    }
+  };
 
-    const handleCheckout = () => {
-        if (cartItems.length === 0) {
-            api.warning({
-                message: 'Notification',
-                description: "Your cart doesn't have any products!"
-            });
-        } else {
-            navigate(config.routes.customer.checkout);
-        }
-    };
-
-    // const handleClearCart = () => {
-    //     dispatch(clearCart());
-    //     api.success({
-    //         message: 'Notification',
-    //         description: 'Cart cleared successfully!'
-    //     });
-    // };
+  // const handleClearCart = () => {
+  //     dispatch(clearCart());
+  //     api.success({
+  //         message: 'Notification',
+  //         description: 'Cart cleared successfully!'
+  //     });
+  // };
 
   return (
     <>
@@ -97,27 +102,27 @@ const Cart = () => {
             </CartStyled.CountCart>
 
             <CartStyled.MainSection>
-                <CartStyled.Column>
-                    {cartItems.length === 0 ? (
-                        <Empty description="Your cart doesn't have anything here" />
-                    ) : (
-                        <>
-                            {cartItems.map((item) => (
-                                <CartItem
-                                    key={item.id}
-                                    id={item.id}
-                                    name={item.name}
-                                    price={item.price}
-                                    quantity={item.quantity}
-                                    image={item.image}
-                                    handleRemove={() => handleRemove(item.id)}
-                                    handleView={() => handleView(item.id)}
-                                />
-                            ))}
-                        </>
-                    )}
-                </CartStyled.Column>
-                
+              <CartStyled.Column>
+                {cartItems.length === 0 ? (
+                  <Empty description="Your cart doesn't have anything here" />
+                ) : (
+                  <>
+                    {cartItems.map((item) => (
+                      <CartItem
+                        key={item.id}
+                        id={item.id}
+                        name={item.name}
+                        price={item.price}
+                        quantity={item.quantity}
+                        image={item.image}
+                        handleRemove={() => handleRemove(item.id)}
+                        handleView={() => handleView(item.id)}
+                      />
+                    ))}
+                  </>
+                )}
+              </CartStyled.Column>
+
               <CartStyled.Sidebar>
                 <CartStyled.SummaryContainer>
                   <CartStyled.SummaryDetails>
@@ -131,17 +136,20 @@ const Cart = () => {
                       </CartStyled.AppliedPromo>
                     )}
                     <CartStyled.SummaryRow>
-
-                      {cartItems.length === 0 ? <></> :
+                      {cartItems.length === 0 ? (
+                        <></>
+                      ) : (
                         <>
                           <CartStyled.SummaryLabel>
                             Shipping
                           </CartStyled.SummaryLabel>
                           <CartStyled.SummaryValue>
-                            {shippingCost > 0 ? `${shippingCost.toFixed(2)}` : "Free"}
+                            {shippingCost > 0
+                              ? `${shippingCost.toFixed(2)}`
+                              : "Free"}
                           </CartStyled.SummaryValue>
                         </>
-                      }
+                      )}
                     </CartStyled.SummaryRow>
                     <CartStyled.SummaryRow>
                       <CartStyled.SummaryLabel>
@@ -157,9 +165,7 @@ const Cart = () => {
                       <CartStyled.TotalValue>${total}</CartStyled.TotalValue>
                     </CartStyled.SummaryTotal>
                   </CartStyled.SummaryDetails>
-                  <CartStyled.CheckoutButton
-                    onClick={handleCheckout}
-                  >
+                  <CartStyled.CheckoutButton onClick={handleCheckout}>
                     CHECKOUT
                   </CartStyled.CheckoutButton>
                   {/* <CartStyled.OrDivider>OR</CartStyled.OrDivider>

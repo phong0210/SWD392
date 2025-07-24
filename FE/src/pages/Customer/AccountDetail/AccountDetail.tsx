@@ -17,9 +17,7 @@ interface Account {
   address: string;
 }
 
-
-
-const fetchCustomerInfo = async (AccountID: number) => {
+const fetchCustomerInfo = async (AccountID: string) => {
   try {
     const { data } = await getCustomer(AccountID);
     console.log("data for getCustomer:", data);

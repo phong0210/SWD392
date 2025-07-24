@@ -73,6 +73,7 @@ export interface CreateOrderRequest {
     UnitPrice: number;
   }>;
   PaymentMethod: string;
+  TotalPrice: number;
 }
 
 export type OrderItemRequest = {
@@ -95,6 +96,10 @@ export type UpdateOrderRequestKey = {
 
 export const showAllOrder = () => {
   return get(`/api/Orders`);
+};
+
+export const getOrderDetailDetail = (id: string) => {
+  return get(`/api/OrderDetail/GetOrderDetailByOrderId/${id}`);
 };
 
 export const fetchAllOrderByUserId = (id: string) => {

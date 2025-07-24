@@ -10,7 +10,7 @@ const Loyalty = () => {
   const [loyaltyPoints, setLoyaltyPoints] = useState<any>(null);
 
   useEffect(() => {
-    if (AccountID && AccountID !== 0) {
+    if (AccountID && AccountID !== null && AccountID !== "") {
       const fetchLoyaltyPoints = async () => {
         try {
           const { data } = await loyaltyAPI.getLoyaltyPointByUserId(

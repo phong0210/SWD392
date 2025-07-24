@@ -10,7 +10,11 @@ import { Container } from "./ThankPage.styled";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import config from "@/config";
 import { useAppSelector, useAppDispatch } from "@/hooks";
-import { captureOrderPaypalAsync, handleVNPayReturnAsync, resetOrderStatus } from "@/store/slices/orderSlice";
+import {
+  captureOrderPaypalAsync,
+  handleVNPayReturnAsync,
+  resetOrderStatus,
+} from "@/store/slices/orderSlice";
 
 const ThankPageSuccess: React.FC = () => {
   const { order, status, error } = useAppSelector((state) => state.order);
@@ -19,34 +23,54 @@ const ThankPageSuccess: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log('[ThankPageSuccess] Current order state:', { order, status, error });
+    console.log("[ThankPageSuccess] Current order state:", {
+      order,
+      status,
+      error,
+    });
     const params = new URLSearchParams(location.search);
-    const token = params.get('token'); // PayPal token
-    const vnpResponseCode = params.get('vnp_ResponseCode'); // VNPay response code
+    const token = params.get("token"); // PayPal token
+    const vnpResponseCode = params.get("vnp_ResponseCode"); // VNPay response code
 
-    if (token && status !== 'loading') {
-      console.log('[ThankPageSuccess] Capturing PayPal payment with token:', token);
+    if (token && status !== "loading") {
+      console.log(
+        "[ThankPageSuccess] Capturing PayPal payment with token:",
+        token
+      );
       dispatch(captureOrderPaypalAsync(token));
-    } else if (vnpResponseCode && status !== 'loading') {
-      console.log('[ThankPageSuccess] Handling VNPay return with responseCode:', vnpResponseCode);
+    } else if (vnpResponseCode && status !== "loading") {
+      console.log(
+        "[ThankPageSuccess] Handling VNPay return with responseCode:",
+        vnpResponseCode
+      );
       dispatch(handleVNPayReturnAsync(params));
     }
 
     return () => {
-      console.log('[ThankPageSuccess] Cleaning up, removing CurrentOrderID from localStorage');
+      console.log(
+        "[ThankPageSuccess] Cleaning up, removing CurrentOrderID from localStorage"
+      );
       localStorage.removeItem("CurrentOrderID");
       dispatch(resetOrderStatus());
     };
   }, [location.search, dispatch]);
 
   // Loading state
-  if (status === 'loading') {
-    console.log('[ThankPageSuccess] Rendering loading state');
+  if (status === "loading") {
+    console.log("[ThankPageSuccess] Rendering loading state");
     return (
       <Container>
-        <div className="thank-page-success-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div
+          className="thank-page-success-container"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           <Spin size="large" />
-          <p style={{ marginLeft: '20px', fontSize: '18px' }}>
+          <p style={{ marginLeft: "20px", fontSize: "18px" }}>
             Finalizing your order...
           </p>
         </div>
@@ -55,14 +79,22 @@ const ThankPageSuccess: React.FC = () => {
   }
 
   // Failure state
-  if (status === 'failed' || !order || !order.id) {
-    console.log('[ThankPageSuccess] Rendering failure state, error:', error, 'order:', order);
+  if (status === "failed" || !order || !order.id) {
+    console.log(
+      "[ThankPageSuccess] Rendering failure state, error:",
+      error,
+      "order:",
+      order
+    );
     return (
       <Container>
         <Result
           status="error"
           title="Order Processing Failed"
-          subTitle={error || "Sorry, there was a problem processing your order. Please try again."}
+          subTitle={
+            error ||
+            "Sorry, there was a problem processing your order. Please try again."
+          }
           extra={[
             <Link to={config.routes.public.home} key="home">
               <button className="home">Go to Homepage</button>
@@ -77,7 +109,10 @@ const ThankPageSuccess: React.FC = () => {
   }
 
   // Success state
-  console.log('[ThankPageSuccess] Rendering success state for order:', order.id);
+  console.log(
+    "[ThankPageSuccess] Rendering success state for order:",
+    order.id
+  );
   return (
     <Container>
       <div className="thank-page-success-container">
@@ -109,7 +144,9 @@ const ThankPageSuccess: React.FC = () => {
 
                       <div className="content">
                         <p className="label">DATE</p>
-                        <p className="info">{new Date(order.orderDate).toLocaleString()}</p>
+                        <p className="info">
+                          {new Date(order.orderDate).toLocaleString()}
+                        </p>
                       </div>
 
                       <div className="content">
@@ -124,7 +161,9 @@ const ThankPageSuccess: React.FC = () => {
 
                       <div className="content end">
                         <p className="label">PAYMENT METHOD</p>
-                        <p className="info">{order.payments?.[0]?.method || 'COD'}</p>
+                        <p className="info">
+                          {order.payments?.[0]?.method || "COD"}
+                        </p>
                       </div>
                     </Col>
                   </Row>
@@ -179,8 +218,13 @@ const ThankPageSuccess: React.FC = () => {
             <button
               className="track"
               onClick={() => {
-                console.log('[ThankPageSuccess] Navigating to order details for order:', order.id);
-                navigate(`${config.routes.customer.orderDetails}?orderId=${order.id}`);
+                console.log(
+                  "[ThankPageSuccess] Navigating to order details for order:",
+                  order.id
+                );
+                navigate(
+                  `${config.routes.customer.orderDetails}?orderId=${order.id}`
+                );
               }}
             >
               TRACK ORDER

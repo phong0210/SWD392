@@ -177,6 +177,9 @@ Discover true sophistication—because every diamond tells a story of its own.
                           <div>{product.name}</div>
                         </Link>
                       </Title>
+                      <div className="price-container">
+                        <Text className="product-price">${product.price}</Text>
+                      </div>
                     </div>
                   </Card>
                 </Col>
