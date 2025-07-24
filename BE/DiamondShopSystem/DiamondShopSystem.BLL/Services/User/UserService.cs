@@ -105,6 +105,48 @@ namespace DiamondShopSystem.BLL.Services.User
             };
         }
 
+        public async Task<UserUpdateResponseDto> DeactivateUserAsync(Guid userId)
+        {
+            var userRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.User>();
+            var userEntity = await userRepo.GetByIdAsync(userId);
+
+            if (userEntity == null)
+            {
+                return new UserUpdateResponseDto
+                {
+                    Success = false,
+                    Error = "User not found"
+                };
+            }
+
+            userEntity.Status = false;
+            userRepo.Update(userEntity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new UserUpdateResponseDto { Success = true };
+        }
+
+        public async Task<UserUpdateResponseDto> RemoveStaffRoleAsync(Guid userId)
+        {
+            var staffProfileRepo = _unitOfWork.Repository<StaffProfile>();
+            var staffProfiles = await staffProfileRepo.FindAsync(sp => sp.UserId == userId);
+            var staffProfile = staffProfiles.FirstOrDefault();
+
+            if (staffProfile == null)
+            {
+                return new UserUpdateResponseDto
+                {
+                    Success = false,
+                    Error = "Staff profile not found for this user"
+                };
+            }
+
+            staffProfileRepo.Remove(staffProfile);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new UserUpdateResponseDto { Success = true };
+        }
+
         private async Task<string> GetUserRoleNameAsync(Guid userId)
         {
             var userRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.User>();

@@ -7,6 +7,8 @@ using DiamondShopSystem.BLL.Handlers.User.Commands.Update;
 using DiamondShopSystem.API.Policies;
 using DiamondShopSystem.BLL.Handlers.User.Commands.ConfirmRegistration;
 using DiamondShopSystem.BLL.Handlers.User.Commands.PromoteUserToStaff;
+using DiamondShopSystem.BLL.Handlers.User.Commands.RemoveStaffRole;
+using DiamondShopSystem.BLL.Handlers.User.Commands.Deactivate;
 
 
 namespace DiamondShopSystem.API.Controllers
@@ -67,6 +69,17 @@ namespace DiamondShopSystem.API.Controllers
             return Ok(result);
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeactivateUser(Guid id)
+        {
+            var result = await _mediator.Send(new DeactivateUserCommand(id));
+            if (!result.Success)
+            {
+                return NotFound(result);
+            }
+            return NoContent();
+        }
+
         [HttpPost("promote-to-staff")]
         public async Task<IActionResult> PromoteToStaff([FromBody] PromoteUserToStaffCommand command)
         {
@@ -75,5 +88,17 @@ namespace DiamondShopSystem.API.Controllers
                 return BadRequest(new { message = "Failed to promote user to staff." });
             return Ok(new { message = "User promoted to staff successfully." });
         }
+
+        [HttpDelete("staff-demote/{id}")]
+        public async Task<IActionResult> RemoveStaffRole(Guid id)
+        {
+            var result = await _mediator.Send(new RemoveStaffRoleCommand(id));
+            if (!result.Success)
+            {
+                return NotFound(result);
+            }
+            return NoContent();
+        }
     }
 }
+

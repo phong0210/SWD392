@@ -8,5 +8,8 @@ namespace DiamondShopSystem.BLL.Services.User
     {
         Task<UserGetResponseDto> GetUserByIdAsync(Guid userId);
         Task<UserUpdateResponseDto> UpdateUserAccountAsync(Guid userId, UserUpdateDto updateDto);
+        Task<UserUpdateResponseDto> DeactivateUserAsync(Guid userId);
+        Task<UserUpdateResponseDto> RemoveStaffRoleAsync(Guid userId);
     }
-} 
+}
+ 
