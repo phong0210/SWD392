@@ -97,6 +97,10 @@ export const showAllOrder = () => {
   return get(`/api/Orders`);
 };
 
+export const getOrderDetailDetail = (id: string) => {
+  return get(`/api/OrderDetail/GetOrderDetailByOrderId/${id}`);
+};
+
 export const fetchAllOrderByUserId = (id: string) => {
   return get(`/api/Orders/user/${id}`);
 };
