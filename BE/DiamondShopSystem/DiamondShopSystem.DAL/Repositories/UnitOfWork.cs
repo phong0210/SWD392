@@ -1,3 +1,4 @@
+using DiamondShopSystem.DAL.Repositories.Contracts;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
@@ -8,11 +9,14 @@ namespace DiamondShopSystem.DAL.Repositories
     {
         private readonly AppDbContext _context;
         private Hashtable? _repositories;
+        private IOrderRepository? _orderRepository;
 
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
         }
+
+        public IOrderRepository OrderRepository => _orderRepository ??= new OrderRepository(_context);
 
         public IGenericRepository<T> Repository<T>() where T : class
         {

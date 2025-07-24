@@ -9,6 +9,7 @@ using DiamondShopSystem.BLL.Handlers.Product.Validators;
 using DiamondShopSystem.BLL.Handlers.Warranty.DTOs;
 using DiamondShopSystem.BLL.Handlers.Delivery.Validators;
 using DiamondShopSystem.BLL.Handlers.Delivery.DTOs;
+using DiamondShopSystem.BLL.Services.Order;
 
 namespace DiamondShopSystem.BLL.Handlers
 {
@@ -24,8 +25,11 @@ namespace DiamondShopSystem.BLL.Handlers
             services.AddScoped<IValidator<WarrantyUpdateDto>, WarrantyUpdateValidator>();
             services.AddScoped<IValidator<CreateDeliveryDto>, CreateDeliveryDtoValidator>();
             services.AddScoped<IValidator<UpdateDeliveryDto>, UpdateDeliveryDtoValidator>();
+            
             // Add more validators here as needed
+            services.AddScoped<IOrderService, OrderService>();
+            
             return services;
         }
     }
-} 
+}

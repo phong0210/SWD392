@@ -65,11 +65,11 @@ namespace DiamondShopSystem.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] UpdateOrderDto updateOrderDto)
+        public async Task<IActionResult> UpdateOrder(Guid id)
         {
             try
             {
-                var result = await _mediator.Send(new OrderUpdateCommand(id, updateOrderDto));
+                var result = await _mediator.Send(new OrderUpdateCommand(id, new UpdateOrderDto()));
                 if (!result.Success)
                 {
                     return BadRequest(result);
@@ -147,6 +147,21 @@ namespace DiamondShopSystem.API.Controllers
                     return NotFound(result);
                 }
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details here
+                return StatusCode(500, new { error = "An error occurred while processing your request.", details = ex.Message });
+            }
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<List<OrderResponseDto>>> GetOrdersByUserId(Guid userId)
+        {
+            try
+            {
+                var orders = await _mediator.Send(new DiamondShopSystem.BLL.Handlers.Order.Queries.GetByUserId.GetOrdersByUserIdQuery { UserId = userId });
+                return Ok(orders);
             }
             catch (Exception ex)
             {
