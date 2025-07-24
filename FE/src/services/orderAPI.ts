@@ -38,8 +38,6 @@ export type OrderResponseFE = {
     Payments: PaymentResponseFE[];
 }
 
-// Keep OrderAPIProps for create/update if still used, or refactor it to match CreateOrderDto/UpdateOrderDto
-// For now, I'll keep it as is, but it's highly recommended to align it with your BE DTOs for create/update operations.
 export type OrderItemRequest = {
     ProductId: string; // Guid in C# maps to string in TS
     Quantity: number;
@@ -79,7 +77,7 @@ export const orderRelation = (id: string) => { // ID is Guid, so string
 }
 
 export const createOrder = (order: CreateOrderRequest) => {
-    return post(`/api/orders/create`, order); // Changed endpoint to /api/orders/create
+    return post(`/api/Orders/create`, order); // Fixed endpoint to match your curl example
 }
 
 export const updateOrder = (id: string, order: UpdateOrderRequest) => { // ID is Guid, so string
