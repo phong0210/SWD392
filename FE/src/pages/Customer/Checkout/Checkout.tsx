@@ -14,10 +14,8 @@ import { getCustomer } from "@/services/accountApi";
 import { PaymentMethodEnum } from "@/utils/enum";
 import { useAppDispatch, useAppSelector } from "@/hooks";
 import { createOrderAsync, resetOrderStatus } from "@/store/slices/orderSlice";
-import { createOrderPaypal } from "@/services/paymentAPI";
+import { createOrderPaypal, createVnPayPayment } from "@/services/paymentAPI";
 import { clearCart } from "@/store/slices/cartSlice";
-
-const description = "This is a description";
 
 const Checkout: React.FC = () => {
   const { AccountID, user } = useAuth();
@@ -37,6 +35,42 @@ const Checkout: React.FC = () => {
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState(false);
 
+  // Fetch customer details
+  const getCustomerDetail = React.useCallback(async () => {
+    if (user?.CustomerID) {
+      setCustomerID(user.CustomerID);
+      return;
+    }
+    
+    if (AccountID === null || AccountID === undefined) return;
+    
+    try {
+      const customer = await getCustomer(AccountID);
+      if (customer?.data?.data) {
+        setCustomer(customer.data.data);
+        setCustomerID(customer.data.data.CustomerID);
+      }
+    } catch (error) {
+      console.error("[Checkout] Error fetching customer details:", error);
+    }
+  }, [AccountID, user?.CustomerID]);
+
+  // Fetch provinces data
+  const fetchProvincesData = React.useCallback(async () => {
+    try {
+      const data = await getProvinces();
+      setProvinces(data);
+    } catch (error) {
+      console.error("[Checkout] Error fetching provinces:", error);
+    }
+  }, []);
+
+  // Initial data fetch
+  useEffect(() => {
+    getCustomerDetail();
+    fetchProvincesData();
+  }, [getCustomerDetail, fetchProvincesData]);
+
   // Cleanup on unmount only if order creation failed
   useEffect(() => {
     return () => {
@@ -51,7 +85,10 @@ const Checkout: React.FC = () => {
   useEffect(() => {
     if (orderStatus === 'succeeded' && order && order.id) {
       console.log('[Checkout] Order status succeeded, order:', order);
-      if (order.payments && order.payments[0]?.method === PaymentMethodEnum.PAYPAL.toString()) {
+      
+      const paymentMethod = order.payments?.[0]?.method;
+      
+      if (paymentMethod === PaymentMethodEnum.PAYPAL.toString()) {
         console.log('[Checkout] Initiating PayPal flow for order:', order.id);
         createOrderPaypal(order.totalPrice)
           .then(createPayment => {
@@ -71,7 +108,35 @@ const Checkout: React.FC = () => {
             });
             setLoading(false);
           });
+      } else if (paymentMethod === PaymentMethodEnum.VNPAY.toString()) {
+        console.log('[Checkout] Initiating VNPay flow for order:', order.id);
+        createVnPayPayment({
+          amount: order.totalPrice,
+          orderDescription: `Payment for order #${order.id}`,
+          name: Customer?.Name || user?.Name || 'Customer',
+          orderId: order.id,
+          returnUrlSuccess: `${window.location.origin}${config.routes.public.success}`,
+          returnUrlFail: `${window.location.origin}${config.routes.public.fail}`,
+        })
+          .then(createPayment => {
+            const approvalUrl = createPayment.data.url;
+            if (approvalUrl) {
+              console.log('[Checkout] Redirecting to VNPay approval URL:', approvalUrl);
+              window.location.href = approvalUrl;
+            } else {
+              throw new Error('VNPay approval URL not found');
+            }
+          })
+          .catch(error => {
+            console.error('[Checkout] VNPay error:', error);
+            api.error({
+              message: 'VNPay Error',
+              description: error.message || 'Failed to create VNPay payment. Please try again.',
+            });
+            setLoading(false);
+          });
       } else {
+        // COD or other payment methods
         console.log('[Checkout] Navigating to success page for COD order:', order.id);
         dispatch(clearCart());
         navigate(config.routes.public.success);
@@ -84,37 +149,7 @@ const Checkout: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [orderStatus, order, orderError, navigate, api]);
-
-  const fetchProvincesData = async () => {
-    try {
-      const data = await getProvinces();
-      setProvinces(data);
-    } catch (error) {
-      console.error("[Checkout] Error fetching provinces:", error);
-    }
-  };
-
-  const getCustomerDetail = async () => {
-    if (user?.CustomerID) {
-      setCustomerID(user.CustomerID);
-      return;
-    }
-    
-    if (AccountID === null) return;
-    try {
-      const customer = await getCustomer(AccountID ? AccountID : 0);
-      setCustomer(customer?.data?.data);
-      setCustomerID(customer ? customer.data.data.CustomerID : 0);
-    } catch (error) {
-      console.error("[Checkout] Error fetching customer details:", error);
-    }
-  };
-
-  React.useEffect(() => {
-    getCustomerDetail();
-    fetchProvincesData();
-  }, [Customer?.CustomerID, AccountID]);
+  }, [orderStatus, order, orderError, navigate, api, Customer?.Name, user?.Name, dispatch]);
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -124,8 +159,8 @@ const Checkout: React.FC = () => {
       }
 
       const orderItems = cartItems.map(item => ({
-        ProductId: (item.productId || item.diamondId || item.id).toString(),
-        Quantity: item.quantity,
+        ProductId: (item.productId || item.diamondId || item.id)?.toString() || '',
+        Quantity: item.quantity || 1,
         UnitPrice: item.price || 0,
       }));
 
@@ -155,23 +190,30 @@ const Checkout: React.FC = () => {
   };
 
   const handleProvinceChange = async (provinceId: unknown) => {
-    setSelectedProvince(provinceId as number);
+    const id = provinceId as number;
+    setSelectedProvince(id);
     setSelectedDistrict(null);
+    setWards([]); // Clear wards when province changes
+    
     try {
-      const data = await getDistricts(provinceId as number);
+      const data = await getDistricts(id);
       setDistricts(data);
     } catch (error) {
       console.error("[Checkout] Error fetching districts:", error);
+      setDistricts([]);
     }
   };
 
   const handleDistrictChange = async (districtId: unknown) => {
-    setSelectedDistrict(districtId as number);
+    const id = districtId as number;
+    setSelectedDistrict(id);
+    
     try {
-      const data = await getWards(districtId as number);
+      const data = await getWards(id);
       setWards(data);
     } catch (error) {
       console.error("[Checkout] Error fetching wards:", error);
+      setWards([]);
     }
   };
 
@@ -189,15 +231,12 @@ const Checkout: React.FC = () => {
           items={[
             {
               title: "Checkout",
-              description,
             },
             {
               title: "Order",
-              description,
             },
             {
               title: "Finish",
-              description,
             },
           ]}
         />
@@ -227,7 +266,7 @@ const Checkout: React.FC = () => {
   );
 };
 
-// Styled components remain unchanged
+// Styled components
 const StyledSummary = styled(Summary)`
   flex: 1;
   line-height: 40px;

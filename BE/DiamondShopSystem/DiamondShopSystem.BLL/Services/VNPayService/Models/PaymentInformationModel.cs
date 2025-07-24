@@ -6,6 +6,8 @@ namespace DiamondShopSystem.BLL.Services.Implements.VNPayService.Models
         public double Amount { get; set; }
         public string OrderDescription { get; set; }
         public string Name { get; set; }
+        public string ReturnUrlSuccess { get; set; }
+        public string ReturnUrlFail { get; set; }
 
     }
 }

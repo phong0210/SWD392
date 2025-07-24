@@ -44,7 +44,7 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Create
                 TotalPrice = request.Dto.OrderItems.Sum(item => item.UnitPrice * item.Quantity)
             };
 
-            // Create OrderDetail entities
+            // Create OrderDetail and Payment entities
             foreach (var itemDto in request.Dto.OrderItems)
             {
                 var product = await productRepository.GetByIdAsync(itemDto.ProductId);
@@ -63,6 +63,17 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Create
                 };
                 order.OrderDetails.Add(orderDetail);
             }
+
+            var payment = new DiamondShopSystem.DAL.Entities.Payment
+            {
+                Id = Guid.NewGuid(),
+                OrderId = order.Id,
+                Method = request.Dto.PaymentMethod,
+                Amount = order.TotalPrice,
+                Status = 0, // Default status, e.g., "Pending"
+                Date = DateTime.UtcNow
+            };
+            order.Payments.Add(payment);
 
             await orderRepository.AddAsync(order);
             await _unitOfWork.SaveChangesAsync();
