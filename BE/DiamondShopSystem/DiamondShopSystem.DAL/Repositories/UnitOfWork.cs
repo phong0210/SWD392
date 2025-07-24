@@ -1,4 +1,4 @@
-using DiamondShopSystem.DAL.Repositories.Contracts;
+using DiamondShopSystem.DAL.Repositories;
 using System;
 using System.Collections;
 using System.Threading.Tasks;

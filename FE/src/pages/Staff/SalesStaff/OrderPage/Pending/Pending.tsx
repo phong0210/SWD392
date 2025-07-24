@@ -66,6 +66,7 @@ interface DataType {
   total: number;
   status: string;
   deliveryStaff?: string;
+  vipApplied: boolean;
 }
 
 const onChange: TableProps<DataType>["onChange"] = (
@@ -169,22 +170,28 @@ const Pending = () => {
     {
       title: "Action",
       key: "action",
-      render: (_, { orderID }) => (
-        <Space size="middle">
-          <Button className="confirmBtn" onClick={() => handleAccept(orderID)}>
-            Accept
-          </Button>
-        </Space>
-      ),
+      render: (_, { orderID }) => {
+        const safeOrderID = typeof orderID === 'string' ? orderID : String(orderID);
+        return (
+          <Space size="middle">
+            <Button className="confirmBtn" onClick={() => handleAccept(safeOrderID)}>
+              Accept
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
   const handleAccept = async (orderID: string) => {
+    const safeOrderID = typeof orderID === 'string' ? orderID : String(orderID);
     try {
-      const response = await updateOrder(orderID, {
-        Status: 1,
+      // Find the order in the current list to get its VipApplied value
+      const currentOrder = order.find((o) => o.orderID === safeOrderID);
+      const vipApplied = currentOrder ? currentOrder.vipApplied : false;
+      const response = await updateOrder(safeOrderID, {
         SaleStaff: AccountID || "",
-        VipApplied: false,
+        VipApplied: vipApplied,
       });
       if (response.status !== 200) throw new Error(response.data?.message || "Update failed");
       api.success({
@@ -208,18 +215,19 @@ const Pending = () => {
       if (orderList && orderList.data) {
         console.log('Raw order data for Sales Staff:', orderList.data);
         const rawData = Array.isArray(orderList.data) ? orderList.data : orderList.data.data || [];
-        const formatOrderList = await Promise.all(
+        const formatOrderList: DataType[] = await Promise.all(
           rawData
             .filter((order: OrderResponseFE) => order.status === 0) // Filter for PENDING (status 0)
             .map(async (order: OrderResponseFE, index: number) => {
               const cusName = await fetchUserName(order.id);
               return {
-                orderID: String(order.id || `no-id-${index}`),
+                orderID: typeof order.id === 'string' ? order.id : String(order.id ?? `no-id-${index}`),
                 date: order.orderDate || '',
                 cusName,
                 total: order.totalPrice || 0, // Ensure totalPrice is mapped correctly
-                status: String(statusMap[order.status]) || 'UNKNOWN',
+                status: typeof statusMap[order.status] === 'string' ? statusMap[order.status] : 'UNKNOWN',
                 deliveryStaff: order.saleStaff || '',
+                vipApplied: order.vipApplied,
               };
             })
         );
@@ -263,7 +271,7 @@ const Pending = () => {
               <Table
                 className="table"
                 columns={columns}
-                dataSource={order}
+                dataSource={order as DataType[]}
                 pagination={{ pageSize: 6 }}
                 onChange={onChange}
                 showSorterTooltip={{ target: "sorter-icon" }}

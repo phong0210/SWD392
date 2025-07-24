@@ -1,5 +1,5 @@
 using DiamondShopSystem.DAL.Entities;
-using DiamondShopSystem.DAL.Repositories.Contracts;
+using DiamondShopSystem.DAL.Repositories;
 
 namespace DiamondShopSystem.DAL.Repositories
 {

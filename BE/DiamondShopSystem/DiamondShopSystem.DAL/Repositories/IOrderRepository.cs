@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiamondShopSystem.DAL.Repositories.Contracts
+namespace DiamondShopSystem.DAL.Repositories
 {
     public interface IOrderRepository : IGenericRepository<Order>
     {

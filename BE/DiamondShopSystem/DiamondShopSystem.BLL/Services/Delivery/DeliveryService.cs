@@ -1,6 +1,5 @@
 using DiamondShopSystem.BLL.Handlers.Delivery.DTOs;
 using DiamondShopSystem.DAL.Repositories;
-using DiamondShopSystem.DAL.Repositories.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System;

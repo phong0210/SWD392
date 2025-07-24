@@ -12,7 +12,7 @@ using DiamondShopSystem.BLL.Services.Otp;
 using DiamondShopSystem.BLL.Services.User;
 using DiamondShopSystem.BLL.Services.Warranty;
 using DiamondShopSystem.DAL;
-using DiamondShopSystem.DAL.Repositories;
+
 using DotNetEnv;
 using FluentValidation;
 using MediatR;
@@ -22,7 +22,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Collections;
 using System.Text;
-using DiamondShopSystem.DAL.Repositories.Contracts;
+using DiamondShopSystem.DAL.Repositories;
 using DiamondShopSystem.BLL.Services.Delivery;
 using DiamondShopSystem.BLL.Services.LoyaltyPoint;
 using DiamondShopSystem.BLL.Services.Vip;
