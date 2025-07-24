@@ -172,14 +172,13 @@ const onChange: TableProps<DataType>["onChange"] = (
 
 const CompletedOrder = () => {
   const statusMap: { [key: number]: string } = {
-    0: OrderStatus.PENDING,
-    1: OrderStatus.ACCEPTED,
-    2: OrderStatus.ASSIGNED,
-    3: OrderStatus.DELIVERING,
-    4: OrderStatus.DELIVERED,
-    5: OrderStatus.COMPLETED,
-    6: OrderStatus.CANCELLED,
-  };
+  0: OrderStatus.PENDING,
+  1: OrderStatus.ACCEPTED,
+  2: OrderStatus.DELIVERING,
+  3: OrderStatus.DELIVERED,
+  4: OrderStatus.COMPLETED,
+  6: OrderStatus.CANCELLED,
+};
   const [searchText, setSearchText] = useState("");
   const [order, setOrder] = useState<DataType[]>([]);
   const [userCache, setUserCache] = useState<Record<string, { name: string; phoneNumber: string; address: string }>>({}); // Cache for orderId to user info mapping
@@ -236,7 +235,7 @@ const CompletedOrder = () => {
         const rawData = Array.isArray(orderList.data) ? orderList.data : orderList.data.data || [];
         const formatOrderList = await Promise.all(
           rawData
-            .filter((order: OrderResponseFE) => order.status === 5) // Filter for COMPLETED (status 5)
+            .filter((order: OrderResponseFE) => order.status === 4) // Filter for COMPLETED (status 4)
             .map(async (order: OrderResponseFE, index: number) => {
               const { name: cusName, phoneNumber, address } = await fetchUserName(order.id);
               const deliveryStaff = order.delivery?.accountDeliveryId

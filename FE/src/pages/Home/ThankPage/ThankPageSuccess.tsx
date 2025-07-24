@@ -10,7 +10,7 @@ import { Container } from "./ThankPage.styled";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import config from "@/config";
 import { useAppSelector, useAppDispatch } from "@/hooks";
-import { captureOrderPaypalAsync, resetOrderStatus } from "@/store/slices/orderSlice";
+import { captureOrderPaypalAsync, handleVNPayReturnAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 
 const ThankPageSuccess: React.FC = () => {
   const { order, status, error } = useAppSelector((state) => state.order);
@@ -21,11 +21,15 @@ const ThankPageSuccess: React.FC = () => {
   useEffect(() => {
     console.log('[ThankPageSuccess] Current order state:', { order, status, error });
     const params = new URLSearchParams(location.search);
-    const token = params.get('token');
+    const token = params.get('token'); // PayPal token
+    const vnpResponseCode = params.get('vnp_ResponseCode'); // VNPay response code
 
     if (token && status !== 'loading') {
       console.log('[ThankPageSuccess] Capturing PayPal payment with token:', token);
       dispatch(captureOrderPaypalAsync(token));
+    } else if (vnpResponseCode && status !== 'loading') {
+      console.log('[ThankPageSuccess] Handling VNPay return with responseCode:', vnpResponseCode);
+      dispatch(handleVNPayReturnAsync(params));
     }
 
     return () => {
@@ -33,7 +37,7 @@ const ThankPageSuccess: React.FC = () => {
       localStorage.removeItem("CurrentOrderID");
       dispatch(resetOrderStatus());
     };
-  }, [location.search, dispatch, status]);
+  }, [location.search, dispatch]);
 
   // Loading state
   if (status === 'loading') {

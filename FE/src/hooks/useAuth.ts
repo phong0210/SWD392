@@ -1,17 +1,9 @@
 import { getCustomer } from "@/services/accountApi";
 import cookieUtils from "@/services/cookieUtils";
-import { Role } from "@/utils/enum";
+import { getAccountID, getRoleFromToken } from "@/services/accountUtils";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-
-type JwtType = {
-  AccountID: string;
-  Email: string;
-  Role: string;
-  exp: number;
-  iat: number;
-};
 
 export type UserType = {
   CustomerID: string;
@@ -35,21 +27,6 @@ export type AccountType = {
   CustomerID: null;
 };
 
-const getRoleFromToken = () => {
-  const decoded = cookieUtils.decodeJwt() as JwtType;
-  if (!decoded || !decoded.Role) return null;
-
-  // Map backend role name to FE role constant if available
-  return Role[decoded.Role] || decoded.Role;
-};
-
-const getAccountID = () => {
-  const decoded = cookieUtils.decodeJwt() as JwtType;
-  if (!decoded || !decoded.AccountID) return null;
-
-  return decoded.AccountID;
-};
-
 const useAuth = () => {
   const { user: authUser, loading: authLoading } = useSelector(
     (state: RootState) => state.auth
@@ -60,11 +37,10 @@ const useAuth = () => {
   const [user, setUser] = useState<UserType | null>(null);
   const [account, setAccount] = useState<AccountType | null>(null);
 
-  const token = cookieUtils.getToken();
-
   const checkTokenExpiration = useCallback(() => {
+    const token = cookieUtils.getToken();
     if (token) {
-      const decoded = cookieUtils.decodeJwt() as JwtType;
+      const decoded = cookieUtils.decodeJwt() as any;
 
       if (!decoded || decoded.exp < Date.now() / 1000) {
         setRole(null);
@@ -72,7 +48,7 @@ const useAuth = () => {
         return;
       }
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     setLoading(authLoading);
@@ -116,7 +92,7 @@ const useAuth = () => {
     const intervalId = setInterval(checkTokenExpiration, 5000);
 
     return () => clearInterval(intervalId);
-  }, [token, authUser, checkTokenExpiration]);
+  }, [authUser, checkTokenExpiration]);
 
   return { loading, role, AccountID, user, account };
 };

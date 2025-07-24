@@ -2,118 +2,148 @@ import { theme } from "@/themes";
 import styled from "styled-components";
 
 export const ItemContainer = styled.div`
-  
   background-color: #fff;
-  box-shadow: rgba(27, 27, 27, 0.17) 0px 2px 5px;
-  //  border: 1px solid rgba(0, 0, 0, 1);
-  border: 1px solid rgb(232 226 226);
+  border: 1px solid rgb(232, 226, 226);
   border-radius: 8px;
-  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(27, 27, 27, 0.17) 0px 2px 5px;
   display: flex;
   flex-direction: column;
-  color: #000;
-  //  padding: 16px 39px;
-  margin-top: 20px;
-  /* height: 210px; */
-  @media (max-width: 991px) {
-    padding: 0 20px;
-  }
-`;
+  padding: 16px;
+  margin: 16px 0;
+  transition: box-shadow 0.2s ease;
 
-export const ActionText = styled.div`
-  margin-top: 10px;
-  margin-right: 10px;
-  letter-spacing: 1.95px;
-  align-self: flex-end;
-  font: 300 13px/150% Poppins, sans-serif;
+  &:hover {
+    box-shadow: rgba(27, 27, 27, 0.25) 0px 4px 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    margin: 12px 0;
+  }
 `;
 
 export const ItemDetails = styled.div`
   display: flex;
   flex-direction: row;
+  align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  gap: 16px;
+  padding: 0;
 
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 export const ItemInfo = styled.div`
+  display: flex;
   align-items: center;
-`;
-
-export const Description = styled.div`
-
+  justify-content: center;
 `;
 
 export const ItemImage = styled.img`
-  width: 192px;
-  height: 153px;
-  aspect-ratio: 1.43;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
-  align-self: center;;
+  border-radius: 6px;
+  background-color: #f9f9f9; /* Light background for image placeholder */
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
 `;
 
 export const ItemDescription = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
-  width: 400px;
-  @media (max-width: 991px) {
-    margin-top: 40px;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    width: 100%;
   }
 `;
 
 export const ProductDescription = styled.div`
-  letter-spacing: 0.15px;
-  font: 400 15px/1.5 Poppins, sans-serif;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 8px;
+  font-family: Poppins, sans-serif;
+  letter-spacing: 0.15px;
 `;
 
 export const ItemType = styled.div`
-  font: 600 15px/150% Poppins, sans-serif;
-  padding-bottom: 10px;
-  //  margin-left: 13px;
-  @media (max-width: 991px) {
-    margin-left: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #000;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
   }
 `;
 
-// export const AddOptions = styled.div`
-//   display: flex;
-//   gap: 20px;
-//   margin-top: 3rem;
-// `;
+export const Description = styled.div`
+  font-size: 13px;
+  font-weight: 400;
+  color: #000;
+  line-height: 1.5;
 
-// export const AddOption = styled.div`
-//   font: 300 10px/150% Poppins, sans-serif;
-//   border-radius: 53px;
-//   border: 1px dashed rgba(0, 0, 0, 1);
-//   padding: 0px 15px;
-
-//   &:hover {
-//     color: #fff;
-//     background-color: #102c57;
-//   }
-
-//   &.active {
-//     font-weight: 600;
-//     color: #fff;
-//     background-color: #102c57;
-//   }
-//   @media (max-width: 991px) {
-//     padding: 0 20px;
-//   }
-// `;
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+`;
 
 export const ItemPrice = styled.div`
-  
-  letter-spacing: 0.6px;
-  font: 600 16px/150% Poppins, sans-serif;
+  font-size: 19px;
+  font-weight: 600;
   color: ${theme.color.primary};
-  margin-left: 106px;
-  display: flex;
-  align-items: flex-end;
-  @media (max-width: 991px) {
-    margin-top: 40px;
+  line-height: 1.5;
+  text-align: right;
+  letter-spacing: 0.6px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    text-align: left;
+    margin-top: 8px;
   }
+`;
+
+export const ActionText = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+
+  button {
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 1.95px;
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background-color: #102c57;
+      color: #fff;
+    }
+  }
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+  }
+`;
+
+export const TagContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 `;

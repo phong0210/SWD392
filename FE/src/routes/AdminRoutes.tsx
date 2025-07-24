@@ -61,7 +61,7 @@ const AdminRoutes = {
     { path: config.routes.admin.order, element: <Order /> },
     { path: config.routes.admin.pendingOrder, element: <PendingOrder /> },
     { path: config.routes.admin.acceptedOrder, element: <AcceptedOrder /> },
-    { path: config.routes.admin.assignedOrder, element: <AssignedOrder /> },
+    
     { path: config.routes.admin.deliveringOrder, element: <DeliveringOrder /> },
     { path: config.routes.admin.deliveredOrder, element: <DeliveredOrder /> },
     { path: config.routes.admin.completedOrder, element: <CompletedOrder /> },

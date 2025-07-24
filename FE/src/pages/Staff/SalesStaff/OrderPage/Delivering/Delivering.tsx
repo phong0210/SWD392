@@ -83,10 +83,9 @@ interface DataType {
 const statusMap: { [key: number]: string } = {
   0: OrderStatus.PENDING,
   1: OrderStatus.ACCEPTED,
-  2: OrderStatus.ASSIGNED,
-  3: OrderStatus.DELIVERING,
-  4: OrderStatus.DELIVERED,
-  5: OrderStatus.COMPLETED,
+  2: OrderStatus.DELIVERING,
+  3: OrderStatus.DELIVERED,
+  4: OrderStatus.COMPLETED,
   6: OrderStatus.CANCELLED,
 };
 
@@ -228,7 +227,7 @@ const DeliveringOrder = () => {
         const rawData = Array.isArray(orderList.data) ? orderList.data : orderList.data.data || [];
         const formatOrderList = await Promise.all(
           rawData
-            .filter((order: OrderResponseFE) => order.status === 3) // Filter for DELIVERING (status 3)
+            .filter((order: OrderResponseFE) => order.status === 2) // Filter for DELIVERING (status 2)
             .map(async (order: OrderResponseFE, index: number) => {
               const cusName = await fetchUserName(order.id);
               const deliveryStaff = order.delivery?.accountDeliveryId

@@ -26,7 +26,17 @@ namespace DiamondShopSystem.API.Controllers
         public IActionResult PaymentCallback()
         {
             var response = _vnPayService.PaymentExecute(Request.Query);
-            return Ok(response);
+
+            if (response.Success)
+            {
+                var successUrl = Request.Query["success_url"].ToString();
+                return Redirect(successUrl);
+            }
+            else
+            {
+                var failUrl = Request.Query["fail_url"].ToString();
+                return Redirect(failUrl);
+            }
         }
     }
 }
