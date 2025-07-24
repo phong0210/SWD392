@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.EF;
+
 
 namespace DiamondShopSystem.BLL.Services.Order
 {
@@ -111,6 +113,37 @@ namespace DiamondShopSystem.BLL.Services.Order
         {
             var orders = await _unitOfWork.OrderRepository.GetOrdersByUserIdAsync(userId);
             return _mapper.Map<List<OrderResponseDto>>(orders);
+        }
+
+        public async Task<List<DailyRevenueSummaryDto>> GetDailyRevenueSummaryAsync()
+        {
+            var dailyRevenue = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>()
+                                                .GetAllQueryable()
+                                                .GroupBy(o => o.OrderDate.Date)
+                                                .Select(g => new DailyRevenueSummaryDto
+                                                {
+                                                    Date = g.Key,
+                                                    TotalRevenue = g.Sum(o => o.TotalPrice)
+                                                })
+                                                .OrderBy(d => d.Date)
+                                                .ToListAsync();
+            return dailyRevenue;
+        }
+
+        public async Task<List<WeeklyRevenueSummaryDto>> GetWeeklyRevenueSummaryAsync()
+        {
+            var weeklyRevenue = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>()
+                                                .GetAllQueryable()
+                                                .GroupBy(o => o.OrderDate.AddDays(-(int)o.OrderDate.DayOfWeek).Date)
+                                                .Select(g => new WeeklyRevenueSummaryDto
+                                                {
+                                                    WeekStartDate = g.Key,
+                                                    WeekEndDate = g.Key.AddDays(6), // Assuming week starts on Monday
+                                                    TotalRevenue = g.Sum(o => o.TotalPrice)
+                                                })
+                                                .OrderBy(w => w.WeekStartDate)
+                                                .ToListAsync();
+            return weeklyRevenue;
         }
     }
 }

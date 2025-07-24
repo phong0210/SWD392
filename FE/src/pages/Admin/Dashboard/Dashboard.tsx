@@ -6,7 +6,7 @@ import StatistiBox from "./StatistiBox";
 import LineChart from "./LineChart";
 import { Link } from "react-router-dom";
 import { showAllProduct } from "@/services/productAPI";
-import { showAllOrder, showReveneSummary } from "@/services/orderAPI";
+import { showAllOrder, showReveneSummary, showWeeklyRevenueSummary } from "@/services/orderAPI";
 import { showAllAccounts } from "@/services/authAPI";
 import { getImage } from "@/services/imageAPI";
 import { showAllDiscount } from "@/services/discountAPI";
@@ -37,134 +37,113 @@ const Dashboard = () => {
   const [ordersTotal, setOrdersTotal] = useState(0);
   const [cancelOrdersTotal, setCancelOrdersTotal] = useState(0);
   const [revenes, setRevenes] = useState<any | null>(null);
+  const [mostRevenueWeek, setMostRevenueWeek] = useState<any | null>(null);
 
   const fetchData = async () => {
     try {
       const responseCustomers = await showAllAccounts();
       const responseOrders = await showAllOrder();
-      const responseDiamonds = await showAllProduct();
-      console.log("Fetch Product", responseDiamonds);
-      const responseJewelry = await showAllProduct();
+      const responseProducts = await showAllProduct();
       const responseDiscount = await showAllDiscount();
       const responseRevenes = await showReveneSummary();
+      const responseWeeklyRevenue = await showWeeklyRevenueSummary();
 
-      const { data: customersData } = responseCustomers.data;
-      const { data: ordersData } = responseOrders.data;
-      const { data: reveneData } = responseRevenes.data;
-      const { data: jewelryData } = responseJewelry.data;
-      const { data: discountsData } = responseDiscount.data;
-
-      // console.log("Customers:", customersData);
-
+      // Customers
+      const customersData = Array.isArray(responseCustomers.data?.data)
+        ? responseCustomers.data.data
+        : responseCustomers.data;
       const formattedCustomers = customersData
-        .filter(
-          (customer: any) =>
-            customer.CustomerID !== null && customer.Role === Role.CUSTOMER
-        )
-        .map((customer: any) => ({
-          accountID: customer.AccountID,
-          customerName: customer.Name,
-          role: customer.Role,
-          customerID: customer.CustomerID,
+        .filter((acc: any) => acc.role === Role.CUSTOMER)
+        .map((acc: any) => ({
+          id: acc.id,
+          name: acc.name,
+          role: acc.role,
         }));
 
+      // Orders
+      const ordersData = Array.isArray(responseOrders.data?.data)
+        ? responseOrders.data.data
+        : responseOrders.data;
       const formattedOrders = ordersData.map((order: any) => ({
-        orderID: order.OrderID,
-        orderDate: order.OrderDate,
-        price: order.Price,
-        customerID: order.CustomerID,
+        orderID: order.id,
+        orderDate: order.orderDate,
+        price: order.totalPrice,
+        status: order.status,
+        customerID: order.userId,
       }));
 
+      // Cancelled Orders
       const formattedCancelOrders = ordersData
-        .filter((order: any) => order.OrderStatus === "Cancelled")
+        .filter((order: any) => order.status === 6 || order.status === "Cancelled")
         .map((order: any) => ({
-          orderID: order.OrderID,
-          orderDate: order.OrderDate,
-          price: order.Price,
-          orderStatus: order.OrderStatus,
+          orderID: order.id,
+          orderDate: order.orderDate,
+          price: order.totalPrice,
+          status: order.status,
         }));
 
-      // const formattedDiamonds = diamondsData.map((diamond: Product) => ({
-      //   diamondID: diamond.name,
-      //   diamondName: diamond.name,
-      //   price: diamond.price,
-      //   // images: diamond.usingImage.map((image: any) => ({
-      //   //   id: image.UsingImageID,
-      //   //   name: image.Name,
-      //   //   url: getImage(image.UsingImageID),
-      //   // })),
-      // }));
+      // Products: Diamonds & Jewelry
+      const rawProductsData = Array.isArray(responseProducts.data)
+        ? responseProducts.data
+        : responseProducts.data?.data || [];
+      // Extract the 'product' property from each API response item
+      const productsData = rawProductsData
+        .filter((item: any) => item.success && item.product)
+        .map((item: any) => item.product);
+      const diamonds = productsData.filter((p: any) => p.type === "diamond");
+      const jewelrys = productsData.filter((p: any) => p.type === "jewelry");
 
-      const formattedDiamonds = (
-        responseDiamonds.data as ProductApiResponseItem[]
-      ).map((item) => {
-        const product = item.product;
-
-        return {
-          id: product.id,
-          name: product.name,
-          sku: product.sku,
-          description: product.description,
-          price: product.price,
-          carat: product.carat,
-          color: product.color,
-          clarity: product.clarity,
-          cut: product.cut,
-          stockQuantity: product.stockQuantity,
-          giaCertNumber: product.giaCertNumber,
-          isHidden: product.isHidden,
-          categoryId: product.categoryId,
-          orderDetailId: product.orderDetailId,
-          warrantyId: product.warrantyId,
-          salePrice: product.salePrice,
-          firstPrice: product.firstPrice,
-          totalDiamondPrice: product.totalDiamondPrice,
-          star: product.star,
-          type: product.type,
-          images: Array.isArray(product.images) ? product.images : [],
-        };
-      });
-
-      const formattedJewelryList = jewelryData?.map((jewelry: any) => ({
-        jewelryID: jewelry.ProductID,
-        jewelryName: jewelry.Name,
-        totalQuantitySettingVariants:
-          jewelry.TotalQuantityJewelrySettingVariants,
-        images: jewelry.UsingImage.map((image: any) => ({
-          id: image.UsingImageID,
-          name: image.Name,
-          url: getImage(image.UsingImageID),
-        })),
-      }));
-
+      // Discounts
+      const discountsData = Array.isArray(responseDiscount.data?.data)
+        ? responseDiscount.data.data
+        : responseDiscount.data;
       const formattedDiscounts = discountsData.map((discount: any) => ({
-        discountID: discount.DiscountID,
-        discountName: discount.Name,
-        percentDiscounts: discount.PercentDiscounts,
+        discountID: discount.id,
+        discountName: discount.name,
+        percentDiscounts: discount.percentDiscounts || discount.percent || discount.value,
       }));
 
+      // Revenue
+      const reveneData = responseRevenes.data?.data || responseRevenes.data;
       const formattedRevene = {
-        startDate: reveneData.StartDate,
-        endDate: reveneData.EndDate,
-        totalRevenueInTime: reveneData.TotalRevenueInTime,
-        mostRevenueInTime: reveneData.MostRevenueInTime,
-        mostQuantiyInTime: reveneData.MostQuantiyInTime,
-        orderResults: reveneData.OrderResults.map((order: any) => ({
-          month: order.month,
-          revenue: order.revenue,
-          orderQuantity: order.orderQuantity,
-        })),
+        startDate: reveneData.startDate,
+        endDate: reveneData.endDate,
+        totalRevenueInTime: reveneData.totalRevenueInTime,
+        mostRevenueInTime: reveneData.mostRevenueInTime,
+        mostQuantiyInTime: reveneData.mostQuantiyInTime,
+        orderResults: reveneData.orderResults || [],
       };
 
       setCustomers(formattedCustomers);
       setOrders(formattedOrders);
-      setDiamonds(formattedDiamonds);
-      setJewelrys(formattedJewelryList);
+      setDiamonds(diamonds);
+      setJewelrys(jewelrys);
       setDiscounts(formattedDiscounts);
       setCancelOrders(formattedCancelOrders);
       setRevenes(formattedRevene);
-      console.log(cancelOrders, cancelOrdersTotal);
 
+      // Weekly Revenue
+      const weeklyRevenueData = responseWeeklyRevenue.data;
+      if (Array.isArray(weeklyRevenueData) && weeklyRevenueData.length > 0) {
+        const mostRevenueWeekData = weeklyRevenueData.reduce((prev: any, current: any) => {
+          return (prev.totalRevenue > current.totalRevenue) ? prev : current;
+        });
+
+        const startDate = new Date(mostRevenueWeekData.weekStartDate);
+        const endDate = new Date(mostRevenueWeekData.weekEndDate);
+
+        const formattedStartDate = `${(startDate.getMonth() + 1).toString().padStart(2, '0')}/${startDate.getDate().toString().padStart(2, '0')}`;
+        const formattedEndDate = `${(endDate.getMonth() + 1).toString().padStart(2, '0')}/${endDate.getDate().toString().padStart(2, '0')}`;
+
+        setMostRevenueWeek({
+          week: `${formattedStartDate} - ${formattedEndDate}`,
+          revenue: mostRevenueWeekData.totalRevenue,
+        });
+      } else {
+        setMostRevenueWeek(null);
+      }
+
+      // KPI calculations (as before)
       const startYear = 2024;
       const startMonth = 1;
       const increaseCustomer = 10;
@@ -189,7 +168,7 @@ const Dashboard = () => {
       setOrdersTotal(totalOrderKpi);
       setCancelOrdersTotal(totalCancelOrderKpi);
     } catch (error) {
-      console.error("Failed to fetch infor:", error);
+      console.error("Failed to fetch dashboard data:", error);
     }
   };
 
@@ -227,10 +206,10 @@ const Dashboard = () => {
                   total={(cancelOrders.length * 100 / cancelOrdersTotal).toFixed(2)}
                 /> */}
                 <Styled.TopMonth>
-                  <p className="topMonth_title">Top month</p>
-                  <h2>{revenes?.mostRevenueInTime?.month}</h2>
+                  <p className="topMonth_title">Top week</p>
+                  <h2>{mostRevenueWeek?.week}</h2>
                   <p className="topMonth-statisti">
-                    {revenes?.mostRevenueInTime?.revenue} sold so far
+                    {mostRevenueWeek?.revenue ? `${(mostRevenueWeek.revenue / 1000000).toFixed(2)}M` : 'N/A'} sold so far
                   </p>
                 </Styled.TopMonth>
               </Styled.DBContent_1>
@@ -304,15 +283,15 @@ const Dashboard = () => {
                   </Styled.Ele_Title>
                   <Styled.Ele_Content>
                     {diamonds.slice(0, 4).map((diamond: any) => (
-                      <div className="shell_ele" key={diamond.diamondID}>
+                      <div className="shell_ele" key={diamond.id}>
                         <div className="shell_eleName">
                           {/* <img
                               src={diamond.images && diamond.images[0] ? diamond.images[0].url : "default-image-url"}
                               alt={diamond.diamondName} /> */}
-                          <p>{diamond.diamondName}</p>
+                          <p>{diamond.name}</p>
                         </div>
                         <Link
-                          to={`/admin/product/diamond/detail/${diamond.diamondID}`}
+                          to={`/admin/product/diamond/detail/${diamond.id}`}
                         >
                           <button className="shell_eleButton">View</button>
                         </Link>
@@ -335,15 +314,15 @@ const Dashboard = () => {
                   </Styled.Ele_Title>
                   <Styled.Ele_Content>
                     {jewelrys.slice(0, 4).map((jewelry: any) => (
-                      <div className="shell_ele" key={jewelry.jewelryID}>
+                      <div className="shell_ele" key={jewelry.id}>
                         <div className="shell_eleName">
                           {/* <img
                               src={jewelry.images && jewelry.images[0] ? jewelry.images[0].url : "default-image-url"}
                               alt={jewelry.jewelryName} /> */}
-                          <p>{jewelry.jewelryName}</p>
+                          <p>{jewelry.name}</p>
                         </div>
                         <Link
-                          to={`/admin/product/jewelry/detail/${jewelry.jewelryID}`}
+                          to={`/admin/product/jewelry/detail/${jewelry.id}`}
                         >
                           <button className="shell_eleButton">View</button>
                         </Link>

@@ -21,5 +21,7 @@ namespace DiamondShopSystem.BLL.Services.Order
         Task<GetOrderRelationsResponseDto> GetOrderRelationsAsync(Guid id);
         Task<GetRevenueSummaryResponseDto> GetRevenueSummaryAsync();
         Task<List<OrderResponseDto>> GetOrdersByUserIdAsync(Guid userId);
+        Task<List<DailyRevenueSummaryDto>> GetDailyRevenueSummaryAsync();
+        Task<List<WeeklyRevenueSummaryDto>> GetWeeklyRevenueSummaryAsync();
     }
 }

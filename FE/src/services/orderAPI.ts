@@ -87,3 +87,11 @@ export const updateOrder = (id: string, order: UpdateOrderRequest) => { // ID is
 export const deleteOrder = (id: string) => { // ID is Guid, so string
     return remove(`/api/orders/${id}`);
 }
+
+export const showDailyRevenueSummary = () => {
+    return get(`/api/orders/daily-summarize`);
+}
+
+export const showWeeklyRevenueSummary = () => {
+    return get(`/api/orders/weekly-summarize`);
+}

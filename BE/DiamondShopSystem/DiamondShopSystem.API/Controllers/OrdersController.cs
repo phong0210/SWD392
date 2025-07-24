@@ -169,5 +169,35 @@ namespace DiamondShopSystem.API.Controllers
                 return StatusCode(500, new { error = "An error occurred while processing your request.", details = ex.Message });
             }
         }
+
+        [HttpGet("daily-summarize")]
+        public async Task<ActionResult<List<DailyRevenueSummaryDto>>> GetDailyRevenueSummary()
+        {
+            try
+            {
+                var summary = await _mediator.Send(new DiamondShopSystem.BLL.Handlers.Order.Queries.DailySummary.GetDailyRevenueSummaryQuery());
+                return Ok(summary);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details here
+                return StatusCode(500, new { error = "An error occurred while processing your request.", details = ex.Message });
+            }
+        }
+
+        [HttpGet("weekly-summarize")]
+        public async Task<ActionResult<List<WeeklyRevenueSummaryDto>>> GetWeeklyRevenueSummary()
+        {
+            try
+            {
+                var summary = await _mediator.Send(new DiamondShopSystem.BLL.Handlers.Order.Queries.WeeklySummary.GetWeeklyRevenueSummaryQuery());
+                return Ok(summary);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details here
+                return StatusCode(500, new { error = "An error occurred while processing your request.", details = ex.Message });
+            }
+        }
     }
 }
