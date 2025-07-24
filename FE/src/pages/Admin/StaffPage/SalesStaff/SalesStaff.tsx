@@ -121,7 +121,7 @@ const SalesStaff = () => {
         const nonStaff = allUsers.filter(
       (user: any) =>
         !["SaleStaff", "Manager", "HeadOfficeAdmin", "DeliveryStaff"].includes(user.roleName) &&
-        user.isActive !== false // ✅ Chỉ lấy user chưa bị ban
+        user.isActive !== false 
     ).map((user: any) => ({
       key: user.id || user.AccountID,
       email: user.email || user.Email || "",
@@ -130,7 +130,7 @@ const SalesStaff = () => {
     }));
 
       setStaffs(salesStaff);
-      setFilteredStaffs(salesStaff); // ✅ gán dữ liệu lọc ban đầu
+      setFilteredStaffs(salesStaff); 
       setNonStaffUsers(nonStaff);
 
       const options = nonStaff.map((user: any) => ({
