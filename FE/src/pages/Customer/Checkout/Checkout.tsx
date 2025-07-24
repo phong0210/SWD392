@@ -17,6 +17,7 @@ import { createOrderAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 import { createOrderPaypal, createVnPayPayment } from "@/services/paymentAPI";
 import vipAPI from "@/services/vipAPI";
 import { clearCart } from "@/store/slices/cartSlice";
+import { clear } from "console";
 
 const Checkout: React.FC = () => {
   const { AccountID, user } = useAuth();
@@ -191,7 +192,7 @@ const Checkout: React.FC = () => {
           "[Checkout] Navigating to success page for COD order:",
           order.id
         );
-        dispatch(clearCart());
+       clearCart();
         navigate(config.routes.public.success);
       }
     } else if (orderStatus === "failed") {
