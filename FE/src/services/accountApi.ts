@@ -1,4 +1,4 @@
-import { get, post } from "./apiCaller";
+import { get, post, remove } from "./apiCaller";
 
 export const getCustomer = (id: number) => {
     return get(`/api/User/detail/${id}`);
@@ -6,6 +6,10 @@ export const getCustomer = (id: number) => {
 
 export const promoteToStaff = (email: string, roleName: string, salary: number, hireDate: string) => {
     return post('/api/User/promote-to-staff', { email, roleName, salary, hireDate });
+}
+
+export const deleteUser = (id: number) => {
+    return remove(`/api/User/${id}`);
 }
 
 // Deprecated legacy endpoints (commented out)
