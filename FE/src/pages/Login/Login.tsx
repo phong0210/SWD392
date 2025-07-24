@@ -17,13 +17,12 @@ import {
     confirmPasswordReset 
 } from "@/services/authAPI";
 
-// Login step types
+// Login step types - removed OTP_VERIFICATION since login is direct
 enum LoginStep {
     LOGIN = 1,
-    OTP_VERIFICATION = 2,
-    FORGOT_PASSWORD_EMAIL = 3,
-    FORGOT_PASSWORD_OTP = 4,
-    RESET_PASSWORD = 5
+    FORGOT_PASSWORD_EMAIL = 2,
+    FORGOT_PASSWORD_OTP = 3,
+    RESET_PASSWORD = 4
 }
 
 interface LoginFormValues {
@@ -52,11 +51,10 @@ const Login = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const { loading } = useSelector((state: RootState) => state.auth);
 
-    // State management
+    // State management - removed loginData since it's not needed for direct login
     const [step, setStep] = useState<LoginStep>(LoginStep.LOGIN);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [email, setEmail] = useState('');
-    const [loginData, setLoginData] = useState<LoginFormValues | null>(null);
     const [forgotPasswordOtp, setForgotPasswordOtp] = useState('');
 
     const onFinish = async (values: unknown) => {
@@ -66,9 +64,6 @@ const Login = () => {
             switch (step) {
                 case LoginStep.LOGIN:
                     await handleLogin(values as LoginFormValues);
-                    break;
-                case LoginStep.OTP_VERIFICATION:
-                    await handleOtpVerification(values as OtpFormValues);
                     break;
                 case LoginStep.FORGOT_PASSWORD_EMAIL:
                     await handleForgotPasswordEmail(values as ForgotPasswordEmailValues);
@@ -87,89 +82,41 @@ const Login = () => {
         }
     };
 
-const handleLogin = async (values: LoginFormValues) => {
-    setLoginData(values);
-    setEmail(values.Email);
+    const handleLogin = async (values: LoginFormValues) => {
+        setEmail(values.Email);
 
-    // Directly attempt login without OTP
-    const resultAction = await dispatch(loginThunk(values));
-    
-    if (loginThunk.fulfilled.match(resultAction)) {
-        await messageApi.success('Login successfully');
-        const user = resultAction.payload.user;
-        console.log("User Check:", user);
+        // Directly attempt login without OTP
+        const resultAction = await dispatch(loginThunk(values));
         
-        switch (user.role) {
-            case Role.HeadOfficeAdmin:
-                navigate(config.routes.admin.dashboard, { replace: true });
-                break;
-            case Role.SalesStaff:
-                navigate(config.routes.salesStaff.dashboard, { replace: true });
-                break;
-            case Role.DeliveryStaff:
-                navigate(config.routes.deliStaff.dashboard, { replace: true });
-                break;
-            default:
-                navigate(config.routes.public.home, { replace: true });
-        }
-    } else {
-        const errorMsg = typeof resultAction.payload === 'string' 
-            ? resultAction.payload 
-            : 'Login failed';
-        throw new Error(errorMsg);
-    }
-};
-
-    const handleOtpVerification = async (values: OtpFormValues) => {
-        if (!loginData) {
-            throw new Error('Login data missing. Please restart login.');
-        }
-
-        const verifyResponse = await verifyLoginOtp({
-            email: email,
-            otp: values.otp,
-        });
-
-        if (!verifyResponse.data || verifyResponse.status !== 200) {
-            throw new Error(verifyResponse.data?.error || 'OTP verification failed');
-        }
-
-        if (verifyResponse.data.success) {
-            // Now proceed with actual login
-            const resultAction = await dispatch(loginThunk(loginData));
-            if (loginThunk.fulfilled.match(resultAction)) {
-                await messageApi.success('Login successfully');
-                const user = resultAction.payload.user;
-                console.log("User Check:", user);
-                
-                switch (user.role) {
-                    case Role.HeadOfficeAdmin:
-                        navigate(config.routes.admin.dashboard, { replace: true });
-                        break;
-                    case Role.SalesStaff:
-                        navigate(config.routes.salesStaff.dashboard, { replace: true });
-                        break;
-                    case Role.DeliveryStaff:
-                        navigate(config.routes.deliStaff.dashboard, { replace: true });
-                        break;
-                    default:
-                        navigate(config.routes.public.home, { replace: true });
-                }
-            } else {
-                const errorMsg = typeof resultAction.payload === 'string' 
-                    ? resultAction.payload 
-                    : 'Login failed';
-                throw new Error(errorMsg);
+        if (loginThunk.fulfilled.match(resultAction)) {
+            await messageApi.success('Login successfully');
+            const user = resultAction.payload.user;
+            console.log("User Check:", user);
+            
+            switch (user.role) {
+                case Role.HeadOfficeAdmin:
+                    navigate(config.routes.admin.dashboard, { replace: true });
+                    break;
+                case Role.SalesStaff:
+                    navigate(config.routes.salesStaff.dashboard, { replace: true });
+                    break;
+                case Role.DeliveryStaff:
+                    navigate(config.routes.deliStaff.dashboard, { replace: true });
+                    break;
+                default:
+                    navigate(config.routes.public.home, { replace: true });
             }
         } else {
-            throw new Error(verifyResponse.data.error || 'OTP verification failed');
+            const errorMsg = typeof resultAction.payload === 'string' 
+                ? resultAction.payload 
+                : 'Login failed';
+            throw new Error(errorMsg);
         }
     };
 
     const handleForgotPasswordEmail = async (values: ForgotPasswordEmailValues) => {
         setEmail(values.Email);
 
-        // Use requestPasswordReset instead of sendForgotPasswordOtp
         const response = await requestPasswordReset({ email: values.Email });
         
         if (response.status === 200) {
@@ -191,7 +138,6 @@ const handleLogin = async (values: LoginFormValues) => {
             throw new Error('Passwords do not match');
         }
 
-        // Use confirmPasswordReset with the stored email and new password
         const response = await confirmPasswordReset({
             email: email,
             otp: forgotPasswordOtp,
@@ -228,7 +174,6 @@ const handleLogin = async (values: LoginFormValues) => {
     const resetToLogin = () => {
         setStep(LoginStep.LOGIN);
         setEmail('');
-        setLoginData(null);
         setForgotPasswordOtp('');
     };
 
@@ -250,14 +195,6 @@ const handleLogin = async (values: LoginFormValues) => {
                     fields: LoginFields,
                     showForgotPassword: true,
                     showBackToLogin: false,
-                };
-            case LoginStep.OTP_VERIFICATION:
-                return {
-                    formTitle: "Verify Login OTP",
-                    buttonTitle: "Verify OTP",
-                    fields: OtpFields,
-                    showForgotPassword: false,
-                    showBackToLogin: true,
                 };
             case LoginStep.FORGOT_PASSWORD_EMAIL:
                 return {

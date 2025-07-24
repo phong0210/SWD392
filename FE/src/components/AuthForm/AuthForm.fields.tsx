@@ -3,7 +3,7 @@ import { Rule } from "antd/es/form";
 import { NamePath } from "antd/es/form/interface";
 import { ReactNode } from "react";
 import { EyeInvisibleOutlinedIcon, EyeOutlinedIcon } from "./AuthFrom.styled";
-import { EyeInvisibleOutlined, EyeTwoTone, MailOutlined } from '@ant-design/icons';
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 
 export type FieldType = {
     key: number | string;
