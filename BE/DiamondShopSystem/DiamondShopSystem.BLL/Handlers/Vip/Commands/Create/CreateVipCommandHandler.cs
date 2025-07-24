@@ -1,31 +1,23 @@
 using MediatR;
 using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
-using DiamondShopSystem.DAL.Repositories;
-using DiamondShopSystem.DAL.Entities;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper;
+using DiamondShopSystem.BLL.Services.Vip;
 
 namespace DiamondShopSystem.BLL.Handlers.Vip.Commands
 {
     public class CreateVipCommandHandler : IRequestHandler<CreateVipCommand, VipDto>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IVipService _vipService;
 
-        public CreateVipCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public CreateVipCommandHandler(IVipService vipService)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _vipService = vipService;
         }
 
         public async Task<VipDto> Handle(CreateVipCommand request, CancellationToken cancellationToken)
         {
-            var vip = _mapper.Map<VipDto>(request.Request);
-            var vipRepo = _unitOfWork.Repository<VipDto>();
-            await vipRepo.AddAsync(vip);
-            await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<VipDto>(vip);
+            return await _vipService.CreateVipAsync(request.Request);
         }
     }
 }

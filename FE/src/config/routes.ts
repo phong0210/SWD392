@@ -64,6 +64,7 @@ const routes = {
     reviewFeedBack: "/review-feedback",
     vip: "/vip",
     loyalty: "/loyalty",
+    vip: "/vip",
   },
   admin: {
     dashboard: "/admin",

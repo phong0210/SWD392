@@ -4,5 +4,5 @@ using System;
 
 namespace DiamondShopSystem.BLL.Handlers.Vip.Commands
 {
-    public record UpdateVipCommand(Guid Id, UpdateVipRequest Request) : IRequest<bool>;
+    public record UpdateVipCommand(Guid Id, VipUpdateRequestDto Request) : IRequest<bool>;
 }
