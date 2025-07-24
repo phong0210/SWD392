@@ -2,12 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import * as CartStyled from "./Cart.styled";
 import PromoCodeSection from "../../../components/Customer/Checkout/PromoCode";
 import { useAppDispatch, useDocumentTitle, useAppSelector } from "@/hooks";
-import {  useState } from "react";
+import { useEffect, useState } from "react";
 import CartItem from "@/components/Customer/Cart/CartItem";
 import config from "@/config";
 import { Empty, notification } from "antd";
-import { removeFromCart, clearCart } from "@/store/slices/cartSlice";
-
+import { loadCart, removeFromCart } from "@/store/slices/cartSlice";
 
 const Cart = () => {
     useDocumentTitle("Cart | Aphromas Diamond");
@@ -16,6 +15,11 @@ const Cart = () => {
     const [api, contextHolder] = notification.useNotification();
     const dispatch = useAppDispatch();
     const cartItems = useAppSelector((state) => state.cart.items);
+    const accountId = useAppSelector((state) => state.auth.user?.userId);
+
+    useEffect(() => {
+        dispatch(loadCart(accountId));
+    }, [dispatch, accountId]);
 
     const [discount, setDiscount] = useState(0);
     const onApplyVoucher = (discount: number, voucherID: number) => {

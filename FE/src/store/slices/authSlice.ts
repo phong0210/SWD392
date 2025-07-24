@@ -100,7 +100,6 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout(state) {
-      cookieUtils.clear();
       state.user = null;
       state.token = null;
       state.error = null;

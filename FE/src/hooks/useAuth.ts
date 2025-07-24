@@ -18,7 +18,7 @@ export type UserType = {
 };
 
 export type AccountType = {
-  AccountID: number;
+  AccountID: number | string;
   Name: string;
   PhoneNumber: string | null;
   Email: string;

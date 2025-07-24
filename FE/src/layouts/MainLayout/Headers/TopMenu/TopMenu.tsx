@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store";
+import { loadCart, clearCart } from "@/store/slices/cartSlice";
 import {
   HeartOutlined,
   MailFilled,
@@ -12,14 +16,20 @@ import { HeaderProps } from "./TopMenu.type";
 import Toolbar from "@/components/Toolbar";
 import { MenuProps } from "antd";
 import cookieUtils from "@/services/cookieUtils";
-import { useDispatch } from "react-redux";
 import { logout } from "@/store/slices/authSlice";
 
 const TopMenu = ({ role }: HeaderProps) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const accountId = useSelector((state: RootState) => state.auth.user?.userId);
+
+  // Load cart when component mounts or accountId changes
+  useEffect(() => {
+    dispatch(loadCart(accountId));
+  }, [dispatch, accountId]);
 
   const handleLogout = () => {
+    dispatch(clearCart(accountId)); // Pass accountId to clear the correct cart
     dispatch(logout());
     cookieUtils.clear();
     navigate(config.routes.public.login);
@@ -44,41 +54,37 @@ const TopMenu = ({ role }: HeaderProps) => {
   ];
 
   return (
-    <>
-      <Styled.TopMenuContainer>
-        <Styled.TopMenuFlexbox>
-          <Styled.Contact>
-            <Styled.Phone>
-              <PhoneFilled style={{ paddingRight: "5px" }} />
-              (000) 000 000
-            </Styled.Phone>
-            <Styled.Email>
-              <MailFilled style={{ paddingRight: "5px" }} />
-              info@gmail.com
-            </Styled.Email>
-          </Styled.Contact>
-          <Styled.Feature>
-            <Search placeholder="Search" allowClear />
-
-            {role ? (
-              <>
-                <Link to={config.routes.customer.cart}>
-                  <ShoppingCartOutlined style={{ fontSize: "30px" }} />
-                </Link>
-
-                <Toolbar menu={items} />
-              </>
-            ) : (
-              <Styled.TopMenuButton
-                onClick={() => navigate(config.routes.public.login)}
-              >
-                Login
-              </Styled.TopMenuButton>
-            )}
-          </Styled.Feature>
-        </Styled.TopMenuFlexbox>
-      </Styled.TopMenuContainer>
-    </>
+    <Styled.TopMenuContainer>
+      <Styled.TopMenuFlexbox>
+        <Styled.Contact>
+          <Styled.Phone>
+            <PhoneFilled style={{ paddingRight: "5px" }} />
+            (000) 000 000
+          </Styled.Phone>
+          <Styled.Email>
+            <MailFilled style={{ paddingRight: "5px" }} />
+            info@gmail.com
+          </Styled.Email>
+        </Styled.Contact>
+        <Styled.Feature>
+          <Search placeholder="Search" allowClear />
+          {role ? (
+            <>
+              <Link to={config.routes.customer.cart}>
+                <ShoppingCartOutlined style={{ fontSize: "30px" }} />
+              </Link>
+              <Toolbar menu={items} />
+            </>
+          ) : (
+            <Styled.TopMenuButton
+              onClick={() => navigate(config.routes.public.login)}
+            >
+              Login
+            </Styled.TopMenuButton>
+          )}
+        </Styled.Feature>
+      </Styled.TopMenuFlexbox>
+    </Styled.TopMenuContainer>
   );
 };
 

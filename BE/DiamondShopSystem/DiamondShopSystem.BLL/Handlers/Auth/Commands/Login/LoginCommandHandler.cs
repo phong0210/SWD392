@@ -36,6 +36,12 @@ namespace DiamondShopSystem.BLL.Handlers.Auth.Commands.Login
                 return new LoginResponseDto { Error = "User not found." };
             }
 
+            if (!userEntity.Status)
+            {
+                _logger.LogWarning("User with email: {Email} is inactive.", request.Request.Email);
+                return new LoginResponseDto { Error = "User account is inactive." };
+            }
+
             _logger.LogInformation("User found: {Email}. Validating password.", userEntity.Email);
             var isValidPassword = _authService.ValidatePassword(request.Request.Password, userEntity.PasswordHash);
             if (!isValidPassword)
