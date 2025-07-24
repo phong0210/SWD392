@@ -103,7 +103,7 @@ const Checkout: React.FC = () => {
     
     if (AccountID === null) return;
     try {
-      const customer = await getCustomer(AccountID ? AccountID : 0);
+      const customer = await getCustomer(AccountID ? AccountID.toString() : "");
       setCustomer(customer?.data?.data);
       setCustomerID(customer ? customer.data.data.CustomerID : 0);
     } catch (error) {

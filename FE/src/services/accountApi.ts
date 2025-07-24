@@ -18,8 +18,12 @@ export const promoteToStaff = (
   });
 };
 
-export const deleteUser = (id: number) => {
+export const deleteUser = (id: string) => {
   return remove(`/api/User/${id}`);
+};
+
+export const deleteStaff = (id: string) => {
+  return remove(`/api/User/staff-demote/${id}`);
 };
 
 // Deprecated legacy endpoints (commented out)

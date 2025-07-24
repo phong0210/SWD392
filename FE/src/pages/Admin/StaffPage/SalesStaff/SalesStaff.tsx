@@ -25,7 +25,7 @@ import {
   deleteAccount,
   updateAccount,
 } from "@/services/authAPI";
-import { promoteToStaff } from "@/services/accountApi";
+import { deleteStaff, promoteToStaff } from "@/services/accountApi";
 import { showAllAccounts } from "@/services/authAPI";
 
 interface EditableCellProps {
@@ -73,6 +73,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const SalesStaff = () => {
   const [form] = Form.useForm();
   const [staffs, setStaffs] = useState<any[]>([]);
+  const [filteredStaffs, setFilteredStaffs] = useState<any[]>([]); // ✅ thêm state
   const [nonStaffUsers, setNonStaffUsers] = useState<any[]>([]);
   const [isPromoting, setIsPromoting] = useState(false);
   const [api, contextHolder] = notification.useNotification();
@@ -80,10 +81,8 @@ const SalesStaff = () => {
   const [emailOptions, setEmailOptions] = useState<any[]>([]);
   const [selectedUserInfo, setSelectedUserInfo] = useState<any>(null);
 
-  type NotificationType = "success" | "info" | "warning" | "error";
-
   const openNotification = (
-    type: NotificationType,
+    type: "success" | "info" | "warning" | "error",
     method: string,
     error: string
   ) => {
@@ -97,21 +96,17 @@ const SalesStaff = () => {
   const fetchData = async () => {
     try {
       const response = await showAllAccounts();
-      console.log("API Response:", response);
-      
       let allUsers;
       if (response.data && Array.isArray(response.data)) {
         allUsers = response.data;
       } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
         allUsers = response.data.data;
-      } else if (Array.isArray(response)) {
-        allUsers = response;
       } else {
         throw new Error("Invalid API response format");
       }
 
       const salesStaff = allUsers.filter(
-        (user: any) => user.roleName === "SaleStaff" 
+        (user: any) => user.roleName === "SaleStaff"
       ).map((staff: any) => ({
         key: staff.id || staff.AccountID,
         staffID: staff.id || staff.AccountID,
@@ -123,21 +118,21 @@ const SalesStaff = () => {
         address: staff.address || "",
       }));
 
-      const nonStaff = allUsers.filter(
-        (user: any) => user.roleName !== "SaleStaff" && user.roleName !== "Manager" && user.roleName !== "HeadOfficeAdmin" && user.roleName !== "DeliveryStaff"
-      ).map((user: any) => ({
-        key: user.id || user.AccountID,
-        email: user.email || user.Email || "",
-        name: user.name || user.Name || "",
-        phone: user.phone || user.PhoneNumber || "",
-      }));
-      
-      console.log("Sales Staff:", salesStaff);
-      console.log("Non-Staff Users:", nonStaff);
+        const nonStaff = allUsers.filter(
+      (user: any) =>
+        !["SaleStaff", "Manager", "HeadOfficeAdmin", "DeliveryStaff"].includes(user.roleName) &&
+        user.isActive !== false // ✅ Chỉ lấy user chưa bị ban
+    ).map((user: any) => ({
+      key: user.id || user.AccountID,
+      email: user.email || user.Email || "",
+      name: user.name || user.Name || "",
+      phone: user.phone || user.PhoneNumber || "",
+    }));
+
       setStaffs(salesStaff);
+      setFilteredStaffs(salesStaff); // ✅ gán dữ liệu lọc ban đầu
       setNonStaffUsers(nonStaff);
-      
-      // Prepare email options for autocomplete
+
       const options = nonStaff.map((user: any) => ({
         value: user.email,
         label: `${user.email} (${user.name})`,
@@ -145,7 +140,6 @@ const SalesStaff = () => {
       }));
       setEmailOptions(options);
     } catch (error) {
-      console.error("Failed to fetch user data:", error);
       openNotification("error", "Fetch", "Failed to load user data");
     }
   };
@@ -154,32 +148,13 @@ const SalesStaff = () => {
     fetchData();
   }, []);
 
-  const handleDelete = async (staffID: string | number) => {
+  const handleDemote = async (staffID: string) => {
     try {
-      await deleteAccount(staffID);
-      openNotification("success", "Delete", "");
+      await deleteStaff(staffID);
+      openNotification("success", "Demote", "Staff demoted to Customer successfully.");
       fetchData();
     } catch (error: any) {
-      console.error("Failed to delete staff:", error);
-      openNotification("error", "Delete", error.message || "Failed to delete staff");
-    }
-  };
-
-  const handleBan = async (email: string) => {
-    try {
-      const response = await updateAccount(email, {
-        Role: "ROLE_BAN",
-      });
-      console.log("Ban Response:", response.data);
-      if (response.status === 200) {
-        openNotification("success", "Ban", "Staff has been banned successfully.");
-        fetchData();
-      } else {
-        openNotification("error", "Ban", "Failed to ban staff.");
-      }
-    } catch (error: any) {
-      console.error("Failed to ban staff:", error);
-      openNotification("error", "Ban", error.message);
+      openNotification("error", "Demote", error.message || "Failed to demote staff");
     }
   };
 
@@ -189,9 +164,8 @@ const SalesStaff = () => {
       dataIndex: "staffID",
       editable: true,
       sorter: (a: any, b: any) => {
-        // Handle both string and number IDs
-        const aID = typeof a.staffID === 'string' ? a.staffID : String(a.staffID || "");
-        const bID = typeof b.staffID === 'string' ? b.staffID : String(b.staffID || "");
+        const aID = String(a.staffID || "");
+        const bID = String(b.staffID || "");
         return aID.localeCompare(bID);
       },
     },
@@ -200,12 +174,8 @@ const SalesStaff = () => {
       dataIndex: "staffName",
       defaultSortOrder: "descend" as SortOrder,
       editable: true,
-      sorter: (a: any, b: any) => {
-        // Safe string sorting with null/undefined checks
-        const aName = a.staffName || "";
-        const bName = b.staffName || "";
-        return aName.length - bName.length;
-      },
+      sorter: (a: any, b: any) =>
+        (a.staffName || "").localeCompare(b.staffName || ""),
     },
     {
       title: "Phone Number",
@@ -216,62 +186,48 @@ const SalesStaff = () => {
       title: "Email",
       dataIndex: "email",
       editable: true,
-      sorter: (a: any, b: any) => {
-        // Safe email sorting
-        const aEmail = a.email || "";
-        const bEmail = b.email || "";
-        return aEmail.localeCompare(bEmail);
-      },
+      sorter: (a: any, b: any) =>
+        (a.email || "").localeCompare(b.email || ""),
     },
     {
-      title: "Delete",
+      title: "Demote",
       dataIndex: "delete",
       className: "TextAlign",
       render: (_: unknown, record: any) =>
         staffs.length >= 1 ? (
           <Popconfirm
-            title="Sure to delete?"
-            onConfirm={() => handleDelete(record.key)}
+            title="Are you sure you want to demote this staff to Customer?"
+            onConfirm={() => handleDemote(record.key)}
           >
-            <a>Delete</a>
-          </Popconfirm>
-        ) : null,
-    },
-    {
-      title: "Ban",
-      dataIndex: "ban",
-      className: "TextAlign",
-      render: (_: unknown, record: any) =>
-        staffs.length >= 1 ? (
-          <Popconfirm
-            title="Sure to ban?"
-            onConfirm={() => handleBan(record.email)}
-          >
-            <a>Ban</a>
+            <a>Demote</a>
           </Popconfirm>
         ) : null,
     },
   ];
 
-  const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: any) => ({
-        record,
-        inputType: col.dataIndex === "phoneNumber" ? "number" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-      }),
-    };
-  });
+  const mergedColumns = columns.map((col) =>
+    !col.editable
+      ? col
+      : {
+          ...col,
+          onCell: (record: any) => ({
+            record,
+            inputType: col.dataIndex === "phoneNumber" ? "number" : "text",
+            dataIndex: col.dataIndex,
+            title: col.title,
+          }),
+        }
+  );
 
-  // SEARCH
+  // ✅ SEARCH
   const onSearch = (value: string) => {
-    console.log("Search:", value);
-    // Implement search logic here
+    const keyword = value.toLowerCase().trim();
+    const filtered = staffs.filter((staff) =>
+      staff.staffName.toLowerCase().includes(keyword) ||
+      staff.email.toLowerCase().includes(keyword) ||
+      staff.phoneNumber.toLowerCase().includes(keyword)
+    );
+    setFilteredStaffs(filtered);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -292,7 +248,6 @@ const SalesStaff = () => {
     form.resetFields();
   };
 
-  // Handle email selection for autocomplete
   const handleEmailSelect = (value: string) => {
     const selectedOption = emailOptions.find(option => option.value === value);
     if (selectedOption) {
@@ -301,10 +256,9 @@ const SalesStaff = () => {
     }
   };
 
-  // Filter email options based on search input
   const handleEmailSearch = (searchText: string) => {
     const filteredOptions = nonStaffUsers
-      .filter((user: any) => 
+      .filter((user: any) =>
         user.email.toLowerCase().includes(searchText.toLowerCase()) ||
         user.name.toLowerCase().includes(searchText.toLowerCase())
       )
@@ -316,15 +270,7 @@ const SalesStaff = () => {
     setEmailOptions(filteredOptions);
   };
 
-  // SUBMIT FORM
-  interface SubmitButtonProps {
-    form: FormInstance;
-  }
-
-  const SubmitButton: React.FC<React.PropsWithChildren<SubmitButtonProps>> = ({
-    form,
-    children,
-  }) => {
+  const SubmitButton: React.FC<{ form: FormInstance; children: React.ReactNode }> = ({ form, children }) => {
     const [submittable, setSubmittable] = useState(false);
     const values = Form.useWatch([], form);
 
@@ -338,30 +284,23 @@ const SalesStaff = () => {
     const promoteUser = async () => {
       try {
         const { email, salary, hireDate } = await form.validateFields();
-        const roleName = "SaleStaff"; // Hardcoded for now, can be dynamic later
-
+        const roleName = "SaleStaff";
         const response = await promoteToStaff(email, roleName, salary, hireDate.toISOString());
         if (response.status === 200) {
           openNotification("success", "Promote", "User promoted to staff successfully.");
           fetchData();
           setIsPromoting(false);
-          setSelectedUserInfo(null);
           form.resetFields();
         } else {
           openNotification("error", "Promote", response.data?.message || "Failed to promote user.");
         }
       } catch (error: any) {
-        openNotification("error", "Promote", error.message || "An unexpected error occurred.");
+        openNotification("error", "Promote", error.message || "Unexpected error");
       }
     };
 
     return (
-      <Button
-        type="primary"
-        htmlType="submit"
-        disabled={!submittable}
-        onClick={promoteUser}
-      >
+      <Button type="primary" htmlType="submit" disabled={!submittable} onClick={promoteUser}>
         {children}
       </Button>
     );
@@ -373,23 +312,24 @@ const SalesStaff = () => {
       <Styled.GlobalStyle />
       <Styled.AdminArea>
         <Sidebar />
-
         <Styled.AdminPage>
           <StaffMenu />
-
           <Styled.AdPageContent>
             <Styled.AdPageContent_Head>
-              {(!isPromoting && (
+              {!isPromoting ? (
                 <>
                   <Styled.SearchArea>
                     <Input
                       className="searchInput"
-                      type="text"
-                      placeholder="Search here..."
+                      placeholder="Search Staff..."
                       value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      prefix={<SearchOutlined className="searchIcon" />}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSearchText(value);
+                        if (value.trim() === "") setFilteredStaffs(staffs); // ✅ reset nếu rỗng
+                      }}
+                      onKeyDown={handleKeyPress}
+                      prefix={<SearchOutlined />}
                     />
                   </Styled.SearchArea>
                   <Styled.AddButton>
@@ -399,120 +339,65 @@ const SalesStaff = () => {
                     </button>
                   </Styled.AddButton>
                 </>
-              )) || (
-                <>
-                  <Styled.AddContent_Title>
-                    <p>Promote User to Sales Staff</p>
-                  </Styled.AddContent_Title>
-                </>
+              ) : (
+                <Styled.AddContent_Title>
+                  <p>Promote User to Sales Staff</p>
+                </Styled.AddContent_Title>
               )}
             </Styled.AdPageContent_Head>
 
             <Styled.AdminTable>
               {isPromoting ? (
-                <>
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    className="AdPageContent_Content"
-                  >
-                    <Styled.FormItem>
-                      <Form.Item
-                        name="email"
-                        label="User E-mail"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select a user E-mail!",
-                          },
-                        ]}
-                      >
-                        <AutoComplete
-                          placeholder="Type to search and select user email..."
-                          onSelect={handleEmailSelect}
-                          onSearch={handleEmailSearch}
-                          options={emailOptions}
-                          filterOption={false}
-                          showSearch
-                          allowClear
-                          style={{ width: '100%', marginBottom: '16px' }}
-                          dropdownStyle={{ maxHeight: 200, overflow: 'auto', zIndex: 1000 }}
-                        />
-                      </Form.Item>
-                      
-                      {/* Display selected user info */}
-                      {selectedUserInfo && (
-                        <div style={{ 
-                          padding: '12px 16px', 
-                          backgroundColor: '#f6f6f6', 
-                          borderRadius: '4px',
-                          marginTop: '12px',
-                          marginBottom: '16px',
-                          border: '1px solid #d9d9d9',
-                          fontSize: '14px'
-                        }}>
-                          <strong>Selected User:</strong> {selectedUserInfo.name} <br />
-                          <strong>Email:</strong> {selectedUserInfo.email} <br />
-                          {selectedUserInfo.phone && (
-                            <>
-                              <strong>Phone:</strong> {selectedUserInfo.phone}
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </Styled.FormItem>
-                    
-                    <Styled.FormItem>
-                      <Form.Item
-                        name="salary"
-                        label="Salary"
-                        rules={[{ required: true, message: "Please input salary!" }]}
-                      >
-                        <InputNumber min={0} style={{ width: '100%' }} placeholder="Enter salary" />
-                      </Form.Item>
-                    </Styled.FormItem>
-                    <Styled.FormItem>
-                      <Form.Item
-                        name="hireDate"
-                        label="Hire Date"
-                        rules={[{ required: true, message: "Please select hire date!" }]}
-                      >
-                        <DatePicker style={{ width: '100%' }} />
-                      </Form.Item>
-                    </Styled.FormItem>
+                <Form form={form} layout="vertical">
+                  <Styled.FormItem>
+                    <Form.Item
+                      name="email"
+                      label="User E-mail"
+                      rules={[{ required: true, message: "Please select a user E-mail!" }]}
+                    >
+                      <AutoComplete
+                        placeholder="Type to search user email..."
+                        onSelect={handleEmailSelect}
+                        onSearch={handleEmailSearch}
+                        options={emailOptions}
+                        filterOption={false}
+                        showSearch
+                        allowClear
+                      />
+                    </Form.Item>
 
-                    <Styled.ActionBtn>
-                      <SubmitButton form={form}>
-                        <SaveOutlined />
-                        Promote
-                      </SubmitButton>
-                      <Button
-                        onClick={handleCancel}
-                        style={{ marginLeft: "10px" }}
-                      >
-                        Cancel
-                      </Button>
-                    </Styled.ActionBtn>
-                  </Form>
-                </>
+                    {selectedUserInfo && (
+                      <div style={{ padding: '10px', backgroundColor: '#f6f6f6', borderRadius: '4px' }}>
+                        <strong>User:</strong> {selectedUserInfo.name} <br />
+                        <strong>Email:</strong> {selectedUserInfo.email}
+                      </div>
+                    )}
+                  </Styled.FormItem>
+
+                  <Styled.FormItem>
+                    <Form.Item name="salary" label="Salary" rules={[{ required: true, message: "Please input salary!" }]}>
+                      <InputNumber min={0} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Styled.FormItem>
+                  <Styled.FormItem>
+                    <Form.Item name="hireDate" label="Hire Date" rules={[{ required: true, message: "Please select date!" }]}>
+                      <DatePicker style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Styled.FormItem>
+
+                  <Styled.ActionBtn>
+                    <SubmitButton form={form}><SaveOutlined /> Promote</SubmitButton>
+                    <Button onClick={handleCancel} style={{ marginLeft: 10 }}>Cancel</Button>
+                  </Styled.ActionBtn>
+                </Form>
               ) : (
                 <Form form={form} component={false}>
                   <Table
-                    components={{
-                      body: {
-                        cell: EditableCell,
-                      },
-                    }}
+                    components={{ body: { cell: EditableCell } }}
                     bordered
-                    dataSource={staffs}
+                    dataSource={filteredStaffs}
                     columns={mergedColumns}
-                    rowClassName="editable-row"
-                    pagination={{
-                      pageSize: 6,
-                      showSizeChanger: false,
-                      showQuickJumper: true,
-                    }}
-                    loading={staffs.length === 0}
+                    pagination={{ pageSize: 6, showQuickJumper: true }}
                   />
                 </Form>
               )}

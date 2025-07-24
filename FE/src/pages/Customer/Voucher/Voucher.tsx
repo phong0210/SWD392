@@ -1,39 +1,3 @@
-// // import React from 'react';
-// import styled from "styled-components";
-// // import 'font-awesome/css/font-awesome.min.css';
-// import AccountCus from "@/components/Customer/Account Details/AccountCus";
-// import DiamondVoucher from "@/components/Customer/Voucher/DiamondVoucher";
-// const Voucher = () => {
-//   return (
-//     <Main>
-//       <AccountCus />
-//       <Titles>Voucher</Titles>
-//       <Section>
-//         <DiamondVoucher />
-//       </Section>
-//     </Main>
-//   );
-// };
-// export default Voucher;
-
-// const Main = styled.div`
-//   margin-bottom: 20rem;
-// `;
-
-// const Section = styled.div`
-//   margin: 0 2rem 0 2rem;
-// `;
-// const Titles = styled.h1`
-//   color: #000;
-//   font: 600 32px "Crimson Text", sans-serif;
-//   display: flex;
-//   flex-direction: row;
-//   justify-content: space-around;
-//   padding: 1.5rem 0;
-//   @media (max-width: 991px) {
-//     margin-top: 40px;
-//   }
-// `;
 
 import React, { useEffect, useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
@@ -45,10 +9,8 @@ import dayjs from "dayjs";
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
 import { showAllVoucher } from "@/services/voucherAPI";
 import { showAllProduct } from "@/services/productAPI";
-
 // =========================================================
-// Định nghĩa lại các Styled Components cần thiết TRỰC TIẾP trong file này
-// =========================================================
+// Styled Components
 
 const GlobalStyle = createGlobalStyle`
   html, body {
@@ -313,24 +275,24 @@ const Voucher: React.FC = () => {
       sorter: (a, b) => dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
       width: '15%',
     },
-    {
-      title: "Applies To Product",
-      dataIndex: "appliesToProductId",
-      key: "appliesToProductId",
-      render: (appliesToProductId: number | null) => {
-        if (appliesToProductId === null) {
-          return "All Products";
-        }
-        const product = products.find((p) => p.Id === appliesToProductId);
-        return product ? product.Name : "N/A";
-      },
-      sorter: (a, b) => {
-        const nameA = a.appliesToProductId ? products.find(p => p.Id === a.appliesToProductId)?.Name || '' : 'All Products';
-        const nameB = b.appliesToProductId ? products.find(p => p.Id === b.appliesToProductId)?.Name || '' : 'All Products';
-        return nameA.localeCompare(nameB);
-      },
-      width: '20%',
-    },
+    // {
+    //   title: "Applies To Product",
+    //   dataIndex: "appliesToProductId",
+    //   key: "appliesToProductId",
+    //   render: (appliesToProductId: number | null) => {
+    //     if (appliesToProductId === null) {
+    //       return "All Products";
+    //     }
+    //     const product = products.find((p) => p.Id === appliesToProductId);
+    //     return product ? product.Name : "N/A";
+    //   },
+    //   sorter: (a, b) => {
+    //     const nameA = a.appliesToProductId ? products.find(p => p.Id === a.appliesToProductId)?.Name || '' : 'All Products';
+    //     const nameB = b.appliesToProductId ? products.find(p => p.Id === b.appliesToProductId)?.Name || '' : 'All Products';
+    //     return nameA.localeCompare(nameB);
+    //   },
+    //   width: '20%',
+    // },
     {
       title: "Description",
       dataIndex: "description",

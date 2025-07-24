@@ -1,11 +1,20 @@
+
 import * as Styled from "./Customer.styled";
 import React, { useEffect, useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType } from "antd";
 import Sidebar from "../../../components/Admin/Sidebar/Sidebar";
-import { Form, Input, InputNumber, notification, Popconfirm, Table, Tag } from "antd";
+import {
+  Form,
+  Input,
+  InputNumber,
+  notification,
+  Popconfirm,
+  Table,
+  Tag,
+} from "antd";
 import { showAllAccounts } from "@/services/authAPI";
-import { deleteUser } from "@/services/accountApi"; // ✅ Import đúng API mới
+import { deleteUser } from "@/services/accountApi";
 
 interface EditableCellProps {
   editing: boolean;
@@ -26,19 +35,13 @@ const EditableCell: React.FC<EditableCellProps> = ({
   ...restProps
 }) => {
   const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
-
   return (
     <td {...restProps}>
       {editing ? (
         <Form.Item
           name={dataIndex.toString()}
           style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
+          rules={[{ required: true, message: `Please Input ${title}!` }]}
         >
           {inputNode}
         </Form.Item>
@@ -53,6 +56,7 @@ const Customer = () => {
   const [form] = Form.useForm();
   const [searchText, setSearchText] = useState("");
   const [customers, setCustomers] = useState<any[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [api, contextHolder] = notification.useNotification();
 
   type NotificationType = "success" | "info" | "warning" | "error";
@@ -64,35 +68,25 @@ const Customer = () => {
   ) => {
     api[type]({
       message: type === "success" ? "Notification" : "Error",
-      description:
-        type === "success" ? `${method} successfully` : error,
+      description: type === "success" ? `${method} successfully` : error,
     });
   };
 
   const fetchData = async () => {
     try {
       const response = await showAllAccounts();
-      if (!response.data) {
-        openNotification("error", "Fetch", "No data received from server");
-        return;
-      }
+      const data = response.data?.data || response.data;
 
-      let accountsData;
-
-      if (Array.isArray(response.data)) {
-        accountsData = response.data;
-      } else if (response.data.data && Array.isArray(response.data.data)) {
-        accountsData = response.data.data;
-      } else {
+      if (!Array.isArray(data)) {
         openNotification("error", "Fetch", "Unexpected data format");
         return;
       }
 
-      const filteredCustomers = accountsData.filter((account: any) =>
-        account.roleName && account.roleName.toLowerCase().includes("customer")
+      const filtered = data.filter((account: any) =>
+        account.roleName?.toLowerCase().includes("customer")
       );
 
-      const formattedCustomers = filteredCustomers.map((customer: any, index: number) => ({
+      const formatted = filtered.map((customer: any, index: number) => ({
         key: customer.id || index,
         accountID: customer.id,
         customerName: customer.name || "",
@@ -100,11 +94,13 @@ const Customer = () => {
         email: customer.email || "",
         role: customer.roleName || "",
         customerID: customer.id,
-        isActive: customer.isActive !== undefined ? customer.isActive : true,
+        isActive:
+          customer.isActive !== undefined ? customer.isActive : true,
       }));
 
-      setCustomers(formattedCustomers);
-    } catch (error) {
+      setCustomers(formatted);
+      setFilteredCustomers(formatted);
+    } catch {
       openNotification("error", "Fetch", "Failed to load customer data");
     }
   };
@@ -113,8 +109,7 @@ const Customer = () => {
     fetchData();
   }, []);
 
-  // ✅ Sửa tại đây: dùng deleteUser(accountID)
-  const handleBan = async (accountID: number) => {
+  const handleBan = async (accountID: string) => {
     try {
       const response = await deleteUser(accountID);
       if (response.status === 200 || response.status === 204) {
@@ -128,17 +123,35 @@ const Customer = () => {
     }
   };
 
+  const onSearch = (value: string) => {
+    const keyword = value.toLowerCase().trim();
+
+    const filtered = customers.filter((customer) =>
+      customer.customerName.toLowerCase().includes(keyword)
+    );
+
+    setFilteredCustomers(filtered);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      onSearch(searchText);
+    }
+  };
+
   const columns: TableColumnsType<any> = [
     {
       title: "Customer ID",
       dataIndex: "customerID",
-      sorter: (a, b) => (a.customerID || "").localeCompare(b.customerID || ""),
+      sorter: (a, b) =>
+        (a.customerID || "").localeCompare(b.customerID || ""),
     },
     {
       title: "Customer Name",
       dataIndex: "customerName",
       defaultSortOrder: "descend",
-      sorter: (a, b) => (a.customerName || "").localeCompare(b.customerName || ""),
+      sorter: (a, b) =>
+        (a.customerName || "").localeCompare(b.customerName || ""),
     },
     {
       title: "Email",
@@ -148,7 +161,8 @@ const Customer = () => {
     {
       title: "Phone",
       dataIndex: "phoneNumber",
-      sorter: (a, b) => (a.phoneNumber || "").localeCompare(b.phoneNumber || ""),
+      sorter: (a, b) =>
+        (a.phoneNumber || "").localeCompare(b.phoneNumber || ""),
     },
     {
       title: "Ban",
@@ -157,7 +171,7 @@ const Customer = () => {
       render: (_: unknown, record: any) => (
         <Popconfirm
           title="Sure to ban this customer?"
-          onConfirm={() => handleBan(record.accountID)} // ✅ Sửa tại đây
+          onConfirm={() => handleBan(record.accountID)}
           disabled={!record.isActive}
         >
           <a
@@ -174,6 +188,11 @@ const Customer = () => {
     {
       title: "Status",
       dataIndex: "isActive",
+      filters: [
+        { text: "Active", value: true },
+        { text: "Banned", value: false },
+      ],
+      onFilter: (value, record) => record.isActive === value,
       render: (isActive: boolean) => (
         <Tag color={isActive ? "green" : "red"}>
           {isActive ? "Active" : "Banned"}
@@ -181,16 +200,6 @@ const Customer = () => {
       ),
     },
   ];
-
-  const onSearch = (value: string) => {
-    console.log("Search:", value);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      onSearch(searchText);
-    }
-  };
 
   return (
     <>
@@ -210,10 +219,14 @@ const Customer = () => {
                 <Input
                   className="searchInput"
                   type="text"
-                  placeholder="Search here..."
+                  placeholder="Search customer name..."
                   value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchText(value);
+                    onSearch(value); // ✅ Auto search on typing
+                  }}
+                  onKeyDown={handleKeyPress}
                   prefix={<SearchOutlined className="searchIcon" />}
                 />
               </Styled.SearchArea>
@@ -222,13 +235,9 @@ const Customer = () => {
             <Styled.AdminTable>
               <Form form={form} component={false}>
                 <Table
-                  components={{
-                    body: {
-                      cell: EditableCell,
-                    },
-                  }}
+                  components={{ body: { cell: EditableCell } }}
                   bordered
-                  dataSource={customers}
+                  dataSource={filteredCustomers}
                   columns={columns}
                   rowClassName="editable-row"
                   pagination={{
@@ -238,9 +247,7 @@ const Customer = () => {
                     showTotal: (total, range) =>
                       `${range[0]}-${range[1]} of ${total} customers`,
                   }}
-                  locale={{
-                    emptyText: "No customers found",
-                  }}
+                  locale={{ emptyText: "No customers found" }}
                 />
               </Form>
             </Styled.AdminTable>
@@ -252,3 +259,4 @@ const Customer = () => {
 };
 
 export default Customer;
+
