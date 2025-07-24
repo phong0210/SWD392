@@ -557,7 +557,7 @@ const DiamondDetails: React.FC = () => {
               className={activeTab === "product-review" ? "active" : "hide"}
             >
               {/* Review content */}
-              <Review>
+              {/* <Review>
                 {reviewsData.length > 0 ? (
                   <div className="reviews-section">
                     <div className="head-review">
@@ -620,7 +620,7 @@ const DiamondDetails: React.FC = () => {
                   <Empty description="No reviews available" />
                 )}
                 <StyledPagination defaultCurrent={1} total={10} />
-              </Review>
+              </Review> */}
             </ProductAbout>
           </div>
         </Contain>

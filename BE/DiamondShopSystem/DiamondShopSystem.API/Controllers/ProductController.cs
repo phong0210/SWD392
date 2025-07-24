@@ -75,11 +75,11 @@ namespace DiamondShopSystem.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id,Boolean status)
         {
             try
             {
-                await _productService.DeleteProductAsync(id); // No need to assign the result since the method returns void.
+                await _productService.DeleteProductAsync(id,status); // No need to assign the result since the method returns void.
                 return Ok(new { success = true });
             }
             catch (Exception)

@@ -36,10 +36,11 @@ const AllDiamond: React.FC = () => {
   useDocumentTitle("Diamond | Aphromas Diamond");
 
   const [diamonds, setDiamonds] = useState<Product[]>([]);
+  const [filteredDiamonds, setFilteredDiamonds] = useState<Product[]>([]); // Thêm state để lưu diamonds đã lọc
   const [loading, setLoading] = useState<boolean>(true);
   const [wishList, setWishList] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 8;
 
   const toggleWishList = (productId: UUID) => {
     setWishList((prev) =>
@@ -103,6 +104,11 @@ const AllDiamond: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const filtered = diamonds.filter((diamond) => diamond.isHidden === false);
+    setFilteredDiamonds(filtered);
+  }, [diamonds]);
+
   if (loading) {
     return (
       <div
@@ -160,7 +166,7 @@ const AllDiamond: React.FC = () => {
       />
       <List>
         <Row gutter={[16, 16]}>
-          {diamonds
+          {filteredDiamonds // Thay đổi từ diamonds thành filteredDiamonds
             .slice((currentPage - 1) * pageSize, currentPage * pageSize)
             .map((diamond: Product) => (
               <Col key={diamond.id} span={6}>
@@ -223,7 +229,7 @@ const AllDiamond: React.FC = () => {
       <StyledPagination
         current={currentPage}
         pageSize={pageSize}
-        total={diamonds.length}
+        total={filteredDiamonds.length} // Thay đổi từ diamonds.length thành filteredDiamonds.length
         onChange={handleChangePage}
       />
       <FAQs>
