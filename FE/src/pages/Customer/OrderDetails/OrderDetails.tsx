@@ -319,10 +319,7 @@ const OrderDetail: React.FC = () => {
             />
           </Row>
           <Column>
-            <InfoTextBold>
-              Discount:
-              <span>-{formatPrice(subTotal - totalPrice) || 0}</span>
-            </InfoTextBold>
+           
 
 
             {/* <InfoText>
@@ -333,6 +330,11 @@ const OrderDetail: React.FC = () => {
               <div>Subtotal:</div>
               <div>{formatPrice(totalPrice)}</div>
             </InfoText>
+
+             <InfoTextBold>
+              Discount:
+              <span>-{formatPrice(subTotal - totalPrice) || 0}</span>
+            </InfoTextBold>
 
             <br />
             <InfoTextBold style={{ color: "red" }}>
