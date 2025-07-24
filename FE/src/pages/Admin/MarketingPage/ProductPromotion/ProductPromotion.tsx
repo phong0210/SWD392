@@ -251,20 +251,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
     }
   };
 
-      // {
-      //   title: "Detail",
-      //   key: "detail",
-      //   className: "TextAlign",
-      //   render: (_: unknown, { promotionID }) => (
-      //     <Space size="middle">
-      //       <Link to={`/sales-staff/marketing/discount/detail/${promotionID}`}>
-      //         <EyeOutlined />
-      //       </Link>
-      //     </Space>
-      //   ),
-      // },
-  
-
  const columns = [
     {
       title: "Promotion ID",
@@ -322,34 +308,6 @@ console.log("appliesToProductId in discounts:", discounts.map(d => d.appliesToPr
       editable: true,
     },
 
-  // {
-  //   title: "Edit",
-  //   dataIndex: "edit",
-  //   className: "TextAlign SmallSize",
-  //   render: (_: unknown, record: any) => {
-  //     const editable = isEditing(record);
-  //     return editable ? (
-  //       <span>
-  //         <Typography.Link
-  //           onClick={() => save(record.key)}
-  //           style={{ marginRight: 8 }}
-  //         >
-  //           Save
-  //         </Typography.Link>
-  //         <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-  //           <a>Cancel</a>
-  //         </Popconfirm>
-  //       </span>
-  //     ) : (
-  //       <Typography.Link
-  //         disabled={editingKey !== ""}
-  //         onClick={() => edit(record)}
-  //       >
-  //         Edit
-  //       </Typography.Link>
-  //     );
-  //   },
-  // },
   {
     title: "Delete",
     dataIndex: "delete",

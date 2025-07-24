@@ -11,6 +11,11 @@ import cookieUtils from "@/services/cookieUtils";
 import { showAllOrder, updateOrder } from "@/services/orderAPI";
 import { OrderStatus } from "@/utils/enum";
 import { get } from "http";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearCart } from "@/services/cartAPI";
+import { logout } from "@/store/slices/authSlice";
+
 
 const DeliveryDelivering = () => {
   const { AccountID } = useAuth();
@@ -37,6 +42,17 @@ const DeliveryDelivering = () => {
     };
     return statusMap[statusNumber] || "Unknown";
   };
+
+  const navigate = useNavigate();
+  
+    const dispatch = useDispatch();
+        const handleLogout = () => {
+        clearCart();
+        dispatch(logout());
+        cookieUtils.clear();
+        navigate(config.routes.public.login);
+        };
+  
 
   const fetchData = useCallback(async () => {
     try {
@@ -231,7 +247,7 @@ const DeliveryDelivering = () => {
               <h1>Hello, {user ? user.Name : null}</h1>
               <Styled.Logout
                 to={config.routes.public.login}
-                onClick={() => cookieUtils.clear()}
+                onClick={() => handleLogout()}
               >
                 <PoweroffOutlined /> Logout
               </Styled.Logout>

@@ -139,7 +139,7 @@ const DeliveryReturn = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const user = await getCustomer(AccountID ? AccountID : 0);
+      const user = await getCustomer(AccountID ? AccountID : "");
       console.log(user.data.data);
       setUser(user.data.data);
     }

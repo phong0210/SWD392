@@ -10,6 +10,10 @@ import config from "@/config";
 import cookieUtils from "@/services/cookieUtils";
 import { showAllOrder, updateOrder } from "@/services/orderAPI";
 import { OrderStatus } from "@/utils/enum";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearCart } from "@/services/cartAPI";
+import { logout } from "@/store/slices/authSlice";
 
 interface DataType {
   key: React.Key;
@@ -96,6 +100,17 @@ const DeliveryCompleted = () => {
   const [searchText, setSearchText] = useState("");
 
   const [api, contextHolder] = notification.useNotification();
+
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+      const handleLogout = () => {
+      clearCart();
+      dispatch(logout());
+      cookieUtils.clear();
+      navigate(config.routes.public.login);
+      };
+
 
   // Function to convert numeric status to string
   const getStatusString = (statusNumber: number) => {
@@ -250,7 +265,7 @@ const DeliveryCompleted = () => {
               <h1>Hello, {user ? user.Name : null}</h1>
               <Styled.Logout
                 to={config.routes.public.login}
-                onClick={() => cookieUtils.clear()}
+                onClick={() => handleLogout()}
               >
                 <PoweroffOutlined /> Logout
               </Styled.Logout>
