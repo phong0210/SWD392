@@ -4,6 +4,10 @@ export const login = (account: object) => {
     return post(`/api/auth/login`, account);
 }
 
+export const googleLogin = (credential: string) => {
+    return post('/api/auth/google-login', { credential });
+};
+
 export const register = (account: object) => {
     return post(`/api/User/register`, account);
 }

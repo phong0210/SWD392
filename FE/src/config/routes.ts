@@ -3,7 +3,7 @@ const routes = {
     home: "/",
     login: "/login",
     register: "/register",
-    forgotPassword: "/forgot-password",
+    
     setPassword: "/set-password",
     notFound: "/404",
     product: "/product",

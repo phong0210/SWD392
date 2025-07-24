@@ -1,8 +1,15 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using DiamondShopSystem.BLL.Services.User;
 using DiamondShopSystem.DAL.Entities;
+using DiamondShopSystem.BLL.Handlers.Auth.DTOs;
+using System.Threading.Tasks;
+using Google.Apis.Auth;
+using Microsoft.Extensions.Configuration;
+using DiamondShopSystem.DAL.Repositories;
+using DiamondShopSystem.BLL.Handlers.User.DTOs;
 
 namespace DiamondShopSystem.BLL.Services.Auth
 {
@@ -10,16 +17,20 @@ namespace DiamondShopSystem.BLL.Services.Auth
     {
         private readonly JwtUtil _jwtUtil;
         private readonly IUserService _userService;
+        private readonly IConfiguration _configuration;
+        private readonly IGenericRepository<DiamondShopSystem.DAL.Entities.User> _userRepository;
         private const int SaltSize = 16; // 128 bit
         private const int KeySize = 32; // 256 bit
         private const int Iterations = 10000;
         private static readonly HashAlgorithmName _hashAlgorithmName = HashAlgorithmName.SHA256;
         private const char Delimiter = ';';
 
-        public AuthService(JwtUtil jwtUtil, IUserService userService)
+        public AuthService(JwtUtil jwtUtil, IUserService userService, IConfiguration configuration, IGenericRepository<DiamondShopSystem.DAL.Entities.User> userRepository)
         {
             _jwtUtil = jwtUtil;
             _userService = userService;
+            _configuration = configuration;
+            _userRepository = userRepository;
         }
 
         public string HashPassword(string password)
@@ -54,4 +65,5 @@ namespace DiamondShopSystem.BLL.Services.Auth
             return _jwtUtil.GenerateToken(user, role);
         }
     }
-} 
+}
+ 

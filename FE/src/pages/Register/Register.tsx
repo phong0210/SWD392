@@ -3,10 +3,14 @@ import { RegisterFields, OtpFields } from "@/components/AuthForm/AuthForm.fields
 import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
 import { register, confirmRegistration } from "@/services/authAPI";
-import { PageEnum } from "@/utils/enum";
+import { PageEnum, Role } from "@/utils/enum";
 import { message } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
+import { googleLogin } from "@/store/slices/authSlice";
 
 interface RegisterFormValues {
     Name: string;
@@ -27,6 +31,7 @@ const Register = () => {
     const [email, setEmail] = useState(''); // To store email for OTP verification
     const [registrationData, setRegistrationData] = useState<RegisterFormValues | null>(null); // To store registration data temporarily
     const navigate = useNavigate();
+    const dispatch: AppDispatch = useDispatch();
 
     const [messageApi, contextHolder] = message.useMessage();
 
@@ -96,6 +101,49 @@ const Register = () => {
             setIsSubmitting(false);
         }
     };
+
+    const handleGoogleLoginSuccess = async (credentialResponse: CredentialResponse) => {
+        if (credentialResponse.credential) {
+            const resultAction = await dispatch(googleLogin(credentialResponse.credential));
+            if (googleLogin.fulfilled.match(resultAction)) {
+                await messageApi.success('Login successfully');
+                const user = resultAction.payload.user;
+                console.log("User Check:", user);
+                
+                switch (user.role) {
+                    case Role.HeadOfficeAdmin:
+                        navigate(config.routes.admin.dashboard, { replace: true });
+                        break;
+                    case Role.SalesStaff:
+                        navigate(config.routes.salesStaff.dashboard, { replace: true });
+                        break;
+                    case Role.DeliveryStaff:
+                        navigate(config.routes.deliStaff.dashboard, { replace: true });
+                        break;
+                    default:
+                        navigate(config.routes.public.home, { replace: true });
+                }
+            } else {
+                const errorMsg = typeof resultAction.payload === 'string' 
+                    ? resultAction.payload 
+                    : 'Login failed';
+                throw new Error(errorMsg);
+            }
+        }
+    };
+
+    const handleGoogleLoginError = () => {
+        messageApi.error('Google login failed. Please try again.');
+    };
+
+    const googleLoginButton = (
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={handleGoogleLoginError}
+            />
+        </div>
+    );
 
     const redirect = {
         description: 'Have an account?',

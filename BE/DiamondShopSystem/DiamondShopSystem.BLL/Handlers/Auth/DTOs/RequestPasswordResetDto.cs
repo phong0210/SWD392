@@ -2,6 +2,6 @@ namespace DiamondShopSystem.BLL.Handlers.Auth.DTOs
 {
     public class RequestPasswordResetDto
     {
-        public string Email { get; set; }
+        public required string Email { get; set; }
     }
 }

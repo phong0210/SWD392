@@ -146,6 +146,8 @@ void ConfigureServices()
         options.SmtpPass = Environment.GetEnvironmentVariable("SMTP_PASS");
         options.FromEmail = Environment.GetEnvironmentVariable("FROM_EMAIL");
     });
+
+    builder.Configuration["Google:ClientId"] = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
 }
 
 void ConfigureAuthentication()

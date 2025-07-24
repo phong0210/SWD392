@@ -18,6 +18,9 @@ import cookieUtils from "@/services/cookieUtils";
 import useAuth from "@/hooks/useAuth";
 import { getCustomer } from "@/services/accountApi";
 import { Role } from "@/utils/enum";
+import { useDispatch } from 'react-redux';
+import { logout } from '@/store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
   const { AccountID, role } = useAuth();
@@ -25,6 +28,14 @@ const Sidebar = () => {
   const [active, setActive] = useState<string>("");
   const [userInfo, setUserInfo] = useState<{ name: string | undefined, role: string | null } | null>(null);
   const fetchingRef = useRef(false); // Add ref to track if already fetching
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+      const handleLogout = () => {
+          dispatch(logout());
+          cookieUtils.clear();
+          navigate(config.routes.public.login);
+      };
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -232,7 +243,7 @@ const Sidebar = () => {
               <p className="accOut_role">{userInfo?.role}</p>
             </Styled.AccInfor>
           </Styled.Account>
-          <Link to={config.routes.public.login} onClick={() => cookieUtils.clear()}>
+          <Link to={config.routes.public.login} onClick={() => handleLogout()}>
             <LogoutOutlined className="outLogo"/>
           </Link>
         </Styled.AccOut>
@@ -242,3 +253,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+

@@ -1,4 +1,4 @@
-import * as FormStyled from './AuthFrom.styled';
+import * as FormStyled from './AuthFrom.styled'; // Fixed typo here
 
 import Container from "../Container/Container";
 import { FieldType } from "./AuthForm.fields";
@@ -7,10 +7,9 @@ import { Loading3QuartersOutlined } from '@ant-design/icons';
 // import { LOGIN_GOOGLE_URL } from '@/config/constants';
 // import { FcGoogle } from 'react-icons/fc';
 import Link from '../Link';
-// import { PageEnum } from '@/utils/enum';
+import { PageEnum } from '@/utils/enum';
 // import config from '@/config';
 import images from './AuthForm.images';
-
 
 type RedirectType = {
     description: string;
@@ -30,10 +29,16 @@ type AuthFormProps = {
     onFinishFailed?: (values: unknown) => void;
     reverse?: boolean;
     isSubmitting?: boolean;
+    showForgotPassword?: boolean;
+    showBackToLogin?: boolean;
+    onForgotPasswordClick?: () => void;
+    onBackToLoginClick?: () => void;
+    googleLoginButton?: JSX.Element;
 }
 
 const AuthForm = ({
     className,
+    page,
     formTitle,
     buttonTitle,
     fields,
@@ -43,6 +48,11 @@ const AuthForm = ({
     onFinishFailed,
     reverse = false,
     isSubmitting = false,
+    showForgotPassword = false,
+    showBackToLogin = false,
+    onForgotPasswordClick,
+    onBackToLoginClick,
+    googleLoginButton,
 }: AuthFormProps) => (
     <Container>
         <FormStyled.AuthForm className={className}>
@@ -88,11 +98,29 @@ const AuthForm = ({
                                 </FormStyled.FormButton>
                             </FormStyled.FormItem>
                         </FormStyled.FormWrapper>
+                        
 
-                        {/* <FormStyled.FormGoogleButton to={LOGIN_GOOGLE_URL}>
-                            <FcGoogle />
-                            <Text>Login with Google</Text>
-                        </FormStyled.FormGoogleButton> */}
+                        {/* Forgot Password Link */}
+                        {showForgotPassword && page === PageEnum.LOGIN && (
+                            <FormStyled.FormForgotPasswordButton 
+                                onClick={onForgotPasswordClick}
+                                style={{ textAlign: 'center', marginBottom: '16px' }}
+                            >
+                                Forgot password?
+                            </FormStyled.FormForgotPasswordButton>
+                        )}
+
+                        {/* Back to Login Link */}
+                        {showBackToLogin && (
+                            <FormStyled.FormForgotPasswordButton 
+                                onClick={onBackToLoginClick}
+                                style={{ textAlign: 'center', marginBottom: '16px' }}
+                            >
+                                ← Back to Login
+                            </FormStyled.FormForgotPasswordButton>
+                        )}
+
+                        {googleLoginButton}
 
                         <FormStyled.FormRedirect>
                             {redirect.description}
@@ -101,12 +129,6 @@ const AuthForm = ({
                                 {redirect.title}
                             </Link>
                         </FormStyled.FormRedirect>
-
-                        {/* {page === PageEnum.LOGIN && (
-                            <FormStyled.FormForgotPassword to={config.routes.public.forgotPassword}>
-                                Forgot password?
-                            </FormStyled.FormForgotPassword>
-                        )} */}
                     </FormStyled.FormContainer>
                 </Col>
 

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login as loginAPI } from "@/services/authAPI";
+import { login as loginAPI, googleLogin as googleLoginAPI } from "@/services/authAPI";
 import cookieUtils from "@/services/cookieUtils";
 
 interface AuthState {
@@ -21,6 +21,32 @@ export const login = createAsyncThunk(
   async (credentials: any, { rejectWithValue }) => {
     try {
       const { data } = await loginAPI(credentials);
+      if (!data || !data.token) throw new Error("Invalid response");
+
+      cookieUtils.setToken(data.token);
+      const decoded = cookieUtils.decodeJwt() as any;
+      const role = decoded["Role"] || "Customer";
+
+      return {
+        token: data.token,
+        user: {
+          email: decoded.sub,
+          fullName: data.user?.name || decoded.sub,
+          role: role,
+          userId: decoded.AccountID,
+        },
+      };
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
+export const googleLogin = createAsyncThunk(
+  "auth/googleLogin",
+  async (credential: string, { rejectWithValue }) => {
+    try {
+      const { data } = await googleLoginAPI(credential);
       if (!data || !data.token) throw new Error("Invalid response");
 
       cookieUtils.setToken(data.token);
@@ -96,6 +122,20 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user || null;
+        state.token = action.payload.token;
+        state.error = null;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
       .addCase(initializeAuth.pending, (state) => {
         state.loading = true;
       })
@@ -114,3 +154,4 @@ const authSlice = createSlice({
 
 export const { logout } = authSlice.actions;
 export { authSlice };
+

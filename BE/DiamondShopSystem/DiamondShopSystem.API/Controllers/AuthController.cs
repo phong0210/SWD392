@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using DiamondShopSystem.BLL.Handlers.Auth.Commands.VerifyOtp;
 using DiamondShopSystem.BLL.Handlers.Auth.Commands.RequestPasswordReset;
 using DiamondShopSystem.BLL.Handlers.Auth.Commands.ConfirmPasswordReset;
+using DiamondShopSystem.BLL.Services.Auth;
+using DiamondShopSystem.BLL.Handlers.Auth.Commands.GoogleLogin;
 
 namespace DiamondShopSystem.API.Controllers
 {
@@ -28,6 +30,17 @@ namespace DiamondShopSystem.API.Controllers
             if (!string.IsNullOrEmpty(result.Error))
             {
                 return Unauthorized(new { message = result.Error });
+            }
+            return Ok(result);
+        }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto request)
+        {
+            var result = await _mediator.Send(new GoogleLoginCommand(request));
+            if (result == null)
+            {
+                return Unauthorized(new { message = "Google login failed." });
             }
             return Ok(result);
         }
@@ -72,4 +85,5 @@ namespace DiamondShopSystem.API.Controllers
             return BadRequest(new { message = "Invalid OTP or email, or password reset failed." });
         }
     }
-} 
+}
+ 

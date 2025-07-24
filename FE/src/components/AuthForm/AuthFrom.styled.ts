@@ -19,7 +19,7 @@ export const FormRow = styled(Row)`
     margin: auto;
     position: relative;
     width: 1066px;
-    height: 700px;
+    height: 760px;
     padding: 24px;
     border-radius: 30px;
     background: ${theme.color.white};
@@ -205,34 +205,48 @@ export const FormButton = styled(Button)`
     }
 `;
 
-export const FormGoogleButton = styled(Link)`
+export const FormGoogleButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
-
-    column-gap: 6px;
+    column-gap: 8px;
     margin-top: 24px;
     height: 50px;
-    border: 1px solid gray;
+    width: 100%;
+    border: 1px solid #d9d9d9;
     border-radius: 6px;
+    background-color: ${theme.color.white};
+    cursor: pointer;
     transition: ${theme.transition.primary};
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #666;
 
     & span {
-        color: grey;
-        font-size: 1.2rem;
         transition: ${theme.transition.primary};
     }
 
     & svg {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     &:hover {
-        border-color: ${theme.color.border};
+        border-color: ${theme.color.primary};
+        color: ${theme.color.primary};
 
         & span {
             color: ${theme.color.primary};
         }
+    }
+
+    &:focus {
+        outline: none;
+        border-color: ${theme.color.primary};
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+
+    &:active {
+        transform: translateY(1px);
     }
 `;
 
@@ -286,6 +300,69 @@ export const FormImage = styled(Image)`
     object-fit: cover;
 `;
 
+export const FormForgotPasswordButton = styled.button`
+    display: block;
+    margin: 12px auto;
+    padding: 0;
+    font-size: 1rem;
+    color: ${theme.color.textSecondary};
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
 
+    &:hover {
+        color: ${theme.color.textPrimary};
+    }
+`;
 
+// Divider component for "or" between form and Google login
+export const FormDivider = styled.div`
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background-color: ${theme.color.border};
+    }
+    
+    & span {
+        padding: 0 16px;
+        color: ${theme.color.textSecondary};
+        font-size: 0.9rem;
+    }
+`;
 
+// Container for the Google login section
+export const GoogleLoginContainer = styled.div`
+    margin-top: 24px;
+    position: relative;
+`;
+
+// Invisible overlay to capture clicks on the custom button
+export const GoogleLoginOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    
+    /* Make sure the Google button fills the entire overlay */
+    & > div {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    /* Hide the default Google button styling but keep it functional */
+    & iframe {
+        width: 100% !important;
+        height: 100% !important;
+    }
+`;
