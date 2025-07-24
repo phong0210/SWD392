@@ -50,13 +50,13 @@ export const PageContent = styled.div`
   padding-bottom: 30px;
 `;
 
-export const PageDetail_Title = styled.div`
-  width: 100%;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 25px;
-  color: ${theme.color.primary};
-`;
+// export const PageDetail_Title = styled.div`
+//   width: 100%;
+//   font-size: 18px;
+//   font-weight: 600;
+//   margin-bottom: 25px;
+//   color: ${theme.color.primary};
+// `;
 
 export const PageDetail_Infor = styled.div`
   width: 100%;
@@ -74,6 +74,41 @@ export const PageDetail_Infor = styled.div`
 
   }
 `;
+
+export const PageDetail_Title = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: flex-end; // thụt xuống dưới một chút
+  gap: 12px;
+  margin-bottom: 25px;
+  margin-top: 12px; // thêm khoảng cách với phía trên nếu cần
+
+  .icon {
+    font-size: 22px;
+    margin-bottom: 2px; // để icon cũng trùng baseline
+  }
+
+  .text {
+    font-size: 22px;
+    font-weight: 700;
+    color: ${theme.color.primary};
+    position: relative;
+    padding-bottom: 6px; // đẩy gạch dưới cách text
+  }
+
+  .text::after {
+    content: "";
+    display: block;
+    width: 60%; // 👉 tăng chiều dài underline ở đây
+    height: 3px;
+    background-color: ${theme.color.primary};
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    border-radius: 2px;
+  }
+`;
+
 
 export const MaterialTable = styled.div`
 
