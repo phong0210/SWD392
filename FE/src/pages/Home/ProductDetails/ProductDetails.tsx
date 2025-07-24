@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CloseOutlined } from "@ant-design/icons";
-import { Card, Col, Row, Typography, Empty, Rate, notification } from "antd";
-import { HeartOutlined, HeartFilled } from "@ant-design/icons";
+import { Card, Col, Row, Typography, Rate, notification } from "antd";
+
 const { Title, Text } = Typography;
 import InscriptionModal from "@/components/InscriptionModal/InscriptionModal";
 import {
@@ -14,8 +14,6 @@ import {
   Wrapper,
   ImageContainer,
   OuterThumb,
-  ThumbnailImage,
-  Item,
   OuterMain,
   MainImage,
   ProductDetail,
@@ -30,9 +28,6 @@ import {
   ProductPrice,
   ButtonContainer,
   Button,
-  // Shipping,
-  // ShippingList,
-  // ShippingItem,
   CurrentPrice,
   BeforePrice,
   Discount,
@@ -47,25 +42,18 @@ import {
   ButtonAdd,
   Space,
   List,
-  // ProductSectionViewed,
   StyledPagination,
   Condition,
   CustomBreadcrumb,
 } from "./ProductDetails.styled";
-import { StarFilled } from "@ant-design/icons";
 import defaultImage from "@/assets/diamond/defaultImage.png";
 import { useNavigate } from "react-router-dom";
-import { showAllSize } from "@/services/sizeAPI";
 import { getProductDetails, showAllProduct } from "@/services/productAPI";
-import { getImage } from "@/services/imageAPI";
 import { showAllFeedback } from "@/services/feedBackAPI";
 import useAuth from "@/hooks/useAuth";
 import config from "@/config";
-import {
-  createOrderLine,
-  OrderLineBody,
-  showAllOrderLineForAdmin,
-} from "@/services/orderLineAPI";
+import { createOrderLine, OrderLineBody } from "@/services/orderLineAPI";
+import { Product } from "@/models/Entities/Product";
 const ProductDetails: React.FC = () => {
   //tab description + cmt
   const [activeTab, setActiveTab] = useState("product-description");
@@ -85,24 +73,6 @@ const ProductDetails: React.FC = () => {
   const [metalType, setMetalType] = useState("");
   const [sizes, setSizes] = useState<any[]>([]);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
-
-  // useEffect(() => {
-  //   const fetchSizes = async () => {
-  //     try {
-  //       const response = await showAllSize();
-  //       if (response.status === 200) {
-  //         setSizes(response.data.data);
-  //         if (response.data.data.length > 0) {
-  //           setSelectedSize(response.data.data[0].sizeId);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching sizes:", error);
-  //     }
-  //   };
-
-  //   fetchSizes();
-  // }, []);
 
   const handleClick = (sizeId: number) => {
     setSelectedSize(sizeId);
@@ -135,24 +105,11 @@ const ProductDetails: React.FC = () => {
   //
   const navigate = useNavigate();
 
-  //wishlist
-  const [wishList, setWishList] = useState<string[]>([]);
-
-  const toggleWishList = (productId: string) => {
-    setWishList((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-  };
-
   //PARAM
   const { id } = useParams<{ id: string }>();
   const { role, user } = useAuth();
   const [foundProduct, setFoundProduct] = useState<any | null>(null);
-  const [mainImage, setMainImage] = useState("");
-  const [selectedThumb, setSelectedThumb] = useState(0);
-  const [sameBrandProducts, setSameBrandProducts] = useState<any[]>([]);
+  const [sameBrandProducts, setSameBrandProducts] = useState<Product[]>([]);
   const [productId, setProductId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [jewelrySettingVariant, setJewelrySettingVariant] = useState(0);
@@ -191,81 +148,53 @@ const ProductDetails: React.FC = () => {
       setIsLoading(false);
       return;
     }
+
     try {
       console.log("Fetching diamond details...");
       const response = await getProductDetails(id);
       console.log("Response from getProductDetails:", response.data);
+
+      const responseAll = await showAllProduct();
+
       if (response.status === 200) {
         const product = response.data;
         const foundProduct = product.product;
         setFoundProduct(foundProduct);
         console.log("Found product:", foundProduct);
+
         const diamondId = product.product.id;
         setProductId(diamondId);
         console.log("Diamond ID:", diamondId);
 
-        if (product.usingImage && product.usingImage.length > 0) {
-          const mainImageUrl = getImage(product.usingImage[0].UsingImageID);
-          setMainImage(mainImageUrl);
-        } else {
-          setMainImage("");
+        // Lấy categoryId từ sản phẩm hiện tại
+        const currentCategoryId = foundProduct.categoryId;
+        console.log("Current Category ID:", currentCategoryId);
+
+        // Lọc các sản phẩm có cùng categoryId (loại bỏ sản phẩm hiện tại)
+        if (responseAll.status === 200 && currentCategoryId) {
+          const allProducts = responseAll.data; // Tùy thuộc vào cấu trúc response
+          console.log("All Product", allProducts);
+
+          const relatedProducts = allProducts
+            .filter((item) => item.success && item.product)
+            .map((item) => item.product)
+            .filter(
+              (product) =>
+                product.categoryId === currentCategoryId &&
+                product.id !== diamondId
+            );
+
+          setSameBrandProducts(relatedProducts);
+          console.log("Related products:", relatedProducts);
         }
-        setSelectedThumb(0);
-
-        // const weightCarat = product.WeightCarat;
-        // const params = { weightCarat };
-        // const sameWeightProductsResponse = await showDiamonds(params);
-
-        // if (sameWeightProductsResponse.status === 200) {
-        //   if (
-        //     sameWeightProductsResponse.data &&
-        //     Array.isArray(sameWeightProductsResponse.data.data)
-        //   ) {
-        //     const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
-        //       (item: any) => ({
-        //         id: item.DiamondID,
-        //         name: item.Name,
-        //         cut: item.Cut,
-        //         stars: item.Stars,
-        //         price: item.Price,
-        //         color: item.Color,
-        //         description: item.Description,
-        //         isActive: item.IsActive,
-        //         clarity: item.Clarity,
-        //         cutter: item.Cutter,
-        //         discountPrice: item.DiscountPrice,
-        //         images: item.usingImage.map((image: any) => ({
-        //           id: image.UsingImageID,
-        //           name: image.Name,
-        //           url: getImage(image.UsingImageID),
-        //         })),
-        //       })
-        //     );
-
-        //     const maxProductsToShow = 4;
-        //     const productsToShow =
-        //       fetchedDiamonds.length <= maxProductsToShow
-        //         ? fetchedDiamonds
-        //         : fetchedDiamonds
-        //             .sort(() => 0.5 - Math.random())
-        //             .slice(0, maxProductsToShow);
-
-        //     setSameBrandProducts(productsToShow);
-        //   } else {
-        //     setSameBrandProducts([]);
-        //   }
-        // } else {
-        //   setSameBrandProducts([]);
-        // }
-        // if (diamondId !== null) {
-        //   await fetchFeedbackDetail(diamondId);
-        // }
       } else {
         setFoundProduct(null);
+        setSameBrandProducts([]); // Reset related products nếu không tìm thấy sản phẩm
       }
     } catch (error) {
       console.error("Failed to fetch diamond details:", error);
       setFoundProduct(null);
+      setSameBrandProducts([]); // Reset related products khi có lỗi
     } finally {
       setIsLoading(false);
     }
@@ -448,16 +377,6 @@ const ProductDetails: React.FC = () => {
               <Entry>
                 <Heading>
                   <Title className="main-title">{foundProduct.Name}</Title>
-                  <ProductRating>
-                    {foundProduct.Stars === 0 ? (
-                      <>
-                        {foundProduct.Stars}
-                        <Rate disabled defaultValue={foundProduct.Stars} />
-                      </>
-                    ) : (
-                      "No reviews"
-                    )}
-                  </ProductRating>
                 </Heading>
                 <ProductInfo>
                   <div className="wrap">
@@ -498,66 +417,28 @@ const ProductDetails: React.FC = () => {
                       </div>
                     </ProductMetal>
                   )}
-                {foundProduct.name.includes("Ring") && (
-                  <>
-                    <div>
-                      <RingSizeContainer>
-                        <RingSize>Select size</RingSize>
-                        <RingSizeHelp href="/find-ring-size">
-                          Ring size help
-                        </RingSizeHelp>
-                      </RingSizeContainer>
-                      <div className="button-container">
-                        {sizes.map((size) => (
-                          <button
-                            key={size.SizeValue}
-                            className={`size-button ${
-                              selectedSize === size.SizeID ? "selected" : ""
-                            }`}
-                            onClick={() => handleClick(size.SizeID)}
-                          >
-                            {parseInt(size.SizeValue)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
 
-                    <div className="inscription-container">
-                      {inscription ? (
-                        <Space>
-                          <span className="inscription">Your inscription</span>:{" "}
-                          <span
-                            className="inscription-content"
-                            onClick={showModal}
-                          >
-                            {inscription}
-                          </span>
-                          <CloseOutlined
-                            style={{
-                              fontSize: "12px",
-                              marginLeft: "3px",
-                              cursor: "pointer",
-                              backgroundColor: "#eee",
-                              borderRadius: "50%",
-                              color: "#DB7F67",
-                            }}
-                            onClick={handleDelete}
-                          />
-                        </Space>
-                      ) : (
-                        <Button onClick={showModal}>
-                          + Add free inscription
-                        </Button>
-                      )}
-                      <InscriptionModal
-                        visible={isModalVisible}
-                        onClose={handleClose}
-                        onSave={handleSave}
-                        reset={resetModal}
-                      />
-                    </div>
-                  </>
-                )}
+                <div>
+                  <RingSizeContainer>
+                    <RingSizeHelp href="/find-ring-size">
+                      Ring size help
+                    </RingSizeHelp>
+                  </RingSizeContainer>
+                  <div className="button-container">
+                    {sizes.map((size) => (
+                      <button
+                        key={size.SizeValue}
+                        className={`size-button ${
+                          selectedSize === size.SizeID ? "selected" : ""
+                        }`}
+                        onClick={() => handleClick(size.SizeID)}
+                      >
+                        {parseInt(size.SizeValue)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <ProductPrice>
                   <div className="product-group">
                     <div className="product-price">
@@ -614,14 +495,6 @@ const ProductDetails: React.FC = () => {
                     <span>Product detail</span>
                   </a>
                 </li>
-                <li
-                  id="tab-product-review"
-                  className={activeTab === "product-review" ? "" : ""}
-                >
-                  <a href="#0" onClick={() => showTab("product-review")}>
-                    <span>Reviews</span>
-                  </a>
-                </li>
               </ul>
             </nav>
           </Tabbed>
@@ -640,8 +513,6 @@ const ProductDetails: React.FC = () => {
                 <ListBlock>
                   <h4>What is this?</h4>
                   <ul>
-                    <li>ID Number: {foundProduct.ProductID}</li>
-                    <li>Firm: {foundProduct.Brand}</li>
                     <li>Type: {foundProduct.name}</li>
                     {!foundProduct.name.includes("Men") && (
                       <li>Diamond Shape: {foundProduct.cut}</li>
@@ -681,7 +552,7 @@ const ProductDetails: React.FC = () => {
             className={activeTab === "product-review" ? "active" : "hide"}
           >
             {/* Review content */}
-            <Review>
+            {/* <Review>
               {reviewsData.length > 0 ? (
                 <div className="reviews-section">
                   <div className="head-review">
@@ -744,78 +615,85 @@ const ProductDetails: React.FC = () => {
                 <Empty description="No reviews available" />
               )}
               <StyledPagination defaultCurrent={1} total={10} />
-            </Review>
+            </Review> */}
           </ProductAbout>
         </div>
       </Contain>
       <ProductSection>
         <Title>
-          <h2>SAME BRAND</h2>
+          <h2>RELATED PRODUCTS</h2>
         </Title>
         <List>
           <Row gutter={[16, 16]}>
-            {sameBrandProducts.map((product) => (
-              <Col key={product.id} span={6}>
-                <Card
-                  key={product.id}
-                  style={{ borderRadius: "0" }}
-                  hoverable
-                  className="product-card"
-                  cover={
-                    <Link to={`/product/${product.id}`}>
-                      <img
-                        style={{ borderRadius: "0" }}
-                        src={defaultImage}
-                        alt={product.name}
-                        className="product-image"
-                        onMouseOver={(e) =>
-                          (e.currentTarget.src = defaultImage)
-                        }
-                        onMouseOut={(e) => (e.currentTarget.src = defaultImage)}
-                      />
-                      {product.salePrice && (
-                        <div className="sale-badge">SALE</div>
-                      )}
-                    </Link>
-                  }
-                >
-                  <div className="product-info">
-                    <Title level={4} className="product-name">
+            {sameBrandProducts.length > 0 ? (
+              sameBrandProducts.map((product) => (
+                <Col key={product.id} span={6}>
+                  <Card
+                    key={product.id}
+                    style={{ borderRadius: "0" }}
+                    hoverable
+                    className="product-card"
+                    cover={
                       <Link to={`/product/${product.id}`}>
-                        <div>{product.name}</div>
+                        <img
+                          style={{ borderRadius: "0" }}
+                          src={defaultImage}
+                          alt={product.name}
+                          className="product-image"
+                          // onMouseOver={(e) =>
+                          //   product.usingImage && product.usingImage.length > 1
+                          //     ? (e.currentTarget.src = getImage(
+                          //         product.usingImage[1].UsingImageID
+                          //       ))
+                          //     : null
+                          // }
+                          // onMouseOut={(e) =>
+                          //   product.usingImage && product.usingImage.length > 0
+                          //     ? (e.currentTarget.src = getImage(
+                          //         product.usingImage[0].UsingImageID
+                          //       ))
+                          //     : (e.currentTarget.src = defaultImage)
+                          // }
+                        />
+                        {product.salePrice && (
+                          <div className="sale-badge">SALE</div>
+                        )}
                       </Link>
-                      {wishList.includes(product.id) ? (
-                        <HeartFilled
-                          className="wishlist-icon"
-                          onClick={() => toggleWishList(product.id)}
-                        />
-                      ) : (
-                        <HeartOutlined
-                          className="wishlist-icon"
-                          onClick={() => toggleWishList(product.id)}
-                        />
-                      )}
-                    </Title>
-                    <div className="price-container">
-                      {product.discountFirstPrice ? (
-                        <>
+                    }
+                  >
+                    <div className="product-info">
+                      <Title level={4} className="product-name">
+                        <Link to={`/product/${product.id}`}>
+                          <div>{product.name}</div>
+                        </Link>
+                      </Title>
+                      {/* <div className="price-container">
+                        {product.discountFirstPrice ? (
+                          <>
+                            <Text className="product-price">
+                              ${product.discountFirstPrice}
+                            </Text>
+                            <Text delete className="product-sale-price">
+                              ${product.firstPrice}
+                            </Text>
+                          </>
+                        ) : (
                           <Text className="product-price">
-                            ${product.discountFirstPrice}
-                          </Text>
-                          <Text delete className="product-sale-price">
                             ${product.firstPrice}
                           </Text>
-                        </>
-                      ) : (
-                        <Text className="product-price">
-                          ${product.firstPrice}
-                        </Text>
-                      )}
+                        )}
+                      </div> */}
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+                </Col>
+              ))
+            ) : (
+              <Col span={24}>
+                <div style={{ textAlign: "center", padding: "40px 0" }}>
+                  <Text type="secondary">No related products found</Text>
+                </div>
               </Col>
-            ))}
+            )}
           </Row>
         </List>
       </ProductSection>

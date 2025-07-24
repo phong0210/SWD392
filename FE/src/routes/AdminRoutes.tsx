@@ -40,6 +40,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Navigate } from "react-router-dom";
 import { Role } from "@/utils/enum";
+import Collection from "@/pages/Admin/MarketingPage/Collection/Collection";
 
 const AdminRouter = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -87,7 +88,7 @@ const AdminRoutes = {
     },
     { path: config.routes.admin.materialProduct, element: <MaterialProduct /> },
 
-    // { path: config.routes.admin.collection, element: <Collection /> },
+    { path: config.routes.admin.collection, element: <Collection /> },
     {
       path: config.routes.admin.collectionDetail,
       element: <CollectionDetail />,
