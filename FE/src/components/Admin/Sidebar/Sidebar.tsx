@@ -21,6 +21,7 @@ import { Role } from "@/utils/enum";
 import { useDispatch } from 'react-redux';
 import { logout } from '@/store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { clearCart } from "@/services/cartAPI";
 
 const Sidebar = () => {
   const { AccountID, role } = useAuth();
@@ -32,6 +33,7 @@ const Sidebar = () => {
   const dispatch = useDispatch();
 
       const handleLogout = () => {
+          clearCart();
           dispatch(logout());
           cookieUtils.clear();
           navigate(config.routes.public.login);

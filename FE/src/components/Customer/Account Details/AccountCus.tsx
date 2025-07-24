@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { getCustomer } from "@/services/accountApi";
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/slices/authSlice";
+import { clearCart } from "@/services/cartAPI";
 
 const fetchCustomerInfo = async (AccountID: string) => {
   try {
@@ -24,11 +25,12 @@ const AccountCus = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { AccountID } = useAuth();
-  const handleLogout = () => {
-    dispatch(logout());
-    cookieUtils.clear();
-    navigate(config.routes.public.login);
-};
+      const handleLogout = () => {
+          clearCart();
+          dispatch(logout());
+          cookieUtils.clear();
+          navigate(config.routes.public.login);
+      };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   useEffect(() => {

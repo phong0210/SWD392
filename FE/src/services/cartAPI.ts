@@ -1,13 +1,10 @@
 import Cookies from 'js-cookie';
 import { getAccountID } from './accountUtils';
-
-const getCartCookieKey = () => {
-    const accountId = getAccountID();
-    return accountId ? `cart_${accountId}` : 'cart_anonymous';
-};
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export interface CartItem {
-    id: string; // Unique identifier for the cart item, e.g., 'product-123'
+    id: string;
     productId?: string;
     diamondId?: string;
     name: string;
@@ -16,55 +13,73 @@ export interface CartItem {
     image: string;
 }
 
-export const getCartItems = (): CartItem[] => {
-    const CART_COOKIE_KEY = getCartCookieKey();
-    const cartCookie = Cookies.get(CART_COOKIE_KEY);
-    return cartCookie ? JSON.parse(cartCookie) : [];
+// Get cookie key based on account ID or fallback to anonymous
+const getCartCookieKey = (accountId?: string | null): string => {
+    console.log(`[getCartCookieKey] Account ID: ${accountId}`);
+    return accountId ? `cart_${accountId}` : 'cart_anonymous';
 };
 
-export const setCartItems = (cartItems: CartItem[]) => {
-    const CART_COOKIE_KEY = getCartCookieKey();
+// Hook: used in React components
+export const useCartItems = (): CartItem[] => {
+    const accountId = useSelector((state: RootState) => state.auth.user?.id);
+    console.log(`[useCartItems] Using account ID: ${accountId}`);
+    const CART_COOKIE_KEY = getCartCookieKey(accountId);
+    const cartCookie = Cookies.get(CART_COOKIE_KEY);
+    const items = cartCookie ? JSON.parse(cartCookie) : [];
+    console.log(`[useCartItems] Cart for account: ${accountId || 'anonymous'}. Items:`, items);
+    return items;
+};
+
+// Get cart items outside of React (pass optional accountId)
+export const getCartItems = (accountId?: string | null): CartItem[] => {
+    const effectiveAccountId = accountId ?? getAccountID();
+    const CART_COOKIE_KEY = getCartCookieKey(effectiveAccountId);
+    const cartCookie = Cookies.get(CART_COOKIE_KEY);
+    const items = cartCookie ? JSON.parse(cartCookie) : [];
+    console.log(`[getCartItems] Cart for account: ${effectiveAccountId || 'anonymous'}. Items:`, items);
+    return items;
+};
+
+// Set cart items (outside of React)
+export const setCartItems = (cartItems: CartItem[], accountId?: string | null): void => {
+    const effectiveAccountId = accountId ?? getAccountID();
+    const CART_COOKIE_KEY = getCartCookieKey(effectiveAccountId);
     Cookies.set(CART_COOKIE_KEY, JSON.stringify(cartItems), { expires: 7 });
 };
 
-export const addToCart = (item: CartItem) => {
-    const cartItems = getCartItems();
-    const existingItem = cartItems.find((cartItem) => cartItem.id === item.id);
+// Add item to cart
+export const addToCart = (item: CartItem, accountId?: string | null): void => {
+    const effectiveAccountId = accountId ?? getAccountID();
+    const cartItems = getCartItems(effectiveAccountId);
+    console.log(`[addToCart] Adding to cart for account: ${effectiveAccountId || 'anonymous'}. Item:`, item);
 
+    const existingItem = cartItems.find((cartItem) => cartItem.id === item.id);
     if (existingItem) {
         existingItem.quantity += item.quantity;
     } else {
         cartItems.push(item);
     }
-
-    setCartItems(cartItems);
+    setCartItems(cartItems, effectiveAccountId);
 };
 
-export const removeFromCart = (itemId: string) => {
-    let cartItems = getCartItems();
-    cartItems = cartItems.filter((item) => item.id !== itemId);
-    setCartItems(cartItems);
+// Remove item
+export const removeFromCart = (itemId: string, accountId?: string | null): void => {
+    const cartItems = getCartItems(accountId).filter((item) => item.id !== itemId);
+    setCartItems(cartItems, accountId);
 };
 
-export const updateCartItemQuantity = (itemId: string, quantity: number) => {
-    const cartItems = getCartItems().map((item) =>
+// Update quantity
+export const updateCartItemQuantity = (itemId: string, quantity: number, accountId?: string | null): void => {
+    const cartItems = getCartItems(accountId).map((item) =>
         item.id === itemId ? { ...item, quantity } : item
     );
-    setCartItems(cartItems);
+    setCartItems(cartItems, accountId);
 };
 
-export const clearCart = () => {
-    const CART_COOKIE_KEY = getCartCookieKey();
-    console.log('[clearCart] Attempting to clear cart cookie:', CART_COOKIE_KEY);
-    try {
-        if (!CART_COOKIE_KEY) {
-            console.error('[clearCart] CART_COOKIE_KEY is undefined');
-            throw new Error('Cart cookie key is not defined');
-        }
-        Cookies.remove(CART_COOKIE_KEY);
-        console.log('[clearCart] Cart cookie removed successfully');
-    } catch (error) {
-        console.error('[clearCart] Error clearing cart cookie:', error);
-        throw error;
-    }
+// Clear cart
+export const clearCart = (accountId?: string | null): void => {
+    // This function now does nothing, as we want to persist the cart in cookies.
+    // The Redux state will be cleared by the clearCart thunk.
+    const effectiveAccountId = accountId ?? getAccountID();
+    console.log(`[clearCart] Clearing cart state for account: ${effectiveAccountId || 'anonymous'}, but not removing cookie.`);
 };

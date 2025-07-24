@@ -34,23 +34,27 @@ const StatusTag = ({ status }: { status: number }) => {
       break;
     case 1:
       color = "geekblue";
-      statusText = "Delivering";
+      statusText = "Accept";
       break;
     case 2:
       color = "green";
-      statusText = "Delivered";
+      statusText = "Delivering";
       break;
     case 3:
       color = "volcano";
-      statusText = "Canceled";
+      statusText = "Delivered";
       break;
     case 4:
       color = "#32CD32";
       statusText = "Completed";
       break;
+    case 5:
+      color = "#32CD32";
+      statusText = "Confirmed";
+      break;
     default:
       color = "default";
-      statusText = "Unknown";
+      statusText = "Cancelled";
   }
 
   return (
@@ -85,6 +89,7 @@ const OrderDetail: React.FC = () => {
   const [subTotal, setSubTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [status, setStatus] = useState(0);
   const { AccountID } = useAuth();
 
   const [reviewedDiamonds, setReviewedDiamonds] = useState<Set<number>>(
@@ -122,6 +127,8 @@ const OrderDetail: React.FC = () => {
     try {
       const response = await getOrderDetailDetail(orderId);
       const responTotal = await orderDetail(orderId);
+      console.log("data", responTotal.data.order.status);
+      setStatus(responTotal.data.order.status);
 
       const amount = responTotal.data.order.payments[0].amount;
 
@@ -274,7 +281,8 @@ const OrderDetail: React.FC = () => {
             <OrderDetails>
               <CustomerInfo>Order ID: {orderId}</CustomerInfo>
               <CustomerInfo>
-                Status: <StatusTag status={2} /> {/* Default to Delivered */}
+                Status: <StatusTag status={status} />{" "}
+                {/* Default to Delivered */}
               </CustomerInfo>
             </OrderDetails>
           </OrderDetailsContainer>
