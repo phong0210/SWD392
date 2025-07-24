@@ -104,10 +104,9 @@ const DeliveryCompleted = () => {
       1: "Confirmed",
       2: "Processing",
       3: "Assigned",
-      4: "Delivering",
-      5: "Delivered",
-      6: "Completed",
-      7: "Cancelled",
+      4: "COMPLETED",
+      5: "CONFIRMED",
+      6: "CANCELLED"
     };
     return statusMap[statusNumber] || "Unknown";
   };
@@ -119,7 +118,7 @@ const DeliveryCompleted = () => {
 
       // Filter for orders with status 0 (Pending) and format the data
       const orderFormatted = orderRes.data
-        .filter((order: any) => order.status >= 4) // Filter for status 0
+        .filter((order: any) => order.status === 4) // Filter for status 0
         .map((order: any) => ({
           key: order.id,
           orderID: order.id,

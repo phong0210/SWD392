@@ -28,7 +28,7 @@ const DeliveryDelivering = () => {
     const statusMap: { [key: number]: string } = {
       0: "Pending",
       1: "Confirmed",
-      2: "Processing",
+      2: "DELIVERING",
       3: "Assigned",
       4: "Delivering",
       5: "Delivered",

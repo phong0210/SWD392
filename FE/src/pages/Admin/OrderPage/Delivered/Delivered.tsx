@@ -199,19 +199,7 @@ const DeliveredOrder = () => {
       ],
       onFilter: (value, record) => record.status.indexOf(value as string) === 0,
     },
-    {
-      title: "Detail",
-      key: "detail",
-      className: "TextAlign",
-      dataIndex: "orderID",
-      render: (_, { orderID }) => (
-        <Space size="middle">
-          <Link to={`/admin/order/detail/${orderID || ''}`}>
-            <EyeOutlined />
-          </Link>
-        </Space>
-      ),
-    },
+    
   ];
 
   const onChange: TableProps<DataType>["onChange"] = (

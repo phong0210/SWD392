@@ -45,25 +45,25 @@ const OrderMenu = () => {
                                 <Styled.OrderCatalog_Ele className={active === 'Pending' ? 'active' : ''}>
                                     <div className={`btn ${active === 'Pending' ? 'adMenu_active-line' : 'adMenu_line'} `} onClick={() => handleSetActive('Pending')} ></div>
                                     <Link to="/delivery-staff/delivery-pending">
-                                        <h3>Pending</h3>
+                                        <h3>ACCEPTED</h3>
                                     </Link>
                                 </Styled.OrderCatalog_Ele>
                                 <Styled.OrderCatalog_Ele className={active === 'Delivering' ? 'active' : ''}>
                                     <div className={`btn ${active === 'Delivering' ? 'adMenu_active-line' : 'adMenu_line'}`} onClick={() => handleSetActive('Delivering')}></div>
                                     <Link to="/delivery-staff/delivery-delivering">
-                                        <h3>Delivering</h3>
+                                        <h3>DELIVERING</h3>
                                     </Link>
                                 </Styled.OrderCatalog_Ele>
                                 <Styled.OrderCatalog_Ele className={active === 'Delivered' ? 'active' : ''}>
                                     <div className={`btn ${active === 'Delivered' ? 'adMenu_active-line' : 'adMenu_line'}`} onClick={() => handleSetActive('Delivered')}></div>
                                     <Link to="/delivery-staff/delivery-delivered">
-                                        <h3>Delivered</h3>
+                                        <h3>ARRIVED</h3>
                                     </Link>
                                 </Styled.OrderCatalog_Ele>
                                 <Styled.OrderCatalog_Ele className={active === 'Completed' ? 'active' : ''}>
                                     <div className={`btn ${active === 'Completed' ? 'adMenu_active-line' : 'adMenu_line'}`} onClick={() => handleSetActive('Completed')}></div>
                                     <Link to="/delivery-staff/delivery-completed">
-                                        <h3>Completed</h3>
+                                        <h3>COMPLETED</h3>
                                     </Link>
                                 </Styled.OrderCatalog_Ele>
                             </Styled.OrderCatalog>
