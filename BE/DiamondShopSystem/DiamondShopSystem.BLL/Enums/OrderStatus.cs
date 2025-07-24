@@ -4,9 +4,9 @@ namespace DiamondShopSystem.BLL.Enums
     {
         Pending,
         Confirmed,
-        Processing,
-        Shipped,
+        Delivering,
         Delivered,
+        Completed,
         Confirm,
         Cancelled
     }
