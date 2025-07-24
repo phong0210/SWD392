@@ -71,10 +71,10 @@ namespace DiamondShopSystem.BLL.Services.Order
             return currentStatus switch
             {
                 OrderStatus.Pending => OrderStatus.Confirmed,
-                OrderStatus.Confirmed => OrderStatus.Processing,
-                OrderStatus.Processing => OrderStatus.Shipped,
-                OrderStatus.Shipped => OrderStatus.Delivered,
-                OrderStatus.Delivered => OrderStatus.Confirm,
+                OrderStatus.Confirmed => OrderStatus.Delivering,
+                OrderStatus.Delivering => OrderStatus.Delivered,
+                OrderStatus.Delivered => OrderStatus.Completed,
+                OrderStatus.Completed => OrderStatus.Confirm,
                 OrderStatus.Confirm => OrderStatus.Cancelled, // Transition from Confirm to Cancelled
                 OrderStatus.Cancelled => OrderStatus.Cancelled, // No change for Cancelled
                 _ => currentStatus // No change for other statuses
