@@ -25,18 +25,57 @@ export type DeliveryResponseFE = {
     Status: number;
 }
 
-export type OrderResponseFE = {
-    Id: string;
-    UserId: string;
-    TotalPrice: number;
-    OrderDate: string;
-    VipApplied: boolean;
-    Status: number;
-    SaleStaff: string;
-    OrderDetails: OrderDetailResponseFE[];
-    Delivery?: DeliveryResponseFE;
-    Payments: PaymentResponseFE[];
+
+// src/services/orderAPI.ts
+export interface OrderResponseFE {
+    id: string;
+    userId: string;
+    totalPrice: number;
+    orderDate: string;
+    vipApplied: boolean;
+    status: number;
+    saleStaff: string;
+    orderDetails: Array<{
+        id: string;
+        orderId: string;
+        unitPrice: number;
+        quantity: number;
+    }>;
+    delivery: {
+        id: string;
+        orderId: string;
+        dispatchTime: string;
+        deliveryTime: string;
+        shippingAddress: string;
+        status: number;
+    };
+    payments: Array<{
+        id: string;
+        orderId: string;
+        method: string;
+        date: string;
+        amount: number;
+        status: number;
+    }>;
 }
+
+export interface CreateOrderResponse {
+    success: boolean;
+    orderId: string;
+    error: string | null;
+}
+
+export interface CreateOrderRequest {
+    CustomerId: string;
+    SaleStaff: string;
+    OrderItems: Array<{
+        ProductId: string;
+        Quantity: number;
+        UnitPrice: number;
+    }>;
+    PaymentMethod: string;
+}
+
 
 export type OrderItemRequest = {
     ProductId: string; // Guid in C# maps to string in TS
@@ -44,14 +83,15 @@ export type OrderItemRequest = {
     UnitPrice: number;
 }
 
-export type CreateOrderRequest = {
-    CustomerId: string; // Guid in C# maps to string in TS
-    SaleStaff: string;
-    OrderItems: OrderItemRequest[];
-}
 
 export type UpdateOrderRequest = {
     Status: number;
+    SaleStaff: string;
+    VipApplied: boolean;
+}
+
+export type UpdateOrderRequestKey = {
+    Status: string;
     SaleStaff: string;
     VipApplied: boolean;
 }
@@ -69,7 +109,7 @@ export const showReveneSummary = () => {
 }
 
 export const orderDetail = (id: string) => { // ID is Guid, so string
-    return get(`/api/orders/${id}`);
+    return get(`/api/Orders/${id}`);
 }
 
 export const orderRelation = (id: string) => { // ID is Guid, so string
@@ -80,7 +120,7 @@ export const createOrder = (order: CreateOrderRequest) => {
     return post(`/api/Orders/create`, order); // Fixed endpoint to match your curl example
 }
 
-export const updateOrder = (id: string, order: UpdateOrderRequest) => { // ID is Guid, so string
+export const updateOrder = (id: string, order: UpdateOrderRequestKey) => { // ID is Guid, so string
     return put(`/api/orders/${id}`, order);
 }
 
