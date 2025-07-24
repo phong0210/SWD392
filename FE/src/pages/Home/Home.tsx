@@ -508,7 +508,7 @@ const Home: React.FC = () => {
         </Banner4>
         <Banner3>
           <Banner3Container>
-            <h5>BST</h5>
+            <h5>Collection</h5>
             <h2>
               GET READY!
               <br /> AUTUMN IS COMING...

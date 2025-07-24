@@ -82,7 +82,7 @@ const AccountCus = () => {
           <StyledNavLink to="/history">History</StyledNavLink>
           <StyledNavLink to="/noti">Notifications</StyledNavLink>
           <StyledNavLink to="/voucher">Voucher</StyledNavLink>
-          <StyledNavLink to="/review-feedback">Review Feedback</StyledNavLink>
+          {/* <StyledNavLink to="/review-feedback">Review Feedback</StyledNavLink> */}
           <StyledNavLink to="/loyalty">Loyalty Point</StyledNavLink>
           <StyledNavLink to="/vip">VIP</StyledNavLink>
         </NavSection>

@@ -16,7 +16,7 @@ const FooterBottom = () => {
                 </Styled.BottomFlexbox>
             </Styled.BottomContainer>
             <Styled.CopyrightFooter>
-                Copyright © 2024
+                Copyright © 2025.
             </Styled.CopyrightFooter>
         </>
     );
