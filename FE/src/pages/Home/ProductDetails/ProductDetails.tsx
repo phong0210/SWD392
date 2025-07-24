@@ -229,7 +229,7 @@ const ProductDetails: React.FC = () => {
           name: foundProduct.Name,
           price: foundProduct.price,
           quantity: 1,
-          image: mainImage,
+          image: defaultImage,
         };
         dispatch(addToCart(cartItem));
         api.success({
@@ -257,7 +257,7 @@ const ProductDetails: React.FC = () => {
           name: foundProduct.Name,
           price: foundProduct.price,
           quantity: 1,
-          image: mainImage,
+          image: defaultImage,
         };
         dispatch(addToCart(cartItem));
         navigate(config.routes.customer.checkout);

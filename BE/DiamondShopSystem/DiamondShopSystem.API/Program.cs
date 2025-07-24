@@ -26,6 +26,9 @@ using DiamondShopSystem.DAL.Repositories;
 using DiamondShopSystem.BLL.Services.Delivery;
 using DiamondShopSystem.BLL.Services.LoyaltyPoint;
 using DiamondShopSystem.BLL.Services.Vip;
+using DiamondShopSystem.BLL.Services.Interfaces;
+using DiamondShopSystem.BLL.Services.Implements.VNPayService.Services;
+using DiamondShopSystem.BLL.Services.VNPayService.Library;
 
 
 
@@ -136,6 +139,7 @@ void ConfigureServices()
     builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+    builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 
     builder.Services.Configure<EmailSettings>(options =>
@@ -148,6 +152,21 @@ void ConfigureServices()
     });
 
     builder.Configuration["Google:ClientId"] = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+
+    builder.Services.Configure<VNPaySetting>(option =>
+    {
+        option.TmnCode = Environment.GetEnvironmentVariable("TMNCODE");
+        option.HashSecret = Environment.GetEnvironmentVariable("HASHSECRET");
+        option.Locale = Environment.GetEnvironmentVariable("LOCALE");
+        option.Version = Environment.GetEnvironmentVariable("VERSION");
+        option.BaseUrl = Environment.GetEnvironmentVariable("BASEURL");
+        option.Command = Environment.GetEnvironmentVariable("COMMAND");
+        option.CurrCode = Environment.GetEnvironmentVariable("CURRCODE");
+        option.ReturnUrlSuccess = Environment.GetEnvironmentVariable("RETURNURL_SUCCESS");
+        option.ReturnUrlFail = Environment.GetEnvironmentVariable("RETURNURL_FAIL");
+        option.TimeZoneId = Environment.GetEnvironmentVariable("TIMEZONEID");
+    });
+
 }
 
 void ConfigureAuthentication()
