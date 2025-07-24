@@ -4,36 +4,44 @@ using DiamondShopSystem.DAL;
 using DiamondShopSystem.DAL.Entities;
 using System.Threading;
 using System.Threading.Tasks;
+using DiamondShopSystem.DAL.Repositories;
+using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace DiamondShopSystem.BLL.Handlers.User.Commands.PromoteUserToStaff
 {
     public class PromoteUserToStaffCommandHandler : IRequestHandler<PromoteUserToStaffCommand, bool>
     {
-        private readonly AppDbContext _dbContext;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public PromoteUserToStaffCommandHandler(AppDbContext dbContext)
+        public PromoteUserToStaffCommandHandler(IUnitOfWork unitOfWork)
         {
-            _dbContext = dbContext;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<bool> Handle(PromoteUserToStaffCommand request, CancellationToken cancellationToken)
         {
-            var user = await _dbContext.Users
-                                       .Include(u => u.StaffProfile)
-                                       .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            var userRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.User>();
+            var roleRepo = _unitOfWork.Repository<Role>();
+            var staffProfileRepo = _unitOfWork.Repository<StaffProfile>();
 
+            var users = await userRepo.FindAsync(u => u.Email == request.Email);
+            var user = users.FirstOrDefault();
             if (user == null)
             {
                 return false; // User not found.
             }
 
-            if (user.StaffProfile != null)
+            // Check if user already has a staff profile
+            var staffProfiles = await staffProfileRepo.FindAsync(sp => sp.UserId == user.Id);
+            if (staffProfiles.Any())
             {
                 return false; // User is already a staff member.
             }
 
-            var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName, cancellationToken);
-
+            var roles = await roleRepo.FindAsync(r => r.Name == request.RoleName);
+            var role = roles.FirstOrDefault();
             if (role == null)
             {
                 return false; // Role not found.
@@ -41,21 +49,15 @@ namespace DiamondShopSystem.BLL.Handlers.User.Commands.PromoteUserToStaff
 
             var staffProfile = new StaffProfile
             {
+                Id = Guid.NewGuid(),
                 UserId = user.Id,
                 RoleId = role.Id,
                 Salary = request.Salary,
                 HireDate = request.HireDate
             };
 
-            _dbContext.StaffProfiles.Add(staffProfile);
-            user.StaffProfile = staffProfile; // Link staff profile to user
-
-            // Optionally, update user's role directly if your authentication system relies on it
-            // This part depends on how your authentication system assigns roles to users.
-            // For example, if using ASP.NET Core Identity, you might use UserManager.AddToRoleAsync.
-            // For this example, we assume the StaffProfile linkage is sufficient for role recognition.
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await staffProfileRepo.AddAsync(staffProfile);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

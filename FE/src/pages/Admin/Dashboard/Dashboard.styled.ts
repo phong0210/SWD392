@@ -12,7 +12,6 @@ export const GlobalStyle = createGlobalStyle`
   }
 `;
 
-
 export const AdminContainer = styled.section`
   display: inline-flex;
   background-color:  #f1f1f1;
@@ -119,7 +118,6 @@ export const TopMonth = styled.div`
   }
 `;
 
-
 // /* ------------- DASHBOARD - ROW 2 ----------- */
 
 export const DBContent_2 = styled.div`
@@ -158,7 +156,6 @@ export const ViewAll = styled.div`
   }
 `;
 
-
 export const Revenue = styled.div`
   width: 66%;
   height: 280px;
@@ -188,38 +185,6 @@ export const Revenue_Content = styled.div`
   color: ${theme.color.primary};
 `;
 
-// export const TopTime = styled.div`
-//   width: 32%;
-//   height: 298px;
-//   display: flex;
-//   flex-direction: column;
-
-//   h2 {
-//     color: ${theme.color.primary};
-//     margin: 0px 0px 0px 0px;
-//     font-size: 24px;
-//   }
-
-//   p {
-//     margin: 0px 0px 0px 0px;
-//     color: #92929d;
-//     font-size: 16px;
-//   }
-// `;
-
-
-
-// export const TopYear = styled.div`
-//   height: 45%;
-//   background-color: ${theme.color.secondary};
-//   border-radius: 16px;
-//   padding: 20px 20px 15px 25px;
-//   display: flex;
-//   flex-direction: column;
-//   justify-content: space-around;
-// `;
-
-
 export const RecentOrders = styled.div`
   width: 32%;
   height: 280px;
@@ -237,7 +202,6 @@ export const RecentOrders_Title = styled.div`
   h2 {
     font-size: 18px;
   }
-  
 `;
 
 export const RecentOrders_List = styled.div`
@@ -247,10 +211,8 @@ export const RecentOrders_List = styled.div`
     margin: 0px 0px 20px 0px;
     align-items: center;
 
-
     p {
       font-size: 13px;
-      // font-weight: 600;
       color: ${theme.color.primary};
     }
 
@@ -273,8 +235,6 @@ export const RecentOrders_List = styled.div`
       border-radius: 5px;
     }
   }
-
-  
 `;
 
 // /* ------------- DASHBOARD - ROW 3 ----------- */
@@ -350,8 +310,7 @@ export const Element = styled.div`
   background-color: ${theme.color.secondary};
   border-radius: 16px;
   padding: 25px 20px 15px 25px;
-      overflow: auto;
-
+  overflow: auto;
 `;
 
 export const Ele_Title = styled.div`
@@ -366,10 +325,9 @@ export const Ele_Title = styled.div`
 `;
 
 export const Ele_Content = styled.div`
-display: flex;
-flex-direction: column;
+  display: flex;
+  flex-direction: column;
   justify-content: space-around;
-
 
   p {
     margin: 0px 0px 0px 0px;
@@ -381,14 +339,22 @@ flex-direction: column;
     justify-content: space-between;
     margin: 0px 0px 17px 0px;
   }
+  .shell_eleName {
+    display: flex;
+    align-items: center;
+  }
+  .shell_eleName img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
   .shell_eleName p {
     font-size: 15px;
     color: ${theme.color.primary};
   }
-  .shell_elePercent p{
-      font-size: 20px;
-      font-weight: 600;
-
+  .shell_elePercent p {
+    font-size: 20px;
+    font-weight: 600;
   }
   .shell_eleButton {
     color: ${theme.color.primary};
@@ -414,9 +380,7 @@ export const Ele_TableTitle = styled.div`
   font-size: 12px;
 `;
 
-
-
 export const EndPage = styled.div`
-background-color:  #f1f1f1;
-flex-shrink: 0;
+  background-color: #f1f1f1;
+  flex-shrink: 0;
 `;

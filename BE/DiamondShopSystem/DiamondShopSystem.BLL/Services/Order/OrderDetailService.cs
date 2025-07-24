@@ -6,20 +6,24 @@ using DiamondShopSystem.BLL.Handlers.Order.DTOs;
 using DiamondShopSystem.DAL;
 using DiamondShopSystem.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
+using DiamondShopSystem.DAL.Repositories;
 
 namespace DiamondShopSystem.BLL.Services.Order
 {
     public class OrderDetailService : IOrderDetailService
     {
-        private readonly AppDbContext _context;
-        public OrderDetailService(AppDbContext context)
+        private readonly IUnitOfWork _unitOfWork;
+        public OrderDetailService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<OrderDetailDto> CreateOrderDetailAsync(OrderDetailCreateDto dto)
         {
-            var product = await _context.Products.FindAsync(dto.ProductId);
+            var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
+            var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+            var products = await productRepo.FindAsync(p => p.Id == dto.ProductId);
+            var product = products.FirstOrDefault();
             if (product == null) throw new Exception("Product not found");
             var orderDetail = new OrderDetail
             {
@@ -30,58 +34,76 @@ namespace DiamondShopSystem.BLL.Services.Order
                 ProductId = dto.ProductId,
                 Product = product
             };
-            _context.OrderDetails.Add(orderDetail);
-            await _context.SaveChangesAsync();
+            await orderDetailRepo.AddAsync(orderDetail);
+            await _unitOfWork.SaveChangesAsync();
             return MapToDto(orderDetail);
         }
 
         public async Task<OrderDetailDto?> GetOrderDetailByIdAsync(Guid id)
         {
-            var orderDetail = await _context.OrderDetails
-                .Include(od => od.Product)
-                .FirstOrDefaultAsync(od => od.Id == id);
-            return orderDetail == null ? null : MapToDto(orderDetail);
+            var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+            var orderDetails = await orderDetailRepo.FindAsync(od => od.Id == id);
+            var orderDetail = orderDetails.FirstOrDefault();
+            if (orderDetail == null) return null;
+            var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
+            var products = await productRepo.FindAsync(p => p.Id == orderDetail.ProductId);
+            orderDetail.Product = products.FirstOrDefault()!;
+            return MapToDto(orderDetail);
         }
 
         public async Task<IEnumerable<OrderDetailDto>> GetAllOrderDetailsAsync()
         {
-            var orderDetails = await _context.OrderDetails
-                .Include(od => od.Product)
-                .ToListAsync();
+            var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+            var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
+            var orderDetails = await orderDetailRepo.GetAllAsync();
+            foreach (var od in orderDetails)
+            {
+                var products = await productRepo.FindAsync(p => p.Id == od.ProductId);
+                od.Product = products.FirstOrDefault()!;
+            }
             return orderDetails.Select(MapToDto);
         }
 
         public async Task<IEnumerable<OrderDetailDto>> GetOrderDetailsByOrderIdAsync(Guid orderId)
         {
-            var orderDetails = await _context.OrderDetails
-                .Include(od => od.Product)
-                .Where(od => od.OrderId == orderId)
-                .ToListAsync();
+            var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+            var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
+            var orderDetails = await orderDetailRepo.FindAsync(od => od.OrderId == orderId);
+            foreach (var od in orderDetails)
+            {
+                var products = await productRepo.FindAsync(p => p.Id == od.ProductId);
+                od.Product = products.FirstOrDefault()!;
+            }
             return orderDetails.Select(MapToDto);
         }
 
         public async Task<OrderDetailDto> UpdateOrderDetailAsync(Guid id, OrderDetailUpdateDto dto)
         {
-            var orderDetail = await _context.OrderDetails
-                .Include(od => od.Product)
-                .FirstOrDefaultAsync(od => od.Id == id);
+            var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+            var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
+            var orderDetails = await orderDetailRepo.FindAsync(od => od.Id == id);
+            var orderDetail = orderDetails.FirstOrDefault();
             if (orderDetail == null) throw new Exception("OrderDetail not found");
-            var product = await _context.Products.FindAsync(dto.ProductId);
+            var products = await productRepo.FindAsync(p => p.Id == dto.ProductId);
+            var product = products.FirstOrDefault();
             if (product == null) throw new Exception("Product not found");
             orderDetail.UnitPrice = dto.UnitPrice;
             orderDetail.Quantity = dto.Quantity;
             orderDetail.ProductId = dto.ProductId;
             orderDetail.Product = product;
-            await _context.SaveChangesAsync();
+            // No explicit update method in repo, assume tracked entity
+            await _unitOfWork.SaveChangesAsync();
             return MapToDto(orderDetail);
         }
 
         public async Task<bool> DeleteOrderDetailAsync(Guid id)
         {
-            var orderDetail = await _context.OrderDetails.FindAsync(id);
+            var orderDetailRepo = _unitOfWork.Repository<OrderDetail>();
+            var orderDetails = await orderDetailRepo.FindAsync(od => od.Id == id);
+            var orderDetail = orderDetails.FirstOrDefault();
             if (orderDetail == null) return false;
-            _context.OrderDetails.Remove(orderDetail);
-            await _context.SaveChangesAsync();
+            orderDetailRepo.Remove(orderDetail);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 

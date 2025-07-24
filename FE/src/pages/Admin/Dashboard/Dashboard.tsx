@@ -1,22 +1,43 @@
 import * as Styled from "./Dashboard.styled";
 import Sidebar from "../../../components/Admin/Sidebar/Sidebar";
 import { ArrowRightOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Component } from "react";
 import StatistiBox from "./StatistiBox";
 import LineChart from "./LineChart";
 import { Link } from "react-router-dom";
 import { showAllProduct } from "@/services/productAPI";
-import { showAllOrder, showReveneSummary, showWeeklyRevenueSummary } from "@/services/orderAPI";
+import { showAllOrder, showReveneSummary, showWeeklyRevenueSummary, showDailyRevenueSummary } from "@/services/orderAPI";
 import { showAllAccounts } from "@/services/authAPI";
 import { getImage } from "@/services/imageAPI";
 import { showAllDiscount } from "@/services/discountAPI";
 import { Role } from "@/utils/enum";
 import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import defaultImage from "@/assets/diamond/defaultImage.png";
+
+// Error Boundary Component
+class ChartErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ChartErrorBoundary caught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <p>Failed to render chart. Please check data and try again.</p>;
+    }
+    return this.props.children;
+  }
+}
 
 const calculateKpiTotal = (
-  startYear: any,
-  startMonth: any,
-  increasePerMonth: any
+  startYear: number,
+  startMonth: number,
+  increasePerMonth: number
 ) => {
   const currentDate = new Date();
   const startDate = new Date(startYear, startMonth - 1);
@@ -27,7 +48,7 @@ const calculateKpiTotal = (
 };
 
 const Dashboard = () => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [cancelOrders, setCancelOrders] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [discounts, setDiscounts] = useState<any[]>([]);
@@ -38,22 +59,40 @@ const Dashboard = () => {
   const [cancelOrdersTotal, setCancelOrdersTotal] = useState(0);
   const [revenes, setRevenes] = useState<any | null>(null);
   const [mostRevenueWeek, setMostRevenueWeek] = useState<any | null>(null);
+  const [dailyRevenueData, setDailyRevenueData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // New state to track data readiness
 
-  const fetchData = async () => {
+  const fetchData = async (retries = 2, delay = 1000) => {
     try {
-      const responseCustomers = await showAllAccounts();
-      const responseOrders = await showAllOrder();
-      const responseProducts = await showAllProduct();
-      const responseDiscount = await showAllDiscount();
-      const responseRevenes = await showReveneSummary();
-      const responseWeeklyRevenue = await showWeeklyRevenueSummary();
+      setIsLoading(true);
+      setError(null);
+
+      const [
+        responseCustomers,
+        responseOrders,
+        responseProducts,
+        responseDiscount,
+        responseRevenes,
+        responseWeeklyRevenue,
+        responseDailyRevenue,
+      ] = await Promise.all([
+        showAllAccounts(),
+        showAllOrder(),
+        showAllProduct(),
+        showAllDiscount(),
+        showReveneSummary(),
+        showWeeklyRevenueSummary(),
+        showDailyRevenueSummary(),
+      ]);
 
       // Customers
       const customersData = Array.isArray(responseCustomers.data?.data)
         ? responseCustomers.data.data
-        : responseCustomers.data;
+        : responseCustomers.data || [];
       const formattedCustomers = customersData
-        .filter((acc: any) => acc.role === Role.CUSTOMER)
+        .filter((acc: any) => acc && acc.role === Role.CUSTOMER)
         .map((acc: any) => ({
           id: acc.id,
           name: acc.name,
@@ -63,18 +102,20 @@ const Dashboard = () => {
       // Orders
       const ordersData = Array.isArray(responseOrders.data?.data)
         ? responseOrders.data.data
-        : responseOrders.data;
-      const formattedOrders = ordersData.map((order: any) => ({
-        orderID: order.id,
-        orderDate: order.orderDate,
-        price: order.totalPrice,
-        status: order.status,
-        customerID: order.userId,
-      }));
+        : responseOrders.data || [];
+      const formattedOrders = ordersData
+        .filter((order: any) => order && order.id)
+        .map((order: any) => ({
+          orderID: order.id,
+          orderDate: order.orderDate,
+          price: order.totalPrice,
+          status: order.status,
+          customerID: order.userId,
+        }));
 
       // Cancelled Orders
       const formattedCancelOrders = ordersData
-        .filter((order: any) => order.status === 6 || order.status === "Cancelled")
+        .filter((order: any) => order && (order.status === 6 || order.status === "Cancelled"))
         .map((order: any) => ({
           orderID: order.id,
           orderDate: order.orderDate,
@@ -86,25 +127,26 @@ const Dashboard = () => {
       const rawProductsData = Array.isArray(responseProducts.data)
         ? responseProducts.data
         : responseProducts.data?.data || [];
-      // Extract the 'product' property from each API response item
       const productsData = rawProductsData
-        .filter((item: any) => item.success && item.product)
+        .filter((item: any) => item && item.success && item.product)
         .map((item: any) => item.product);
-      const diamonds = productsData.filter((p: any) => p.carat > 0 && p.giaCertNumber);
-      const jewelrys = productsData.filter((p: any) => !p.carat && !p.giaCertNumber);
+      const diamonds = productsData.filter((p: any) => p && p.carat > 0 && p.giaCertNumber);
+      const jewelrys = productsData.filter((p: any) => p && !p.carat && !p.giaCertNumber);
 
       // Discounts
       const discountsData = Array.isArray(responseDiscount.data?.data)
         ? responseDiscount.data.data
-        : responseDiscount.data;
-      const formattedDiscounts = discountsData.map((discount: any) => ({
-        discountID: discount.id,
-        discountName: discount.name,
-        percentDiscounts: discount.percentDiscounts || discount.percent || discount.value,
-      }));
+        : responseDiscount.data || [];
+      const formattedDiscounts = discountsData
+        .filter((discount: any) => discount && discount.id)
+        .map((discount: any) => ({
+          discountID: discount.id,
+          discountName: discount.name,
+          percentDiscounts: discount.percentDiscounts || discount.percent || discount.value,
+        }));
 
       // Revenue
-      const reveneData = responseRevenes.data?.data || responseRevenes.data;
+      const reveneData = responseRevenes.data?.data || responseRevenes.data || {};
       const formattedRevene = {
         startDate: reveneData.startDate,
         endDate: reveneData.endDate,
@@ -114,18 +156,10 @@ const Dashboard = () => {
         orderResults: reveneData.orderResults || [],
       };
 
-      setCustomers(formattedCustomers);
-      setOrders(formattedOrders);
-      setDiamonds(diamonds);
-      setJewelrys(jewelrys);
-      setDiscounts(formattedDiscounts);
-      setCancelOrders(formattedCancelOrders);
-      setRevenes(formattedRevene);
-
-      // Weekly Revenue
-      const weeklyRevenueData = responseWeeklyRevenue.data;
-      if (Array.isArray(weeklyRevenueData) && weeklyRevenueData.length > 0) {
-        const mostRevenueWeekData = weeklyRevenueData.reduce((prev: any, current: any) => {
+      // Weekly Revenue (for Top Week)
+      const weeklyData = Array.isArray(responseWeeklyRevenue.data) ? responseWeeklyRevenue.data : [];
+      if (weeklyData.length > 0) {
+        const mostRevenueWeekData = weeklyData.reduce((prev: any, current: any) => {
           return (prev.totalRevenue > current.totalRevenue) ? prev : current;
         });
 
@@ -143,32 +177,50 @@ const Dashboard = () => {
         setMostRevenueWeek(null);
       }
 
-      // KPI calculations (as before)
+      // Daily Revenue
+      const dailyData = Array.isArray(responseDailyRevenue.data?.DailyRevenueResults)
+        ? responseDailyRevenue.data.DailyRevenueResults
+        : Array.isArray(responseDailyRevenue.data)
+        ? responseDailyRevenue.data
+        : [];
+      console.log("Raw daily revenue response:", JSON.stringify(responseDailyRevenue, null, 2)); // Detailed debug log
+      console.log("Processed daily revenue data:", dailyData); // Debug log
+      setDailyRevenueData(dailyData);
+      setIsDataLoaded(true); // Mark data as loaded
+
+      // KPI calculations
       const startYear = 2024;
       const startMonth = 1;
       const increaseCustomer = 10;
       const increaseOrder = 10;
       const increaseCancelOrder = 2;
-      const totalCustomerKpi = calculateKpiTotal(
-        startYear,
-        startMonth,
-        increaseCustomer
-      );
-      const totalOrderKpi = calculateKpiTotal(
-        startYear,
-        startMonth,
-        increaseOrder
-      );
-      const totalCancelOrderKpi = calculateKpiTotal(
-        startYear,
-        startMonth,
-        increaseCancelOrder
-      );
+      const totalCustomerKpi = calculateKpiTotal(startYear, startMonth, increaseCustomer);
+      const totalOrderKpi = calculateKpiTotal(startYear, startMonth, increaseOrder);
+      const totalCancelOrderKpi = calculateKpiTotal(startYear, startMonth, increaseCancelOrder);
+
+      setCustomers(formattedCustomers);
+      setOrders(formattedOrders);
+      setDiamonds(diamonds);
+      setJewelrys(jewelrys);
+      setDiscounts(formattedDiscounts);
+      setCancelOrders(formattedCancelOrders);
+      setRevenes(formattedRevene);
       setCustomersTotal(totalCustomerKpi);
       setOrdersTotal(totalOrderKpi);
       setCancelOrdersTotal(totalCancelOrderKpi);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
+      if (retries > 0) {
+        console.log(`Retrying fetchData... Attempts left: ${retries}`);
+        setTimeout(() => fetchData(retries - 1, delay * 2), delay);
+      } else {
+        setError("Failed to load dashboard data after retries. Please try again later.");
+        setIsLoading(false);
+      }
+    } finally {
+      if (!error) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -176,12 +228,46 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  // Format daily revenue data for LineChart
+  const chartData = isDataLoaded && dailyRevenueData.length > 0
+    ? [
+        {
+          id: "Daily Revenue",
+          color: "#912BBC",
+          data: dailyRevenueData
+            .filter((day: any) => {
+              const isValid = day && day.date && typeof day.totalRevenue === "number" && !isNaN(new Date(day.date).getTime());
+              if (!isValid) {
+                console.warn("Invalid daily revenue entry:", day);
+              }
+              return isValid;
+            })
+            .map((day: any) => {
+              const date = new Date(day.date);
+              const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+              return {
+                x: formattedDate,
+                y: day.totalRevenue,
+              };
+            }),
+        },
+      ]
+    : [];
+  console.log("Chart data:", JSON.stringify(chartData, null, 2)); // Detailed debug log
+
+  if (isLoading) {
+    return <Styled.AdminContainer>Loading...</Styled.AdminContainer>;
+  }
+
+  if (error) {
+    return <Styled.AdminContainer>{error}</Styled.AdminContainer>;
+  }
+
   return (
     <>
       <Styled.GlobalStyle />
       <Styled.AdminContainer>
         <Sidebar />
-
         <Styled.AdminPage>
           <Styled.TopPage>
             <Styled.TitlePage>
@@ -193,23 +279,18 @@ const Dashboard = () => {
                 <StatistiBox
                   value={customers.length}
                   label="Total Customers"
-                  total={((customers.length * 100) / customersTotal).toFixed(2)}
+                  total={customersTotal > 0 ? ((customers.length * 100) / customersTotal).toFixed(2) : "0"}
                 />
                 <StatistiBox
                   value={orders.length}
                   label="Total Orders"
-                  total={((orders.length * 100) / ordersTotal).toFixed(2)}
+                  total={ordersTotal > 0 ? ((orders.length * 100) / ordersTotal).toFixed(2) : "0"}
                 />
-                {/* <StatistiBox
-                  value={cancelOrders.length}
-                  label="Cancel Orders"
-                  total={(cancelOrders.length * 100 / cancelOrdersTotal).toFixed(2)}
-                /> */}
                 <Styled.TopMonth>
                   <p className="topMonth_title">Top week</p>
-                  <h2>{mostRevenueWeek?.week}</h2>
+                  <h2>{mostRevenueWeek?.week || "N/A"}</h2>
                   <p className="topMonth-statisti">
-                    {mostRevenueWeek?.revenue ? `${(mostRevenueWeek.revenue / 1000000).toFixed(2)}M` : 'N/A'} sold so far
+                    {mostRevenueWeek?.revenue ? `${(mostRevenueWeek.revenue / 1000000).toFixed(2)}M` : "N/A"} sold so far
                   </p>
                 </Styled.TopMonth>
               </Styled.DBContent_1>
@@ -217,14 +298,19 @@ const Dashboard = () => {
               <Styled.DBContent_2>
                 <Styled.Revenue>
                   <Styled.Revenue_Title>
-                    <h2>Revenue Report</h2>
-                    {/* <p className="revenueTotal">{`$${data.revene}`}</p> */}
+                    <h2>Daily Revenue Report</h2>
                     <p className="revenueTotal">
-                      {revenes?.totalRevenueInTime}$
+                      {revenes?.totalRevenueInTime ? `$${revenes.totalRevenueInTime}` : "$"}
                     </p>
                   </Styled.Revenue_Title>
                   <Styled.Revenue_Content>
-                    <LineChart isDashboard={true} />
+                    <ChartErrorBoundary>
+                      {isDataLoaded && chartData.length > 0 && chartData[0].data.length > 0 ? (
+                        <LineChart isDashboard={true} data={chartData} />
+                      ) : (
+                        <p>No daily revenue data available</p>
+                      )}
+                    </ChartErrorBoundary>
                   </Styled.Revenue_Content>
                 </Styled.Revenue>
 
@@ -242,24 +328,15 @@ const Dashboard = () => {
                   </Styled.RecentOrders_Title>
                   <Styled.RecentOrders_List>
                     {orders
-                      .sort(
-                        (a: any, b: any) =>
-                          new Date(b.orderDate).getTime() -
-                          new Date(a.orderDate).getTime()
-                      )
+                      .sort((a: any, b: any) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
                       .slice(0, 4)
                       .map((order: any) => (
                         <div className="order_ele" key={order.orderID}>
                           <div className="order_eleInfor">
                             <p className="order_eleID">{order.orderID}</p>
-                            {/* <p className="order_eleCusName">
-                              {order.customerID}
-                            </p> */}
                           </div>
                           <p className="order_eleDate">
-                            {order.orderDate
-                              .replace("T", " ")
-                              .replace(".000Z", " ")}
+                            {order.orderDate.replace("T", " ").replace(".000Z", "")}
                           </p>
                           <div className="order_elePrice">${order.price}</div>
                         </div>
@@ -285,21 +362,16 @@ const Dashboard = () => {
                     {diamonds.slice(0, 4).map((diamond: any) => (
                       <div className="shell_ele" key={diamond.id}>
                         <div className="shell_eleName">
-                          <img
-                              src={diamond.images && diamond.images[0] ? diamond.images[0].url : "default-image-url"}
-                              alt={diamond.diamondName} />
+                          <img src={defaultImage} alt={diamond.diamondName || diamond.name} />
                           <p>{diamond.name}</p>
                         </div>
-                        <Link
-                          to={`/admin/product/diamond/detail/${diamond.id}`}
-                        >
+                        <Link to={`/admin/product/diamond/detail/${diamond.id}`}>
                           <button className="shell_eleButton">View</button>
                         </Link>
                       </div>
                     ))}
                   </Styled.Ele_Content>
                 </Styled.Element>
-
 
                 <Styled.Element>
                   <Styled.Ele_Title>
@@ -320,9 +392,6 @@ const Dashboard = () => {
                         <div className="shell_elePercent">
                           <p>{discount.percentDiscounts}%</p>
                         </div>
-                        {/* <Link to={`/admin/marketing/discount/detail/${discount.discountID}`}>
-                        <button className="shell_eleButton">View</button>
-                        </Link> */}
                       </div>
                     ))}
                   </Styled.Ele_Content>
