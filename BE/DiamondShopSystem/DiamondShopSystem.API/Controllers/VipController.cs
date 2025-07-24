@@ -24,7 +24,7 @@ namespace DiamondShopSystem.API.Controllers
         }
 
         [HttpPost("Create")]
-        public async Task<IActionResult> CreateVip([FromBody] RegisterVipRequest request)
+        public async Task<IActionResult> CreateVip([FromBody] VipCreateRequestDto request)
         {
             var command = new CreateVipCommand(request);
             var vip = await _mediator.Send(command);
@@ -58,7 +58,7 @@ namespace DiamondShopSystem.API.Controllers
         }
 
         [HttpPut("UpdateVip/{id}")]
-        public async Task<IActionResult> UpdateVip(Guid id, [FromBody] UpdateVipRequest request)
+        public async Task<IActionResult> UpdateVip(Guid id, [FromBody] VipUpdateRequestDto request)
         {
             var command = new UpdateVipCommand(id, request);
             var result = await _mediator.Send(command);
