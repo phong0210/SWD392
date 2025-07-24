@@ -11,6 +11,7 @@ using DiamondShopSystem.DAL.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiamondShopSystem.BLL.Services.Order
 {
@@ -18,11 +19,13 @@ namespace DiamondShopSystem.BLL.Services.Order
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly SaleEmail.ISaleEmailService _saleEmailService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, SaleEmail.ISaleEmailService saleEmailService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _saleEmailService = saleEmailService;
         }
 
         public async Task<CreateOrderResponseDto> CreateOrderAsync(CreateOrderDto createOrderDto)
@@ -33,8 +36,10 @@ namespace DiamondShopSystem.BLL.Services.Order
 
         public async Task<UpdateOrderResponseDto> UpdateOrderAsync(Guid id, UpdateOrderDto updateOrderDto)
         {
-            var orderRepository = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>();
-            var existingOrder = await orderRepository.GetByIdAsync(id);
+            var existingOrder = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>()
+                                            .GetAllQueryable()
+                                            .Include(o => o.User)
+                                            .FirstOrDefaultAsync(o => o.Id == id);
 
             if (existingOrder == null)
             {
@@ -46,8 +51,15 @@ namespace DiamondShopSystem.BLL.Services.Order
             OrderStatus nextStatus = GetNextStatus(currentStatus);
             existingOrder.Status = (int)nextStatus;
 
-            orderRepository.Update(existingOrder);
+            _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>().Update(existingOrder);
             await _unitOfWork.SaveChangesAsync();
+
+            // Send email notification
+            var orderResponseDto = _mapper.Map<OrderResponseDto>(existingOrder);
+            if (existingOrder.User != null)
+            {
+                await _saleEmailService.SendOrderUpdateEmailAsync(existingOrder.User.Email, orderResponseDto);
+            }
 
             return new UpdateOrderResponseDto { Success = true };
         }

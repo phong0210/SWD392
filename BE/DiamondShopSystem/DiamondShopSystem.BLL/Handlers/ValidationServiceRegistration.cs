@@ -10,6 +10,7 @@ using DiamondShopSystem.BLL.Handlers.Warranty.DTOs;
 using DiamondShopSystem.BLL.Handlers.Delivery.Validators;
 using DiamondShopSystem.BLL.Handlers.Delivery.DTOs;
 using DiamondShopSystem.BLL.Services.Order;
+using DiamondShopSystem.BLL.Services.SaleEmail;
 
 namespace DiamondShopSystem.BLL.Handlers
 {
@@ -28,6 +29,7 @@ namespace DiamondShopSystem.BLL.Handlers
             
             // Add more validators here as needed
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<ISaleEmailService, SaleEmailService>();
             
             return services;
         }
