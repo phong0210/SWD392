@@ -56,6 +56,18 @@ namespace DiamondShopSystem.BLL.Handlers.User.Commands.ConfirmRegistration
             await userRepo.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
+            var loyaltyPoint = new DiamondShopSystem.DAL.Entities.LoyaltyPoints
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                PointsEarned = 0,
+                PointsRedeemed = 0,
+                LastUpdated = DateTime.UtcNow
+            };
+
+            await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.LoyaltyPoints>().AddAsync(loyaltyPoint);
+            await _unitOfWork.SaveChangesAsync();
+
             _otpCacheService.RemoveOtp(request.Dto.Email);
             _otpCacheService.RemoveUserRegistrationData(request.Dto.Email);
 
