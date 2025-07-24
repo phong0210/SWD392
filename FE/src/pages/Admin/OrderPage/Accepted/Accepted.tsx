@@ -70,11 +70,11 @@ interface DataType {
 
 const statusMap: { [key: number]: string } = {
   0: OrderStatus.PENDING,
-    1: OrderStatus.ACCEPTED,
-    2: OrderStatus.DELIVERING,
-    3: OrderStatus.DELIVERED,
-    4: OrderStatus.COMPLETED,
-    6: OrderStatus.CANCELLED,
+  1: OrderStatus.ACCEPTED,
+  2: OrderStatus.DELIVERING,
+  3: OrderStatus.DELIVERED,
+  4: OrderStatus.COMPLETED,
+  6: OrderStatus.CANCELLED,
 };
 
 const columns: TableColumnsType<DataType> = [
