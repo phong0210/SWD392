@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { Select } from "antd";
 import { showAllVoucher } from "@/services/voucherAPI";
 import { useAppDispatch } from "@/hooks";
-import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
+import  orderSlice  from "@/store/slices/orderSlice";
 interface PromoCodeSectionProps {
   onApplyVoucher: (discount: number, voucherID: number) => void;
 }
@@ -111,7 +111,7 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
               setSelectedVoucher(voucher || null);
               if (!voucher) {
                 setError("");
-                onApplyVoucher(0, "");
+                onApplyVoucher(0, 0);
                 localStorage.removeItem("selectedVoucher");
               }
             }}

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Row, Col } from "antd";
+import React, { useEffect } from "react";
+import { Row, Col, Spin, Result } from "antd";
 import {
   CheckCircleFilled,
   ContainerFilled,
@@ -7,53 +7,73 @@ import {
   EyeFilled,
 } from "@ant-design/icons";
 import { Container } from "./ThankPage.styled";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import config from "@/config";
-import { useAppSelector } from "@/hooks";
-import { orderDetail, updateOrder } from "@/services/orderAPI";
-import { captureOrderPayPal } from "@/services/paymentAPI";
-import { OrderStatus } from "@/utils/enum";
+import { useAppSelector, useAppDispatch } from "@/hooks";
+import { captureOrderPaypalAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 
 const ThankPageSuccess: React.FC = () => {
-  const orderID = useAppSelector((state) => state.order.OrderID);
-  const [order, setOrder] = useState<any>(null);
-  const [currentOrderID, setCurrentOrderID] = useState(0);
+  const { order, status, error } = useAppSelector((state) => state.order);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const location = useLocation();
 
   useEffect(() => {
+    console.log('[ThankPageSuccess] Current order state:', { order, status, error });
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
 
-    const currentOrderID = Number(localStorage.getItem("CurrentOrderID"));
-    setCurrentOrderID(currentOrderID);
-    console.log(currentOrderID);
-
-    const fetchData = async () => {
-      //Get order info
-      const orderResponse = await orderDetail(orderID);
-      setOrder(orderResponse.data.data);
+    if (token && status !== 'loading') {
+      console.log('[ThankPageSuccess] Capturing PayPal payment with token:', token);
+      dispatch(captureOrderPaypalAsync(token));
     }
-    fetchData();
 
-    const capturePayment = async () => {
-      if (token) {
-        const capturePayment = await captureOrderPayPal(token);
-        if (capturePayment.data.status === "COMPLETED") {
-          const orderDetailData = await orderDetail(currentOrderID);
-          const getOrderDetail = orderDetailData.data.data
-          setOrder(getOrderDetail);
+    return () => {
+      console.log('[ThankPageSuccess] Cleaning up, removing CurrentOrderID from localStorage');
+      localStorage.removeItem("CurrentOrderID");
+      dispatch(resetOrderStatus());
+    };
+  }, [location.search, dispatch, status]);
 
-          await updateOrder(currentOrderID, {
-            IsPayed: true,
-            IsActive: true,
-            OrderStatus: OrderStatus.PENDING
-          });
-        }
-      }
-    }
-    capturePayment();
-  }, [location.search])
+  // Loading state
+  if (status === 'loading') {
+    console.log('[ThankPageSuccess] Rendering loading state');
+    return (
+      <Container>
+        <div className="thank-page-success-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Spin size="large" />
+          <p style={{ marginLeft: '20px', fontSize: '18px' }}>
+            Finalizing your order...
+          </p>
+        </div>
+      </Container>
+    );
+  }
 
+  // Failure state
+  if (status === 'failed' || !order || !order.id) {
+    console.log('[ThankPageSuccess] Rendering failure state, error:', error, 'order:', order);
+    return (
+      <Container>
+        <Result
+          status="error"
+          title="Order Processing Failed"
+          subTitle={error || "Sorry, there was a problem processing your order. Please try again."}
+          extra={[
+            <Link to={config.routes.public.home} key="home">
+              <button className="home">Go to Homepage</button>
+            </Link>,
+            <Link to={config.routes.customer.cart} key="cart">
+              <button className="cart">Back to Cart</button>
+            </Link>,
+          ]}
+        />
+      </Container>
+    );
+  }
+
+  // Success state
+  console.log('[ThankPageSuccess] Rendering success state for order:', order.id);
   return (
     <Container>
       <div className="thank-page-success-container">
@@ -80,27 +100,27 @@ const ThankPageSuccess: React.FC = () => {
                     <Col span={18} className="thank-page-summary-details">
                       <div className="content main">
                         <p className="label">ORDER ID </p>
-                        <p className="info">{order?.OrderID}</p>
+                        <p className="info">{order.id}</p>
                       </div>
 
                       <div className="content">
                         <p className="label">DATE</p>
-                        <p className="info">{order?.OrderDate.replace("T", " ").replace(".000Z", " ")}</p>
+                        <p className="info">{new Date(order.orderDate).toLocaleString()}</p>
                       </div>
 
                       <div className="content">
-                        <p className="label"> CUSTOMER</p>
-                        <p className="info"> {order?.NameReceived}</p>
+                        <p className="label">CUSTOMER</p>
+                        <p className="info">{order.userId}</p>
                       </div>
 
                       <div className="content">
                         <p className="label">AMOUNT</p>
-                        <p className="info">${order?.VoucherPrice}</p>
+                        <p className="info">${order.totalPrice.toFixed(2)}</p>
                       </div>
 
                       <div className="content end">
                         <p className="label">PAYMENT METHOD</p>
-                        <p className="info">{order?.PaymentID}</p>
+                        <p className="info">{order.payments?.[0]?.method || 'COD'}</p>
                       </div>
                     </Col>
                   </Row>
@@ -154,7 +174,10 @@ const ThankPageSuccess: React.FC = () => {
             </Link>
             <button
               className="track"
-              onClick={() => navigate(`${config.routes.customer.orderDetails}?orderId=${orderID || currentOrderID}`)}
+              onClick={() => {
+                console.log('[ThankPageSuccess] Navigating to order details for order:', order.id);
+                navigate(`${config.routes.customer.orderDetails}?orderId=${order.id}`);
+              }}
             >
               TRACK ORDER
             </button>

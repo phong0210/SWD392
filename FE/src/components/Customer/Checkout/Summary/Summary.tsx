@@ -5,8 +5,6 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import PromoCodeSection from "../../../Customer/Checkout/PromoCode";
-import { useAppDispatch } from "@/hooks";
-import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
 import { CartItem as CartItemType } from "@/services/cartAPI";
 
 interface CartItemProps {
@@ -37,13 +35,9 @@ interface SummaryProps {
 
 const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
   const [discount, setDiscount] = useState(0);
-  const [voucherID, setVoucherID] = useState<number | undefined>(undefined);
-  const dispatch = useAppDispatch();
 
-  const onApplyVoucher = (discount: number, voucherID: number) => {
+  const onApplyVoucher = (discount: number) => {
     setDiscount(discount);
-    setVoucherID(voucherID);
-    localStorage.setItem("selectedVoucher", JSON.stringify({ discount, voucherID }));
   };
 
   const calculateTotal = (
@@ -55,14 +49,12 @@ const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
   };
 
   const shippingCost = cartItems.length === 1 ? 15 : 0;
-  dispatch(orderSlice.actions.setShippingfee(shippingCost));
 
   const subtotalNumber = cartItems.reduce((acc, item) => {
     return acc + item.price * item.quantity;
   }, 0);
 
   const total = calculateTotal(subtotalNumber, discount, shippingCost).toFixed(2);
-  dispatch(orderSlice.actions.setTotal(Number(total)));
 
   return (
     <SummarySection>
@@ -93,7 +85,7 @@ const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
         {discount > 0 && (
           <>
             <p>Discount {`(${discount}%)`}: </p>
-            <p>{`-$${(subtotalNumber * discount / 100).toFixed(2)}`}</p>
+            <p>{`-${(subtotalNumber * discount / 100).toFixed(2)}`}</p>
           </>
         )}
       </EditTotal>

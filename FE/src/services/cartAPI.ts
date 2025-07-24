@@ -47,5 +47,16 @@ export const updateCartItemQuantity = (itemId: string, quantity: number) => {
 };
 
 export const clearCart = () => {
+  console.log('[clearCart] Attempting to clear cart cookie:', CART_COOKIE_KEY);
+  try {
+    if (!CART_COOKIE_KEY) {
+      console.error('[clearCart] CART_COOKIE_KEY is undefined');
+      throw new Error('Cart cookie key is not defined');
+    }
     Cookies.remove(CART_COOKIE_KEY);
+    console.log('[clearCart] Cart cookie removed successfully');
+  } catch (error) {
+    console.error('[clearCart] Error clearing cart cookie:', error);
+    throw error;
+  }
 };

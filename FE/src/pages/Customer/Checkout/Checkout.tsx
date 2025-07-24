@@ -2,181 +2,166 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { notification, Steps } from "antd";
 import AddressDetails from "../../../components/Customer/Checkout/AddressDetails";
 import { getProvinces, getDistricts, getWards } from "./api";
 import Summary from "@/components/Customer/Checkout/Summary/Summary";
-import { createOrder, CreateOrderRequest } from "@/services/orderAPI";
-import { showAllOrderLineForAdmin, updateOrderLine } from "@/services/orderLineAPI";
+import { CreateOrderRequest } from "@/services/orderAPI";
 import config from "@/config";
 import useAuth from "@/hooks/useAuth";
 import { getCustomer } from "@/services/accountApi";
-import { OrderStatus, PaymentMethodEnum } from "@/utils/enum";
+import { PaymentMethodEnum } from "@/utils/enum";
 import { useAppDispatch, useAppSelector } from "@/hooks";
-import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
+import { createOrderAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 import { createOrderPaypal } from "@/services/paymentAPI";
-
-// Remove local interface since we're using CreateOrderRequest from the API
+import { clearCart } from "@/store/slices/cartSlice";
 
 const description = "This is a description";
+
 const Checkout: React.FC = () => {
   const { AccountID, user } = useAuth();
   const [CustomerID, setCustomerID] = useState<string | number>();
   const [Customer, setCustomer] = useState<any>(null);
   
-  // Get userId from auth slice (this is the GUID we need for CustomerId)
   const authUser = useAppSelector((state) => state.auth.user);
-  // const [form] = Form.useForm();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [provinces, setProvinces] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [districts, setDistricts] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [wards, setWards] = useState<any[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<number | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<number | null>(null);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [selectedVoucher, setSelectedVoucher] = useState<any | null>(null);
-  const ShippingFee = useAppSelector((state) => state.order.Shippingfee);
   const cartItems = useAppSelector((state) => state.cart.items);
+  const { order, status: orderStatus, error: orderError } = useAppSelector((state) => state.order);
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState(false);
+
+  // Cleanup on unmount only if order creation failed
+  useEffect(() => {
+    return () => {
+      if (orderStatus === 'failed') {
+        console.log('[Checkout] Cleaning up on unmount due to failed order status');
+        dispatch(resetOrderStatus());
+      }
+    };
+  }, [dispatch, orderStatus]);
+
+  // Effect to handle navigation after order creation
+  useEffect(() => {
+    if (orderStatus === 'succeeded' && order && order.id) {
+      console.log('[Checkout] Order status succeeded, order:', order);
+      if (order.payments && order.payments[0]?.method === PaymentMethodEnum.PAYPAL.toString()) {
+        console.log('[Checkout] Initiating PayPal flow for order:', order.id);
+        createOrderPaypal(order.totalPrice)
+          .then(createPayment => {
+            const approvalUrl = createPayment.data.links.find((link: any) => link.rel === 'approve')?.href;
+            if (approvalUrl) {
+              console.log('[Checkout] Redirecting to PayPal approval URL:', approvalUrl);
+              window.location.href = approvalUrl;
+            } else {
+              throw new Error('PayPal approval URL not found');
+            }
+          })
+          .catch(error => {
+            console.error('[Checkout] PayPal error:', error);
+            api.error({
+              message: 'PayPal Error',
+              description: error.message || 'Failed to create PayPal payment. Please try again.',
+            });
+            setLoading(false);
+          });
+      } else {
+        console.log('[Checkout] Navigating to success page for COD order:', order.id);
+        dispatch(clearCart());
+        navigate(config.routes.public.success);
+      }
+    } else if (orderStatus === 'failed') {
+      console.error('[Checkout] Order creation failed, error:', orderError);
+      api.error({
+        message: 'Order Creation Failed',
+        description: orderError || 'An error occurred while creating your order',
+      });
+      setLoading(false);
+    }
+  }, [orderStatus, order, orderError, navigate, api]);
 
   const fetchProvincesData = async () => {
     try {
       const data = await getProvinces();
       setProvinces(data);
     } catch (error) {
-      console.error("Error fetching provinces:", error);
+      console.error("[Checkout] Error fetching provinces:", error);
     }
   };
 
   const getCustomerDetail = async () => {
-    // First try to get customer from auth (fallback)
     if (user?.CustomerID) {
-      setCustomerID(user.CustomerID); // Use CustomerID from auth user
-      console.log('Using Customer ID from auth:', user.CustomerID);
+      setCustomerID(user.CustomerID);
       return;
     }
     
-    // Fallback to API call if auth doesn't have CustomerID
     if (AccountID === null) return;
-    const customer = await getCustomer(AccountID ? AccountID : 0);
-    setCustomer(customer?.data?.data);
-    // console.log('Customer: ', Customer);
-    setCustomerID(customer ? customer.data.data.CustomerID : 0);
-    console.log('Customer ID from API: ', CustomerID);
-  }
+    try {
+      const customer = await getCustomer(AccountID ? AccountID : 0);
+      setCustomer(customer?.data?.data);
+      setCustomerID(customer ? customer.data.data.CustomerID : 0);
+    } catch (error) {
+      console.error("[Checkout] Error fetching customer details:", error);
+    }
+  };
 
   React.useEffect(() => {
     getCustomerDetail();
     fetchProvincesData();
   }, [Customer?.CustomerID, AccountID]);
 
-  React.useEffect(() => {
-    getCustomerDetail();
-    fetchProvincesData();
-    
-    const voucher = localStorage.getItem("selectedVoucher");
-    if (voucher) {
-      setSelectedVoucher(JSON.parse(voucher));
-      
-    }
-  }, [AccountID]);
-
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // Debug: Log customer info
-      console.log('Auth slice user:', authUser);
-      console.log('UseAuth user:', user);
-      console.log('Customer:', Customer);
-      console.log('CustomerID state:', CustomerID);
-      console.log('Cart Items:', cartItems);
+      if (!cartItems || cartItems.length === 0) {
+        throw new Error('Your cart is empty. Please add items before checkout.');
+      }
 
-      // Transform cart items to the new orderItems format
-      const orderItems = cartItems.map(item => {
-        const productId = item.productId || item.diamondId || item.id;
-        if (!productId) {
-          throw new Error(`Product ID is missing for item: ${JSON.stringify(item)}`);
-        }
-        
-        // Ensure UnitPrice is a valid number
-        const unitPrice = item.price || item.unitPrice || 0;
-        if (typeof unitPrice !== 'number' || unitPrice <= 0) {
-          throw new Error(`Invalid unit price for item: ${JSON.stringify(item)}`);
-        }
+      const orderItems = cartItems.map(item => ({
+        ProductId: (item.productId || item.diamondId || item.id).toString(),
+        Quantity: item.quantity,
+        UnitPrice: item.price || 0,
+      }));
 
-        // Ensure Quantity is a valid number
-        if (typeof item.quantity !== 'number' || item.quantity <= 0) {
-          throw new Error(`Invalid quantity for item: ${JSON.stringify(item)}`);
-        }
-
-        return {
-          ProductId: productId.toString(), // Ensure it's a string
-          Quantity: item.quantity,
-          UnitPrice: unitPrice
-        };
-      });
-
-      // Validate CustomerId - use auth slice userId as primary (this is the GUID)
       const customerId = authUser?.userId || user?.CustomerID?.toString() || Customer?.CustomerID?.toString() || CustomerID?.toString() || "";
       if (!customerId) {
-        throw new Error('Customer ID is required but not found in auth or customer data');
+        throw new Error('Customer ID is required. Please log in again.');
       }
 
-      // Create the new order request body format using CreateOrderRequest type
       const requestBodyOrder: CreateOrderRequest = {
         CustomerId: customerId,
-        SaleStaff: "", 
-        OrderItems: orderItems
+        SaleStaff: "",
+        OrderItems: orderItems,
+        PaymentMethod: values.Method || 'COD',
       };
 
-      console.log('Final Order request body:', JSON.stringify(requestBodyOrder, null, 2));
+      console.log('[Checkout] Submitting order:', requestBodyOrder);
+      await dispatch(createOrderAsync(requestBodyOrder)).unwrap();
 
-      const responeOrder = await createOrder(requestBodyOrder);
-      
-      // Debug: Log the response
-      console.log('Order Response:', responeOrder);
-      
-      // Check if the order creation was successful based on the actual API response structure
-      if (!responeOrder.data.success) {
-        throw new Error(responeOrder.data.error || 'Order creation failed');
-      }
-
-      const getOrderID = responeOrder.data.orderId; // Use the correct property name
-      dispatch(orderSlice.actions.setOrderID(getOrderID));
-      localStorage.setItem("CurrentOrderID", JSON.stringify(getOrderID));
-      console.log('Order ID:', getOrderID);
-
-      if (values.Method === PaymentMethodEnum.PAYPAL) {
-          const createPayment = await createOrderPaypal(cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0));
-          window.location.href = createPayment.data.links[1].href;
-      } else {
-        navigate(config.routes.public.success);
-      }
     } catch (error: any) {
-      console.error('Order creation error:', error);
-      console.error('Error response:', error.response?.data);
+      console.error('[Checkout] Checkout error:', error);
       api.error({
-        message: 'Error',
-        description: error.response?.data?.message || error.message || 'An error occurred'
+        message: 'Checkout Error',
+        description: error.message || 'An error occurred while processing your order',
       });
-    } finally {
       setLoading(false);
     }
-  }
+  };
 
   const handleProvinceChange = async (provinceId: unknown) => {
     setSelectedProvince(provinceId as number);
-    setSelectedDistrict(null); // Reset lại quận/huyện khi thay đổi tỉnh/thành phố
+    setSelectedDistrict(null);
     try {
       const data = await getDistricts(provinceId as number);
       setDistricts(data);
     } catch (error) {
-      console.error("Error fetching districts:", error);
+      console.error("[Checkout] Error fetching districts:", error);
     }
   };
 
@@ -186,7 +171,7 @@ const Checkout: React.FC = () => {
       const data = await getWards(districtId as number);
       setWards(data);
     } catch (error) {
-      console.error("Error fetching wards:", error);
+      console.error("[Checkout] Error fetching wards:", error);
     }
   };
 
@@ -208,7 +193,6 @@ const Checkout: React.FC = () => {
             },
             {
               title: "Order",
-
               description,
             },
             {
@@ -224,7 +208,6 @@ const Checkout: React.FC = () => {
         </StyledLink>
         <Content>
           <Formm>
-            {/* <ContactInfo email={Customer?.Email} onEdit={handleEdit} /> */}
             <AddressDetails
               onFinish={onFinish}
               provinces={provinces}
@@ -234,7 +217,7 @@ const Checkout: React.FC = () => {
               selectedDistrict={selectedDistrict}
               onProvinceChange={handleProvinceChange}
               onDistrictChange={handleDistrictChange}
-              loading={loading}
+              loading={loading || orderStatus === 'loading'}
             />
           </Formm>
           <StyledSummary cartItems={cartItems} />
@@ -244,8 +227,7 @@ const Checkout: React.FC = () => {
   );
 };
 
-export default Checkout;
-
+// Styled components remain unchanged
 const StyledSummary = styled(Summary)`
   flex: 1;
   line-height: 40px;
@@ -321,3 +303,5 @@ const Formm = styled.div`
   flex-direction: column;
   gap: 20px;
 `;
+
+export default Checkout;
