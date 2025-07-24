@@ -17,9 +17,6 @@ const OrderMenu = () => {
             case "/admin/order/accepted":
                 setActive("Accepted");
                 break;
-            case "/admin/order/assigned":
-                setActive("Assigned");
-                break;
             case "/admin/order/delivering":
                 setActive("Delivering");
                 break;
@@ -68,12 +65,7 @@ const OrderMenu = () => {
                         <h3>Accepted</h3>
                     </Link>
                 </Styled.OrderCatalog_Ele>
-                <Styled.OrderCatalog_Ele className={active === "Assigned" ? "active" : ""}>
-                    <div className={`btn ${active === "Assigned" ? "adMenu_active-line" : "adMenu_line"}`} onClick={() => handleSetActive("Assigned")}></div>
-                    <Link to="/admin/order/assigned">
-                        <h3>Assigned</h3>
-                    </Link>
-                </Styled.OrderCatalog_Ele>
+                
                 <Styled.OrderCatalog_Ele className={active === "Delivering" ? "active" : ""}>
                     <div className={`btn ${active === "Delivering" ? "adMenu_active-line" : "adMenu_line"}`} onClick={() => handleSetActive("Delivering")}></div>
                     <Link to="/admin/order/delivering">

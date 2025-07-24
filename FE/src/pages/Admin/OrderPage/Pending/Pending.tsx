@@ -1,52 +1,168 @@
 import * as Styled from "./Pending.styled";
 import { useEffect, useState } from "react";
-import { Table, Tag, Input, Space } from "antd";
-import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { Space, Table, Tag, Input } from "antd";
+import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
 import Sidebar from "../../../../components/Admin/Sidebar/Sidebar";
 import OrderMenu from "../../../../components/Admin/OrderMenu/OrderMenu";
-import { showAllOrder } from "@/services/orderAPI";
 import { Link } from "react-router-dom";
+import { OrderStatus } from "@/utils/enum";
+import { showAllOrder, orderRelation } from "@/services/orderAPI";
 
+// Updated interfaces
+interface OrderResponseFE {
+  id: string;
+  userId: string;
+  totalPrice: number;
+  orderDate: string;
+  vipApplied: boolean;
+  status: number;
+  saleStaff: string;
+  orderDetails: OrderDetailResponseFE[];
+  delivery?: DeliveryResponseFE;
+  payments: PaymentResponseFE[];
+}
+
+interface OrderDetailResponseFE {
+  id: string;
+  orderId: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+interface DeliveryResponseFE {
+  id: string;
+  orderId: string;
+  dispatchTime?: string;
+  deliveryTime?: string;
+  shippingAddress: string;
+  status: number;
+}
+
+interface PaymentResponseFE {
+  id: string;
+  orderId: string;
+  method: string;
+  date: string;
+  amount: number;
+  status: number;
+}
+
+interface UserResponseFE {
+  data: {
+    success: boolean;
+    user: {
+      id: string;
+      name: string; // Assuming name is under user; adjust if different (e.g., fullName)
+    };
+    error: string | null;
+  };
+}
+
+interface DataType {
+  orderID: string;
+  date: string;
+  cusName: string;
+  total: number;
+  status: string;
+  deliveryStaff?: string;
+}
+
+const statusMap: { [key: number]: string } = {
+  0: OrderStatus.PENDING,
+    1: OrderStatus.ACCEPTED,
+    2: OrderStatus.DELIVERING,
+    3: OrderStatus.DELIVERED,
+    4: OrderStatus.COMPLETED,
+    6: OrderStatus.CANCELLED,
+};
+
+const columns: TableColumnsType<DataType> = [
+  {
+    title: "Order ID",
+    dataIndex: "orderID",
+    defaultSortOrder: "descend",
+    sorter: (a: DataType, b: DataType) => a.orderID.localeCompare(b.orderID),
+  },
+  {
+    title: "Date",
+    dataIndex: "date",
+    defaultSortOrder: "descend",
+    sorter: (a: DataType, b: DataType) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      return dateA.localeCompare(dateB);
+    },
+    render: (_, { date }) => <>{date ? date.replace("T", " ").replace(".000Z", " ") : ''}</>,
+  },
+  {
+    title: "Customer",
+    dataIndex: "cusName",
+    showSorterTooltip: { target: "full-header" },
+    sorter: (a: DataType, b: DataType) => a.cusName.length - b.cusName.length,
+    sortDirections: ["descend"],
+  },
+  {
+    title: "Total",
+    dataIndex: "total",
+    defaultSortOrder: "descend",
+    sorter: (a: DataType, b: DataType) => a.total - b.total,
+    render: (_, { total }) => <>${total || 0}</>,
+  },
+  {
+    title: "Status",
+    key: "status",
+    dataIndex: "status",
+    render: (_, { status }) => {
+      let color = status ? "green" : "grey";
+      if (status === OrderStatus.PENDING) color = "volcano";
+      else if (status === OrderStatus.ACCEPTED) color = "yellow";
+      else if (status === OrderStatus.ASSIGNED) color = "orange";
+      else if (status === OrderStatus.DELIVERING) color = "blue";
+      else if (status === OrderStatus.DELIVERED) color = "purple";
+      else if (status === OrderStatus.COMPLETED) color = "green";
+      else if (status === OrderStatus.CANCELLED) color = "grey";
+      return <Tag color={color} key={status}>{status ? status.toUpperCase() : 'UNKNOWN'}</Tag>;
+    },
+    filters: [
+      { text: "Pending", value: "Pending" },
+      { text: "Accepted", value: "Accepted" },
+      { text: "Assigned", value: "Assigned" },
+      { text: "Delivering", value: "Delivering" },
+      { text: "Delivered", value: "Delivered" },
+      { text: "Completed", value: "Completed" },
+      { text: "Cancelled", value: "Cancelled" },
+    ],
+    onFilter: (value, record) => record.status.indexOf(value as string) === 0,
+  },
+  {
+    title: "Detail",
+    key: "detail",
+    className: "TextAlign",
+    dataIndex: "orderID",
+    render: (_, { orderID }) => (
+      <Space size="middle">
+        <Link to={`/admin/order/detail/${orderID || ''}`}>
+          <EyeOutlined />
+        </Link>
+      </Space>
+    ),
+  },
+];
+
+const onChange: TableProps<DataType>["onChange"] = (
+  pagination,
+  filters,
+  sorter,
+  extra
+) => {
+  console.log("params", pagination, filters, sorter, extra);
+};
 
 const Pending = () => {
   const [searchText, setSearchText] = useState("");
-  const [orders, setOrders] = useState([]);
-
-  const fetchData = async () => {
-    try {
-      const response = await showAllOrder();
-      console.log('API response:', response);
-      const { data } = response.data;
-      const formattedOrders = data
-      .filter((order: any) => (order.IsActive && order.OrderStatus === "Pending"))
-      .map((order: any) => ({
-        orderID: order.OrderID,
-        orderDate: order.OrderDate,
-        customerID: order.CustomerID,
-        orderStatus: order.OrderStatus,
-        completeDate: order.CompleteDate,
-        isPayed: order.IsPayed,
-        shippingfee: order.Shippingfee,
-        note: order.Note,
-        isActive: order.IsActive,
-        accountDeliveryID: order.AccountDeliveryID,
-        accountSaleID: order.AccountSaleID,
-        voucherID: order.VoucherID,
-        receiver: order.NameReceived,
-        total: order.VoucherPrice
-      }));
-      console.log('Formatted Orders:', formattedOrders); // Log formatted diamonds
-      setOrders(formattedOrders);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
+  const [order, setOrder] = useState<DataType[]>([]);
+  const [userCache, setUserCache] = useState<Record<string, string>>({}); // Cache for orderId to name mapping
 
   const onSearch = (value: string) => {
     console.log("Search:", value);
@@ -58,92 +174,52 @@ const Pending = () => {
     }
   };
 
+  const fetchUserName = async (orderId: string): Promise<string> => {
+    if (userCache[orderId]) return userCache[orderId];
+    try {
+      const userData = await orderRelation(orderId);
+      console.log("User data response:", userData); // Debug the full response
+      const name = userData.data?.user?.name || userData.data?.user?.fullName || "Unknown"; // Extract name from user object
+      setUserCache((prev) => ({ ...prev, [orderId]: name }));
+      return name;
+    } catch (error) {
+      console.error("Error fetching user name for orderId", orderId, ":", error);
+      return "Unknown";
+    }
+  };
 
-const columns: TableColumnsType<any> = [
-  {
-    title: "Order ID",
-    dataIndex: "orderID",
-    defaultSortOrder: "descend",
-    sorter: (a, b) => parseInt(a.orderID) - parseInt(b.orderID),
-  },
-  {
-    title: "Date",
-    dataIndex: "orderDate",
-    defaultSortOrder: "descend",
-    sorter: (a, b) => a.orderDate.localeCompare(b.orderDate),
-    render: (_, { orderDate }) => {
-      return <>{orderDate.replace("T", " ").replace(".000Z", " ")}</>
-    }, 
-  },
-  {
-    title: "Customer",
-    dataIndex: "receiver",
-    showSorterTooltip: { target: "full-header" },
-    sorter: (a, b) => a.receiver.length - b.receiver.length,
-    sortDirections: ["descend"],
-  },
-  
-  {
-    title: "Total",
-    dataIndex: "total",
-    defaultSortOrder: "descend",
-    sorter: (a, b) => a.total - b.total,
-    render: (_, { total }) => {
-      return <>${total.toFixed(2)}</>
-    }, 
-  },
-  {
-    title: "Status",
-    key: "orderStatus",
-    dataIndex: "orderStatus",
-    render: (_, { orderStatus }) => {
-      let color = "green";
-      if (orderStatus === "Pending") {
-        color = "red";
-      } else if (orderStatus === "Accepted") {
-        color = "yellow";
-      } else if (orderStatus === "Assigned") {
-        color = "orange";
-      } else if (orderStatus === "Delivering") {
-        color = "blue";
-      } else if (orderStatus === "Delivered") {
-        color = "purple";
-      } else if (orderStatus === "Completed") {
-        color = "green";
-      } else if (orderStatus === "Cancelled") {
-        color = "grey";
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const orderList = await showAllOrder();
+        console.log('Full response:', orderList);
+        if (orderList && orderList.data) {
+          console.log('Raw order data for Admin Pending:', orderList.data);
+          const formatOrderList = await Promise.all(
+            orderList.data.map(async (order: OrderResponseFE, index: number) => {
+              const cusName = await fetchUserName(order.id);
+              return {
+                orderID: order.id || `no-id-${index}`,
+                date: order.orderDate || '',
+                cusName,
+                total: order.totalPrice || 0,
+                status: statusMap[order.status] || 'UNKNOWN',
+                deliveryStaff: order.saleStaff || '',
+              };
+            })
+          );
+          setOrder(formatOrderList.filter((order: DataType) => order.status === OrderStatus.PENDING));
+          console.log('Formatted and filtered order list:', formatOrderList.filter((order: DataType) => order.status === OrderStatus.PENDING));
+        } else {
+          console.error('No data in response:', orderList);
+        }
+      } catch (error) {
+        console.error('Error fetching order data:', error);
       }
-      return (
-        <Tag color={color} key={orderStatus}>
-          {orderStatus.toUpperCase()}
-        </Tag>
-      );
-    },
-  },
-  {
-    title: "Detail",
-    key: "detail",
-    dataIndex: "orderID",
-    className: "TextAlign",
-    render: (_, { orderID }) => (
-      <Space size="middle">
-        <Link to={`/admin/order/detail/${orderID}`}>
-          <EyeOutlined />
-        </Link>
-      </Space>
-    ),
-  },
-];
+    };
 
-const onChange: TableProps<any>["onChange"] = (
-  pagination,
-  filters,
-  sorter,
-  extra
-) => {
-  console.log("params", pagination, filters, sorter, extra);
-};
-
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -159,7 +235,6 @@ const onChange: TableProps<any>["onChange"] = (
                 <Input
                   className="searchInput"
                   type="text"
-                  // size="large"
                   placeholder="Search here..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -173,8 +248,8 @@ const onChange: TableProps<any>["onChange"] = (
               <Table
                 className="table"
                 columns={columns}
-                dataSource={orders}
-                pagination={{ pageSize: 6 }} 
+                dataSource={order}
+                rowKey="orderID"
                 onChange={onChange}
                 showSorterTooltip={{ target: "sorter-icon" }}
               />
