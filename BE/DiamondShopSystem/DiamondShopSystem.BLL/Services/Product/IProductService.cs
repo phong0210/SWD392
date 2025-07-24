@@ -13,6 +13,6 @@ namespace DiamondShopSystem.BLL.Services.Product
         Task<ProductGetResponseDto> GetProductByIdAsync(Guid productId);
         Task<ProductUpdateResponseDto> UpdateProductAsync(Guid productId, ProductUpdateDto updateDto);
         
-        Task DeleteProductAsync(Guid productId);
+        Task DeleteProductAsync(Guid productId, Boolean status);
     }
 }

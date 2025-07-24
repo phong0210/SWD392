@@ -31,7 +31,7 @@ const AllProduct: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [wishList, setWishList] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 12;
+  const pageSize = 8;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,7 +85,8 @@ const AllProduct: React.FC = () => {
 
   useEffect(() => {
     const filtered = products.filter(
-      (product) => !excludedCategories.includes(product.type)
+      (product) =>
+        !excludedCategories.includes(product.type) && product.isHidden === false // Chỉ hiển thị sản phẩm có isHidden = true
     );
     setFilteredProducts(filtered);
   }, [products]);

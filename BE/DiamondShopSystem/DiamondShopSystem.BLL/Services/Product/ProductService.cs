@@ -19,7 +19,7 @@ namespace DiamondShopSystem.BLL.Services.Product
             _mapper = mapper;
         }
 
-        public Task DeleteProductAsync(Guid productId)
+        public Task DeleteProductAsync(Guid productId, Boolean status)
         {
             var productRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>();
             var productEntity = productRepo.GetByIdAsync(productId);
@@ -31,7 +31,12 @@ namespace DiamondShopSystem.BLL.Services.Product
                     Error = "Product not found"
                 });
             }
-            productRepo.Remove(productEntity.Result);
+
+            productEntity.Result.IsHidden = status;
+
+
+            productRepo.Update(productEntity.Result);
+
             return _unitOfWork.SaveChangesAsync();
 
         }

@@ -23,8 +23,8 @@ export const updateDiamond = (id: number, diamond: object) => {
   return put(`/api/Product/update/${id}`, diamond);
 };
 
-export const deleteDiamond = (id: number) => {
-  return remove(`/api/Product/${id}`);
+export const deleteDiamond = (id: number, status: boolean) => {
+  return remove(`/api/Product/${id}?status=${status}`);
 };
 
 export const showAllCategory = async () => {

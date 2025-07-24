@@ -233,7 +233,7 @@ const Home: React.FC = () => {
 
   const [wishList, setWishList] = useState<number[]>([]);
 
-  useEffect(() => { 
+  useEffect(() => {
     const savedWishList = sessionStorage.getItem("wishlist");
     if (savedWishList) {
       setWishList(JSON.parse(savedWishList));
@@ -256,7 +256,7 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [current, setCurrent] = useState(1);
-  const pageSize = 4;
+  const pageSize = 2;
   const navigate = useNavigate();
 
   useEffect(() => {
