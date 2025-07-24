@@ -28,6 +28,7 @@ export type DeliveryResponseFE = {
 
 // src/services/orderAPI.ts
 export interface OrderResponseFE {
+    // subTotal: any;
     id: string;
     userId: string;
     totalPrice: number;

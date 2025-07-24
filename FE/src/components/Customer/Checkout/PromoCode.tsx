@@ -459,6 +459,11 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
           console.warn("Invalid voucher data (missing dates):", voucher);
           return false;
         }
+
+         if (typeof voucher.discountValue === 'undefined' || voucher.discountValue === null) {
+          console.warn("Voucher missing discountValue:", voucher);
+          return false; 
+        }
         
         const endDate = dayjs(voucher.endDate);
         const startDate = dayjs(voucher.startDate);
@@ -479,7 +484,8 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
         description: voucher.description,
         startDate: voucher.startDate,
         endDate: voucher.endDate,
-        discountValue: voucher.discountValue,
+        // discountValue: voucher.discountValue,
+        discountValue: Number(voucher.discountValue),
       }));
   };
 

@@ -91,11 +91,7 @@ export const captureOrderPaypalAsync = createAsyncThunk(
             
             // Step 3: Update the order status on our backend
             console.log('[captureOrderPaypalAsync] Updating order status for orderId:', orderId);
-            await updateOrder(orderId, {
-                Status: OrderStatus.PENDING,
-                SaleStaff: "", 
-                VipApplied: false, 
-            });
+            await updateOrder(orderId);
             console.log('[captureOrderPaypalAsync] Order status updated successfully for orderId:', orderId);
 
             // Step 4: Fetch the final, updated order details
