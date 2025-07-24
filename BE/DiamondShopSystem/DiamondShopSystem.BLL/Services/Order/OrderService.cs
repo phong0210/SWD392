@@ -74,8 +74,10 @@ namespace DiamondShopSystem.BLL.Services.Order
                 OrderStatus.Confirmed => OrderStatus.Processing,
                 OrderStatus.Processing => OrderStatus.Shipped,
                 OrderStatus.Shipped => OrderStatus.Delivered,
-                OrderStatus.Delivered => OrderStatus.Cancelled, // Transition from Delivered to Cancelled
-                _ => currentStatus // No change for other statuses (including Cancelled)
+                OrderStatus.Delivered => OrderStatus.Confirm,
+                OrderStatus.Confirm => OrderStatus.Cancelled, // Transition from Confirm to Cancelled
+                OrderStatus.Cancelled => OrderStatus.Cancelled, // No change for Cancelled
+                _ => currentStatus // No change for other statuses
             };
         }
 

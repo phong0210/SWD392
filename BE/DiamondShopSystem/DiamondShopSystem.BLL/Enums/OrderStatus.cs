@@ -7,6 +7,7 @@ namespace DiamondShopSystem.BLL.Enums
         Processing,
         Shipped,
         Delivered,
+        Confirm,
         Cancelled
     }
 }
