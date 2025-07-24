@@ -90,8 +90,8 @@ const Dashboard = () => {
       const productsData = rawProductsData
         .filter((item: any) => item.success && item.product)
         .map((item: any) => item.product);
-      const diamonds = productsData.filter((p: any) => p.type === "diamond");
-      const jewelrys = productsData.filter((p: any) => p.type === "jewelry");
+      const diamonds = productsData.filter((p: any) => p.carat > 0 && p.giaCertNumber);
+      const jewelrys = productsData.filter((p: any) => !p.carat && !p.giaCertNumber);
 
       // Discounts
       const discountsData = Array.isArray(responseDiscount.data?.data)
@@ -285,9 +285,9 @@ const Dashboard = () => {
                     {diamonds.slice(0, 4).map((diamond: any) => (
                       <div className="shell_ele" key={diamond.id}>
                         <div className="shell_eleName">
-                          {/* <img
+                          <img
                               src={diamond.images && diamond.images[0] ? diamond.images[0].url : "default-image-url"}
-                              alt={diamond.diamondName} /> */}
+                              alt={diamond.diamondName} />
                           <p>{diamond.name}</p>
                         </div>
                         <Link
@@ -300,37 +300,6 @@ const Dashboard = () => {
                   </Styled.Ele_Content>
                 </Styled.Element>
 
-                <Styled.Element>
-                  <Styled.Ele_Title>
-                    <Styled.MainTitle>
-                      <h2>Jewelrys</h2>
-                    </Styled.MainTitle>
-                    <Link to="/admin/product/jewelry">
-                      <Styled.ViewAll>
-                        <p>View All</p>
-                        <ArrowRightOutlined />
-                      </Styled.ViewAll>
-                    </Link>
-                  </Styled.Ele_Title>
-                  <Styled.Ele_Content>
-                    {jewelrys.slice(0, 4).map((jewelry: any) => (
-                      <div className="shell_ele" key={jewelry.id}>
-                        <div className="shell_eleName">
-                          {/* <img
-                              src={jewelry.images && jewelry.images[0] ? jewelry.images[0].url : "default-image-url"}
-                              alt={jewelry.jewelryName} /> */}
-                          <p>{jewelry.name}</p>
-                        </div>
-                        <Link
-                          to={`/admin/product/jewelry/detail/${jewelry.id}`}
-                        >
-                          <button className="shell_eleButton">View</button>
-                        </Link>
-                      </div>
-                    ))}
-                  </Styled.Ele_Content>
-                  <div className="chatNofi_content"></div>
-                </Styled.Element>
 
                 <Styled.Element>
                   <Styled.Ele_Title>

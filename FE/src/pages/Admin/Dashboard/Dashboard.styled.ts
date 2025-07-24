@@ -345,7 +345,7 @@ export const ChatGene_Content = styled.div`
 `;
 
 export const Element = styled.div`
-  width: 32%;
+  width: 64%;
   height: 265px;
   background-color: ${theme.color.secondary};
   border-radius: 16px;
