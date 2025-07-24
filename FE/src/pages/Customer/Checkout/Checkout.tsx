@@ -21,7 +21,7 @@ const Checkout: React.FC = () => {
   const { AccountID, user } = useAuth();
   const [CustomerID, setCustomerID] = useState<string | number>();
   const [Customer, setCustomer] = useState<any>(null);
-  
+
   const authUser = useAppSelector((state) => state.auth.user);
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -31,9 +31,14 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
-  const { order, status: orderStatus, error: orderError } = useAppSelector((state) => state.order);
+  const {
+    order,
+    status: orderStatus,
+    error: orderError,
+  } = useAppSelector((state) => state.order);
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState(false);
+  const [calculatedTotalPrice, setCalculatedTotalPrice] = useState(0);
 
   // Fetch customer details
   const getCustomerDetail = React.useCallback(async () => {
@@ -41,9 +46,9 @@ const Checkout: React.FC = () => {
       setCustomerID(user.CustomerID);
       return;
     }
-    
+
     if (AccountID === null || AccountID === undefined) return;
-    
+
     try {
       const customer = await getCustomer(AccountID);
       if (customer?.data?.data) {
@@ -74,8 +79,10 @@ const Checkout: React.FC = () => {
   // Cleanup on unmount only if order creation failed
   useEffect(() => {
     return () => {
-      if (orderStatus === 'failed') {
-        console.log('[Checkout] Cleaning up on unmount due to failed order status');
+      if (orderStatus === "failed") {
+        console.log(
+          "[Checkout] Cleaning up on unmount due to failed order status"
+        );
         dispatch(resetOrderStatus());
       }
     };
@@ -83,107 +90,141 @@ const Checkout: React.FC = () => {
 
   // Effect to handle navigation after order creation
   useEffect(() => {
-    if (orderStatus === 'succeeded' && order && order.id) {
-      console.log('[Checkout] Order status succeeded, order:', order);
-      
+    if (orderStatus === "succeeded" && order && order.id) {
+      console.log("[Checkout] Order status succeeded, order:", order);
+
       const paymentMethod = order.payments?.[0]?.method;
-      
+
       if (paymentMethod === PaymentMethodEnum.PAYPAL.toString()) {
-        console.log('[Checkout] Initiating PayPal flow for order:', order.id);
+        console.log("[Checkout] Initiating PayPal flow for order:", order.id);
         createOrderPaypal(order.totalPrice)
-          .then(createPayment => {
-            const approvalUrl = createPayment.data.links.find((link: any) => link.rel === 'approve')?.href;
+          .then((createPayment) => {
+            const approvalUrl = createPayment.data.links.find(
+              (link: any) => link.rel === "approve"
+            )?.href;
             if (approvalUrl) {
-              console.log('[Checkout] Redirecting to PayPal approval URL:', approvalUrl);
+              console.log(
+                "[Checkout] Redirecting to PayPal approval URL:",
+                approvalUrl
+              );
               window.location.href = approvalUrl;
             } else {
-              throw new Error('PayPal approval URL not found');
+              throw new Error("PayPal approval URL not found");
             }
           })
-          .catch(error => {
-            console.error('[Checkout] PayPal error:', error);
+          .catch((error) => {
+            console.error("[Checkout] PayPal error:", error);
             api.error({
-              message: 'PayPal Error',
-              description: error.message || 'Failed to create PayPal payment. Please try again.',
+              message: "PayPal Error",
+              description:
+                error.message ||
+                "Failed to create PayPal payment. Please try again.",
             });
             setLoading(false);
           });
       } else if (paymentMethod === PaymentMethodEnum.VNPAY.toString()) {
-        console.log('[Checkout] Initiating VNPay flow for order:', order.id);
+        console.log("[Checkout] Initiating VNPay flow for order:", order.id);
         createVnPayPayment({
           amount: order.totalPrice,
           orderDescription: `Payment for order #${order.id}`,
-          name: Customer?.Name || user?.Name || 'Customer',
+          name: Customer?.Name || user?.Name || "Customer",
           orderId: order.id,
           returnUrlSuccess: `${window.location.origin}${config.routes.public.success}`,
           returnUrlFail: `${window.location.origin}${config.routes.public.fail}`,
         })
-          .then(createPayment => {
+          .then((createPayment) => {
             const approvalUrl = createPayment.data.url;
             if (approvalUrl) {
-              console.log('[Checkout] Redirecting to VNPay approval URL:', approvalUrl);
+              console.log(
+                "[Checkout] Redirecting to VNPay approval URL:",
+                approvalUrl
+              );
               window.location.href = approvalUrl;
             } else {
-              throw new Error('VNPay approval URL not found');
+              throw new Error("VNPay approval URL not found");
             }
           })
-          .catch(error => {
-            console.error('[Checkout] VNPay error:', error);
+          .catch((error) => {
+            console.error("[Checkout] VNPay error:", error);
             api.error({
-              message: 'VNPay Error',
-              description: error.message || 'Failed to create VNPay payment. Please try again.',
+              message: "VNPay Error",
+              description:
+                error.message ||
+                "Failed to create VNPay payment. Please try again.",
             });
             setLoading(false);
           });
       } else {
         // COD or other payment methods
-        console.log('[Checkout] Navigating to success page for COD order:', order.id);
+        console.log(
+          "[Checkout] Navigating to success page for COD order:",
+          order.id
+        );
         dispatch(clearCart());
         navigate(config.routes.public.success);
       }
-    } else if (orderStatus === 'failed') {
-      console.error('[Checkout] Order creation failed, error:', orderError);
+    } else if (orderStatus === "failed") {
+      console.error("[Checkout] Order creation failed, error:", orderError);
       api.error({
-        message: 'Order Creation Failed',
-        description: orderError || 'An error occurred while creating your order',
+        message: "Order Creation Failed",
+        description:
+          orderError || "An error occurred while creating your order",
       });
       setLoading(false);
     }
-  }, [orderStatus, order, orderError, navigate, api, Customer?.Name, user?.Name, dispatch]);
+  }, [
+    orderStatus,
+    order,
+    orderError,
+    navigate,
+    api,
+    Customer?.Name,
+    user?.Name,
+    dispatch,
+  ]);
 
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
       if (!cartItems || cartItems.length === 0) {
-        throw new Error('Your cart is empty. Please add items before checkout.');
+        throw new Error(
+          "Your cart is empty. Please add items before checkout."
+        );
       }
 
-      const orderItems = cartItems.map(item => ({
-        ProductId: (item.productId || item.diamondId || item.id)?.toString() || '',
+      const orderItems = cartItems.map((item) => ({
+        ProductId:
+          (item.productId || item.diamondId || item.id)?.toString() || "",
         Quantity: item.quantity || 1,
         UnitPrice: item.price || 0,
       }));
 
-      const customerId = authUser?.userId || user?.CustomerID?.toString() || Customer?.CustomerID?.toString() || CustomerID?.toString() || "";
+      const customerId =
+        authUser?.userId ||
+        user?.CustomerID?.toString() ||
+        Customer?.CustomerID?.toString() ||
+        CustomerID?.toString() ||
+        "";
       if (!customerId) {
-        throw new Error('Customer ID is required. Please log in again.');
+        throw new Error("Customer ID is required. Please log in again.");
       }
 
       const requestBodyOrder: CreateOrderRequest = {
         CustomerId: customerId,
         SaleStaff: "",
         OrderItems: orderItems,
-        PaymentMethod: values.Method || 'COD',
+        PaymentMethod: values.Method || "COD",
+        TotalPrice: calculatedTotalPrice,
       };
 
-      console.log('[Checkout] Submitting order:', requestBodyOrder);
+      console.log("[Checkout] Submitting order:", requestBodyOrder);
       await dispatch(createOrderAsync(requestBodyOrder)).unwrap();
-
     } catch (error: any) {
-      console.error('[Checkout] Checkout error:', error);
+      console.error("[Checkout] Checkout error:", error);
       api.error({
-        message: 'Checkout Error',
-        description: error.message || 'An error occurred while processing your order',
+        message: "Checkout Error",
+        description:
+          error.message || "An error occurred while processing your order",
       });
       setLoading(false);
     }
@@ -194,7 +235,7 @@ const Checkout: React.FC = () => {
     setSelectedProvince(id);
     setSelectedDistrict(null);
     setWards([]); // Clear wards when province changes
-    
+
     try {
       const data = await getDistricts(id);
       setDistricts(data);
@@ -207,7 +248,7 @@ const Checkout: React.FC = () => {
   const handleDistrictChange = async (districtId: unknown) => {
     const id = districtId as number;
     setSelectedDistrict(id);
-    
+
     try {
       const data = await getWards(id);
       setWards(data);
@@ -256,10 +297,10 @@ const Checkout: React.FC = () => {
               selectedDistrict={selectedDistrict}
               onProvinceChange={handleProvinceChange}
               onDistrictChange={handleDistrictChange}
-              loading={loading || orderStatus === 'loading'}
+              loading={loading || orderStatus === "loading"}
             />
           </Formm>
-          <StyledSummary cartItems={cartItems} />
+          <StyledSummary cartItems={cartItems} onTotalChange={setCalculatedTotalPrice} />
         </Content>
       </Wrapper>
     </main>
@@ -319,7 +360,7 @@ const StyledLink = styled.a`
   margin-bottom: 10px;
   width: 1400px;
   font: 250 10px/150% Poppins, sans-serif;
-  
+
   @media (max-width: 991px) {
     margin-top: 40px;
   }

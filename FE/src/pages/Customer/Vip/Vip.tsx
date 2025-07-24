@@ -10,7 +10,7 @@ const Vip = () => {
   const [vipInfo, setVipInfo] = useState<any>(null);
 
   useEffect(() => {
-    if (AccountID && AccountID !== 0) {
+    if (AccountID && AccountID !== null && AccountID !== "") {
       const fetchVipInfo = async () => {
         try {
           const { data } = await vipAPI.getVipByUserId(AccountID.toString());

@@ -73,6 +73,7 @@ export interface CreateOrderRequest {
     UnitPrice: number;
   }>;
   PaymentMethod: string;
+  TotalPrice: number;
 }
 
 export type OrderItemRequest = {

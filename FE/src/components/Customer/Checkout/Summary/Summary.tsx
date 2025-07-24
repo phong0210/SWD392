@@ -31,9 +31,10 @@ const CartItem: React.FC<CartItemProps> = ({ name, image, sku, price }) => (
 
 interface SummaryProps {
   cartItems: CartItemType[];
+  onTotalChange?: (total: number) => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
+const Summary: React.FC<SummaryProps> = ({ cartItems, onTotalChange }) => {
   const [discount, setDiscount] = useState(0);
 
   const onApplyVoucher = (discount: number) => {
@@ -54,7 +55,15 @@ const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
     return acc + item.price * item.quantity;
   }, 0);
 
-  const total = calculateTotal(subtotalNumber, discount, shippingCost).toFixed(2);
+  const total = calculateTotal(subtotalNumber, discount, shippingCost).toFixed(
+    2
+  );
+
+  React.useEffect(() => {
+    if (onTotalChange) {
+      onTotalChange(parseFloat(total));
+    }
+  }, [total, onTotalChange]);
 
   return (
     <SummarySection>
@@ -85,7 +94,7 @@ const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
         {discount > 0 && (
           <>
             <p>Discount {`(${discount}%)`}: </p>
-            <p>{`-${(subtotalNumber * discount / 100).toFixed(2)}`}</p>
+            <p>{`-${((subtotalNumber * discount) / 100).toFixed(2)}`}</p>
           </>
         )}
       </EditTotal>

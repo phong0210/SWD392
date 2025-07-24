@@ -19,6 +19,7 @@ namespace DiamondShopSystem.BLL.Handlers.Order.DTOs
         public string SaleStaff { get; set; } = string.Empty;
         public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
         public string PaymentMethod { get; set; } = string.Empty;
+        public double TotalPrice { get; set; }
     }
 
     // The response after creating an order
