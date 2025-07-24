@@ -3,12 +3,70 @@ import { useEffect, useState } from "react";
 import { Button, Space, Table, Tag, Input, notification } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType, TableProps } from "antd";
-import { DataType } from "../OrderData";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import OrderMenu from "@/components/Staff/SalesStaff/OrderMenu/OrderMenu";
-import { showAllOrder, updateOrder } from "@/services/orderAPI";
+import { showAllOrder, updateOrder, orderRelation } from "@/services/orderAPI";
 import { OrderStatus } from "@/utils/enum";
 import useAuth from "@/hooks/useAuth";
+
+// Updated interfaces
+interface OrderResponseFE {
+  id: string;
+  userId: string;
+  totalPrice: number;
+  orderDate: string;
+  vipApplied: boolean;
+  status: number;
+  saleStaff: string;
+  orderDetails: OrderDetailResponseFE[];
+  delivery?: DeliveryResponseFE;
+  payments: PaymentResponseFE[];
+}
+
+interface OrderDetailResponseFE {
+  id: string;
+  orderId: string;
+  unitPrice: number;
+  quantity: number;
+}
+
+interface DeliveryResponseFE {
+  id: string;
+  orderId: string;
+  dispatchTime?: string;
+  deliveryTime?: string;
+  shippingAddress: string;
+  status: number;
+}
+
+interface PaymentResponseFE {
+  id: string;
+  orderId: string;
+  method: string;
+  date: string;
+  amount: number;
+  status: number;
+}
+
+interface UserResponseFE {
+  data: {
+    success: boolean;
+    user: {
+      id: string;
+      name: string; // Adjust if the field is fullName or different
+    };
+    error: string | null;
+  };
+}
+
+interface DataType {
+  orderID: string;
+  date: string;
+  cusName: string;
+  total: number;
+  status: string;
+  deliveryStaff?: string;
+}
 
 const onChange: TableProps<DataType>["onChange"] = (
   pagination,
@@ -19,16 +77,10 @@ const onChange: TableProps<DataType>["onChange"] = (
   console.log("params", pagination, filters, sorter, extra);
 };
 
-const formatPrice = (price: number | bigint) => {
-  return `$ ${new Intl.NumberFormat("en-US", {
-    style: "decimal",
-    minimumFractionDigits: 0,
-  }).format(price)}`;
-};
-
 const Pending = () => {
   const [searchText, setSearchText] = useState("");
-  const [order, setOrder] = useState<any[]>([]);
+  const [order, setOrder] = useState<DataType[]>([]);
+  const [userCache, setUserCache] = useState<Record<string, string>>({}); // Cache for orderId to name mapping
   const [api, contextHolder] = notification.useNotification();
   const { AccountID } = useAuth();
 
@@ -42,29 +94,47 @@ const Pending = () => {
     }
   };
 
+  const fetchUserName = async (orderId: string): Promise<string> => {
+    if (userCache[orderId]) return userCache[orderId];
+    try {
+      const userData = await orderRelation(orderId);
+      console.log("User data response:", userData); // Debug the full response
+      const name = userData.data?.user?.name || userData.data?.user?.fullName || "Unknown"; // Extract name from user object
+      setUserCache((prev) => ({ ...prev, [orderId]: name }));
+      return name;
+    } catch (error) {
+      console.error("Error fetching user name for orderId", orderId, ":", error);
+      return "Unknown";
+    }
+  };
+
+  const statusMap: { [key: number]: string } = {
+    0: OrderStatus.PENDING,
+    1: OrderStatus.ACCEPTED,
+    2: OrderStatus.ASSIGNED,
+    3: OrderStatus.DELIVERING,
+    4: OrderStatus.DELIVERED,
+    5: OrderStatus.COMPLETED,
+    6: OrderStatus.CANCELLED,
+  };
+
   const columns: TableColumnsType<DataType> = [
     {
       title: "Order ID",
       dataIndex: "orderID",
       defaultSortOrder: "descend",
-      sorter: (a: DataType, b: DataType) => {
-        if (typeof a.orderID === 'string' && typeof b.orderID === 'string') {
-          return a.orderID.localeCompare(b.orderID);
-        } else if (typeof a.orderID === 'number' && typeof b.orderID === 'number') {
-          return a.orderID - b.orderID;
-        } else {
-          return 0;
-        }
-      },
+      sorter: (a: DataType, b: DataType) => a.orderID.localeCompare(b.orderID),
     },
     {
       title: "Date",
       dataIndex: "date",
       defaultSortOrder: "descend",
-      sorter: (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      render: (_, { date }) => {
-        return <>{date.replace("T", " ").replace(".000Z", " ")}</>
-      } 
+      sorter: (a: DataType, b: DataType) => {
+        const dateA = a.date || '';
+        const dateB = b.date || '';
+        return dateA.localeCompare(dateB);
+      },
+      render: (_, { date }) => <>{date ? date.replace("T", " ").replace(".000Z", " ") : ''}</>,
     },
     {
       title: "Customer",
@@ -74,61 +144,26 @@ const Pending = () => {
       sortDirections: ["descend"],
     },
     {
-      title: "Phone number",
-      dataIndex: "phoneNumber",
-      showSorterTooltip: { target: "full-header" },
-      sorter: (a: DataType, b: DataType) => a.phoneNumber.length - b.phoneNumber.length,
-      sortDirections: ["descend"],
-    },
-    {
-      title: "Address",
-      dataIndex: "address",
-      showSorterTooltip: { target: "full-header" },
-      sorter: (a: DataType, b: DataType) => a.address.length - b.address.length,
-      sortDirections: ["descend"],
-    },
-    {
       title: "Total",
       dataIndex: "total",
       defaultSortOrder: "descend",
       sorter: (a: DataType, b: DataType) => a.total - b.total,
-      render: (_, {total}) => {
-        return <>{formatPrice(total)}</>
-      }
-    },
-    {
-      title: "Payment method",
-      dataIndex: "paymentMethod",
-      render: (_, { paymentMethod }) => {
-        return <>{paymentMethod}</>
-      }
+      render: (_, { total }) => <>${total || 0}</>,
     },
     {
       title: "Status",
       key: "status",
       dataIndex: "status",
-      render: (_, { status }) => {
-        let color = "green";
-        if (status === "Pending") {
-          color = "volcano";
-        } else if (status === "Accepted") {
-          color = "yellow";
-        } else if (status === "Assigned") {
-          color = "orange";
-        } else if (status === "Delivering") {
-          color = "blue";
-        } else if (status === "Delivered") {
-          color = "purple";
-        } else if (status === "Completed") {
-          color = "green";
-        } else if (status === "Cancelled") {
-          color = "grey";
-        }
-        return (
-          <Tag color={color} key={status}>
-            {status.toUpperCase()}
-          </Tag>
-        );
+      render: (_, { status, orderID }) => {
+        let color = status ? "green" : "grey";
+        if (status === OrderStatus.PENDING) color = "volcano";
+        else if (status === OrderStatus.ACCEPTED) color = "yellow";
+        else if (status === OrderStatus.ASSIGNED) color = "orange";
+        else if (status === OrderStatus.DELIVERING) color = "blue";
+        else if (status === OrderStatus.DELIVERED) color = "purple";
+        else if (status === OrderStatus.COMPLETED) color = "green";
+        else if (status === OrderStatus.CANCELLED) color = "grey";
+        return <Tag color={color} key={orderID}>{status ? status.toUpperCase() : 'UNKNOWN'}</Tag>;
       },
     },
     {
@@ -136,10 +171,7 @@ const Pending = () => {
       key: "action",
       render: (_, { orderID }) => (
         <Space size="middle">
-          <Button 
-            className="confirmBtn"
-            onClick={() => handleAccept(orderID)}
-          >
+          <Button className="confirmBtn" onClick={() => handleAccept(orderID)}>
             Accept
           </Button>
         </Space>
@@ -149,44 +181,56 @@ const Pending = () => {
 
   const handleAccept = async (orderID: string) => {
     try {
-      const { data } = await updateOrder(Number(orderID), {
-        OrderStatus: OrderStatus.ACCEPTED,
-        IsActive: true,
-        IsPayed: false,
-        AccountSaleID: AccountID ? AccountID : undefined,
+      const response = await updateOrder(orderID, {
+        Status: 1,
+        SaleStaff: AccountID || "",
+        VipApplied: false,
       });
-      if(data.statusCode !== 200) throw new Error(data.message);
+      if (response.status !== 200) throw new Error(response.data?.message || "Update failed");
       api.success({
-        message: 'Notification',
-        description: 'The order has been send to manager successfully!'
+        message: "Notification",
+        description: "The order has been sent to manager successfully!",
       });
       fetchData();
     } catch (error: any) {
-      console.error(error);
+      console.error("Error updating order:", error);
       api.error({
-        message: 'Error',
-        description: error || "An error occured!"
-      })
+        message: "Error",
+        description: error.message || "An error occurred!",
+      });
     }
-  }
+  };
 
   const fetchData = async () => {
-    // Get order list
-    const orderList = await showAllOrder();
-    const formatOrderList = orderList.data.data
-      .filter((order: any) => order.OrderStatus === OrderStatus.PENDING)
-      .map((order: any) => ({
-        orderID: order.OrderID,
-        date: order.OrderDate,
-        cusName: order.NameReceived,
-        total: order.Price,
-        status: order.OrderStatus,
-        address: order.Address,
-        phoneNumber: order.PhoneNumber,
-        isPaid: order.IsPayed,
-        paymentMethod: order.PaymentID
-      }))
-    setOrder(formatOrderList);
+    try {
+      const orderList = await showAllOrder();
+      console.log('Full response:', orderList);
+      if (orderList && orderList.data) {
+        console.log('Raw order data for Sales Staff:', orderList.data);
+        const rawData = Array.isArray(orderList.data) ? orderList.data : orderList.data.data || [];
+        const formatOrderList = await Promise.all(
+          rawData
+            .filter((order: OrderResponseFE) => order.status === 0) // Filter for PENDING (status 0)
+            .map(async (order: OrderResponseFE, index: number) => {
+              const cusName = await fetchUserName(order.id);
+              return {
+                orderID: String(order.id || `no-id-${index}`),
+                date: order.orderDate || '',
+                cusName,
+                total: order.totalPrice || 0, // Ensure totalPrice is mapped correctly
+                status: String(statusMap[order.status]) || 'UNKNOWN',
+                deliveryStaff: order.saleStaff || '',
+              };
+            })
+        );
+        setOrder(formatOrderList);
+        console.log('Formatted order list:', formatOrderList);
+      } else {
+        console.error('No data in response:', orderList);
+      }
+    } catch (error) {
+      console.error('Error fetching order data:', error);
+    }
   };
 
   useEffect(() => {
@@ -201,14 +245,12 @@ const Pending = () => {
         <Sidebar />
         <Styled.AdminPage>
           <OrderMenu />
-
           <Styled.OrderContent>
             <Styled.AdPageContent_Head>
               <Styled.SearchArea>
                 <Input
                   className="searchInput"
                   type="text"
-                  // size="large"
                   placeholder="Search here..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -217,13 +259,12 @@ const Pending = () => {
                 />
               </Styled.SearchArea>
             </Styled.AdPageContent_Head>
-
             <Styled.AdminTable>
               <Table
                 className="table"
                 columns={columns}
                 dataSource={order}
-                pagination={{ pageSize: 6 }} // Add pagination here
+                pagination={{ pageSize: 6 }}
                 onChange={onChange}
                 showSorterTooltip={{ target: "sorter-icon" }}
               />
