@@ -336,11 +336,7 @@ const OrderDetail: React.FC = () => {
             <br />
             <InfoTextBold style={{ color: "red" }}>
               <div>Total:</div>
-              <div>
-                {formatPrice(
-                  subTotal - (subTotal * discount) / 100 + shippingFee
-                )}
-              </div>
+              <div>{formatPrice(totalPrice + shippingFee)}</div>
             </InfoTextBold>
           </Column>
         </OrderInfo>
