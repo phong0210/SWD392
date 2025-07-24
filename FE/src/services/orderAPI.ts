@@ -97,7 +97,11 @@ export type UpdateOrderRequestKey = {
 }
 
 export const showAllOrder = () => {
-    return get(`/api/orders`);
+    return get(`/api/Orders`);
+}
+
+export const fetchAllOrderByUserId = (id: string) => {
+    return get(`/api/Orders/user/${id}`);
 }
 
 export const showOrdersPage = () => {
@@ -120,8 +124,8 @@ export const createOrder = (order: CreateOrderRequest) => {
     return post(`/api/Orders/create`, order); // Fixed endpoint to match your curl example
 }
 
-export const updateOrder = (id: string, order: UpdateOrderRequestKey) => { // ID is Guid, so string
-    return put(`/api/orders/${id}`, order);
+export const updateOrder = (id: string) => { // ID is Guid, so string
+    return put(`/api/orders/${id}`);
 }
 
 export const deleteOrder = (id: string) => { // ID is Guid, so string
