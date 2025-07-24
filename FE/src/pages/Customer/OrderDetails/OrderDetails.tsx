@@ -7,7 +7,7 @@ import { TableColumnGroupType, Tag, notification } from "antd";
 import ReviewForm from "./ReviewForm";
 import { Link, useLocation } from "react-router-dom";
 
-import { getOrderDetailDetail } from "@/services/orderAPI";
+import { getOrderDetailDetail, orderDetail } from "@/services/orderAPI";
 import useAuth from "@/hooks/useAuth";
 import vnpay from "@/assets/diamond/vnpay.png";
 import defaultImage from "@/assets/diamond/defaultImage.png";
@@ -84,7 +84,7 @@ const OrderDetail: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [subTotal, setSubTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-
+  const [totalPrice, setTotalPrice] = useState(0);
   const { AccountID } = useAuth();
 
   const [reviewedDiamonds, setReviewedDiamonds] = useState<Set<number>>(
@@ -121,12 +121,16 @@ const OrderDetail: React.FC = () => {
 
     try {
       const response = await getOrderDetailDetail(orderId);
+      const responTotal = await orderDetail(orderId);
 
-      console.log("Order details response:", response.data);
+      const amount = responTotal.data.order.payments[0].amount;
+
+      console.log("Amount:", amount);
+      setTotalPrice(amount);
 
       if (response.data) {
         const orderDetails = response.data.data;
-
+        console.log("order Details ne", response.data.data);
         // Transform data to match component interface
         const transformedDetails = orderDetails.map((item) => ({
           ProductID: item.product.id,
@@ -203,7 +207,7 @@ const OrderDetail: React.FC = () => {
         },
         {
           title: "Description",
-          dataIndex: "Description", // ✅
+          dataIndex: "Description",
           key: "Description",
         },
         {
@@ -213,7 +217,7 @@ const OrderDetail: React.FC = () => {
         },
         {
           title: "Unit Price",
-          dataIndex: "Price", // ✅
+          dataIndex: "Price",
           key: "Price",
           render: (price: number) => formatPrice(price),
           sorter: (a: any, b: any) => a.Price - b.Price,
@@ -260,17 +264,6 @@ const OrderDetail: React.FC = () => {
       description: "Thank you for your feedback!",
     });
   };
-
-  useEffect(() => {
-    localStorage.setItem(
-      "reviewedDiamonds",
-      JSON.stringify(Array.from(reviewedDiamonds))
-    );
-    localStorage.setItem(
-      "reviewedProducts",
-      JSON.stringify(Array.from(reviewedProducts))
-    );
-  }, [reviewedDiamonds, reviewedProducts]);
 
   return (
     <MainContainer>
@@ -320,7 +313,7 @@ const OrderDetail: React.FC = () => {
           <Column>
             <InfoTextBold>
               Discount:
-              <span>-{formatPrice((subTotal * discount) / 100) || 0}</span>
+              <span>-{formatPrice(subTotal - totalPrice) || 0}</span>
             </InfoTextBold>
 
             <InfoText>
