@@ -4,8 +4,8 @@ import { SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType } from "antd";
 import Sidebar from "../../../components/Admin/Sidebar/Sidebar";
 import { Form, Input, InputNumber, notification, Popconfirm, Table, Tag } from "antd";
-import { showAllAccounts, updateAccount } from "@/services/authAPI";
-import { Role } from "@/utils/enum";
+import { showAllAccounts } from "@/services/authAPI";
+import { deleteUser } from "@/services/accountApi"; // ✅ Import đúng API mới
 
 interface EditableCellProps {
   editing: boolean;
@@ -72,53 +72,39 @@ const Customer = () => {
   const fetchData = async () => {
     try {
       const response = await showAllAccounts();
-      console.log("API Response:", response);
-      
       if (!response.data) {
-        console.error("No data in response");
         openNotification("error", "Fetch", "No data received from server");
         return;
       }
 
       let accountsData;
-      
-      // The API response shows data is directly in response.data (it's an array)
+
       if (Array.isArray(response.data)) {
         accountsData = response.data;
       } else if (response.data.data && Array.isArray(response.data.data)) {
         accountsData = response.data.data;
       } else {
-        console.error("Unexpected response structure:", response.data);
         openNotification("error", "Fetch", "Unexpected data format");
         return;
       }
 
-      if (!Array.isArray(accountsData)) {
-        console.error("Expected array but got:", typeof accountsData, accountsData);
-        openNotification("error", "Fetch", "Invalid data format received");
-        return;
-      }
-
-      // Filter customers based on roleName instead of Role
-      const filteredCustomers = accountsData.filter((account: any) => 
-        account.roleName && account.roleName.toLowerCase().includes('customer')
+      const filteredCustomers = accountsData.filter((account: any) =>
+        account.roleName && account.roleName.toLowerCase().includes("customer")
       );
 
       const formattedCustomers = filteredCustomers.map((customer: any, index: number) => ({
         key: customer.id || index,
         accountID: customer.id,
-        customerName: customer.name || '',
-        phoneNumber: customer.phone || '',
-        email: customer.email || '',
-        role: customer.roleName || '',
-        customerID: customer.id, // Using id as customerID since there's no separate customerID field
-        isActive: customer.isActive !== undefined ? customer.isActive : true
+        customerName: customer.name || "",
+        phoneNumber: customer.phone || "",
+        email: customer.email || "",
+        role: customer.roleName || "",
+        customerID: customer.id,
+        isActive: customer.isActive !== undefined ? customer.isActive : true,
       }));
-      
-      console.log("Filtered customers:", formattedCustomers);
+
       setCustomers(formattedCustomers);
     } catch (error) {
-      console.error("Failed to fetch accounts:", error);
       openNotification("error", "Fetch", "Failed to load customer data");
     }
   };
@@ -127,62 +113,42 @@ const Customer = () => {
     fetchData();
   }, []);
 
-  const handleBan = async (email: string) => {
+  // ✅ Sửa tại đây: dùng deleteUser(accountID)
+  const handleBan = async (accountID: number) => {
     try {
-      const response = await updateAccount(email, {
-        Role: "ROLE_BAN",
-      });
-      console.log("Ban Response:", response.data);
-      if (response.status === 200) {
+      const response = await deleteUser(accountID);
+      if (response.status === 200 || response.status === 204) {
         openNotification("success", "Ban", "Customer has been banned successfully");
         fetchData();
       } else {
         openNotification("error", "Ban", "Failed to ban customer");
       }
     } catch (error: any) {
-      console.error("Failed to ban customer:", error);
       openNotification("error", "Ban", error.message || "Failed to ban customer");
     }
   };
 
-  // Fixed columns with proper null checks
   const columns: TableColumnsType<any> = [
     {
       title: "Customer ID",
       dataIndex: "customerID",
-      sorter: (a, b) => {
-        const aId = a.customerID || '';
-        const bId = b.customerID || '';
-        return aId.localeCompare(bId);
-      },
+      sorter: (a, b) => (a.customerID || "").localeCompare(b.customerID || ""),
     },
     {
       title: "Customer Name",
       dataIndex: "customerName",
       defaultSortOrder: "descend",
-      sorter: (a, b) => {
-        const aName = a.customerName || '';
-        const bName = b.customerName || '';
-        return aName.localeCompare(bName);
-      },
+      sorter: (a, b) => (a.customerName || "").localeCompare(b.customerName || ""),
     },
     {
       title: "Email",
       dataIndex: "email",
-      sorter: (a, b) => {
-        const aEmail = a.email || '';
-        const bEmail = b.email || '';
-        return aEmail.localeCompare(bEmail);
-      },
+      sorter: (a, b) => (a.email || "").localeCompare(b.email || ""),
     },
     {
       title: "Phone",
       dataIndex: "phoneNumber",
-      sorter: (a, b) => {
-        const aPhone = a.phoneNumber || '';
-        const bPhone = b.phoneNumber || '';
-        return aPhone.localeCompare(bPhone);
-      },
+      sorter: (a, b) => (a.phoneNumber || "").localeCompare(b.phoneNumber || ""),
     },
     {
       title: "Ban",
@@ -191,14 +157,16 @@ const Customer = () => {
       render: (_: unknown, record: any) => (
         <Popconfirm
           title="Sure to ban this customer?"
-          onConfirm={() => handleBan(record.email)}
-          disabled={!record.isActive} // Disable if already banned
+          onConfirm={() => handleBan(record.accountID)} // ✅ Sửa tại đây
+          disabled={!record.isActive}
         >
-          <a style={{ 
-            color: !record.isActive ? '#ccc' : '#1890ff',
-            cursor: !record.isActive ? 'not-allowed' : 'pointer'
-          }}>
-            {record.isActive ? 'Ban' : 'Banned'}
+          <a
+            style={{
+              color: !record.isActive ? "#ccc" : "#1890ff",
+              cursor: !record.isActive ? "not-allowed" : "pointer",
+            }}
+          >
+            {record.isActive ? "Ban" : "Banned"}
           </a>
         </Popconfirm>
       ),
@@ -214,10 +182,8 @@ const Customer = () => {
     },
   ];
 
-  // SEARCH functionality
   const onSearch = (value: string) => {
     console.log("Search:", value);
-    // You can implement actual search logic here
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -273,7 +239,7 @@ const Customer = () => {
                       `${range[0]}-${range[1]} of ${total} customers`,
                   }}
                   locale={{
-                    emptyText: "No customers found"
+                    emptyText: "No customers found",
                   }}
                 />
               </Form>
