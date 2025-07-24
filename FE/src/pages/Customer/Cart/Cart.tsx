@@ -164,7 +164,7 @@ const Cart = () => {
                         ${subtotal.toFixed(2)}
                       </CartStyled.SummaryValue>
                     </CartStyled.SummaryRow>
-                    <PromoCodeSection onApplyVoucher={onApplyVoucher} />
+                    {/* <PromoCodeSection onApplyVoucher={onApplyVoucher} /> */}
                     <CartStyled.SummaryTotal>
                       <CartStyled.TotalLabel>Total</CartStyled.TotalLabel>
                       <CartStyled.TotalValue>${total}</CartStyled.TotalValue>
