@@ -1,20 +1,37 @@
-import React from "react";
-import { Row, Col } from "antd";
+import React, { useEffect } from "react";
+import { Row, Col, Spin } from "antd";
 import {
   CloseCircleFilled,
   ContainerFilled,
   WarningFilled,
 } from "@ant-design/icons";
 import { Container } from "./ThankPage.styled";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import config from "@/config";
-import { useAppSelector } from "@/hooks";
+import { useAppSelector, useAppDispatch } from "@/hooks";
+import { handleVNPayFailAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 
 const ThankPageFail: React.FC = () => {
-  const { order, error } = useAppSelector((state) => state.order);
+  const { order, status, error } = useAppSelector((state) => state.order);
+  const dispatch = useAppDispatch();
+  const location = useLocation();
 
-  // Log the current order state and error
-  console.log('[ThankPageFail] Current order state:', { order, error });
+  useEffect(() => {
+    console.log('[ThankPageFail] Current order state:', { order, status, error });
+    const params = new URLSearchParams(location.search);
+    const vnpResponseCode = params.get('vnp_ResponseCode');
+
+    if (vnpResponseCode && status !== 'loading') {
+      console.log('[ThankPageFail] Handling VNPay failure with responseCode:', vnpResponseCode);
+      dispatch(handleVNPayFailAsync(params));
+    }
+
+    return () => {
+      console.log('[ThankPageFail] Cleaning up, removing CurrentOrderID from localStorage');
+      localStorage.removeItem("CurrentOrderID");
+      dispatch(resetOrderStatus());
+    };
+  }, [location.search, dispatch, status]);
 
   // Log specific order details if available
   if (order) {
@@ -27,6 +44,21 @@ const ThankPageFail: React.FC = () => {
     });
   } else {
     console.warn('[ThankPageFail] No order data available');
+  }
+
+  // Loading state
+  if (status === 'loading') {
+    console.log('[ThankPageFail] Rendering loading state');
+    return (
+      <Container>
+        <div className="thank-page-success-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Spin size="large" />
+          <p style={{ marginLeft: '20px', fontSize: '18px' }}>
+            Processing payment failure...
+          </p>
+        </div>
+      </Container>
+    );
   }
 
   return (
@@ -75,7 +107,11 @@ const ThankPageFail: React.FC = () => {
                       <div className="content">
                         <p className="label">AMOUNT</p>
                         <p className="info">
-                          {order?.totalPrice ? `$${order.totalPrice.toFixed(2)}` : 'N/A'}
+                          {order?.totalPrice
+                            ? order.payments?.[0]?.method === 'VNPAY'
+                              ? `${(order.totalPrice * 100).toLocaleString('vi-VN')} VND`
+                              : `$${order.totalPrice.toFixed(2)}`
+                            : 'N/A'}
                         </p>
                       </div>
 
