@@ -7,7 +7,7 @@ import { showAllVoucher } from "@/services/voucherAPI";
 import { useAppDispatch } from "@/hooks";
 import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
 interface PromoCodeSectionProps {
-  onApplyVoucher: (discount: number, voucherID: string) => void;
+  onApplyVoucher: (discount: number, voucherID: number) => void;
 }
 
 const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
@@ -74,7 +74,7 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
       dispatch(orderSlice.actions.setVoucherID(selectedVoucher.PromotionID));
 
       if (!isNaN(discount) && discount > 0) {
-        onApplyVoucher(discount, selectedVoucher.PromotionID);
+        onApplyVoucher(discount, parseInt(selectedVoucher.PromotionID, 10));
         setError("");
         localStorage.setItem(
           "selectedVoucher",
@@ -86,7 +86,7 @@ const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
     } else {
       setError("Please select a valid promo code");
       localStorage.removeItem("selectedVoucher");
-      onApplyVoucher(0, "");
+      onApplyVoucher(0, 0);
     }
   };
 

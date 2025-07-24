@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const ContainerHeader = styled.div`
   display: flex;
-  align-items: canter;
+  align-items: center;
   justify-content: center;
 `;
 
@@ -53,15 +53,19 @@ export const InnerContainer = styled.div`
 //  padding-bottom: 6rem;
 // `;
 
-export const MainSection = styled.main`
-  //  margin-top: 50px;
-  display: flex;
-  gap: 20px;
-  @media (max-width: 991px) {
-    flex-direction: column;
-    margin-top: 40px;
-    gap: 0;
-  }
+export const ClearCartButton = styled.button`
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+
+    &:hover {
+        background-color: #d32f2f;
+    }
 `;
 
 export const Column = styled.div`
@@ -386,5 +390,15 @@ export const ShippingDetails = styled.p`
   font: 300 14px/21px Poppins, sans-serif;
   @media (max-width: 991px) {
     margin-left: 10px;
+  }
+`;
+export const MainSection = styled.main`
+  //  margin-top: 50px;
+  display: flex;
+  gap: 20px;
+  @media (max-width: 991px) {
+    flex-direction: column;
+    margin-top: 40px;
+    gap: 0;
   }
 `;

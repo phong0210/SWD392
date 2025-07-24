@@ -1,179 +1,69 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// import * as React from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import * as CartStyled from "./Cart.styled";
-// import { Button, Flex, Select } from "antd";
 import PromoCodeSection from "../../../components/Customer/Checkout/PromoCode";
-import { useAppDispatch, useDocumentTitle } from "@/hooks";
-import { useEffect, useState } from "react";
+import { useAppDispatch, useDocumentTitle, useAppSelector } from "@/hooks";
+import {  useState } from "react";
 import CartItem from "@/components/Customer/Cart/CartItem";
-import { deleteOrderLine, OrderLineDetail, showAllOrderLineForAdmin } from "@/services/orderLineAPI";
-import { getDiamondDetails, showAllDiamond } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
-import useAuth from "@/hooks/useAuth";
-import { getCustomer } from "@/services/accountApi";
 import config from "@/config";
 import { Empty, notification } from "antd";
-import { cartSlice } from "@/layouts/MainLayout/slice/cartSlice";
-import { showAllProduct } from "@/services/jewelryAPI";
-import { getProductDetails } from "@/services/productAPI";
+import { removeFromCart, clearCart } from "@/store/slices/cartSlice";
+
 
 const Cart = () => {
-  useDocumentTitle("Cart | Aphromas Diamond");
+    useDocumentTitle("Cart | Aphromas Diamond");
 
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const { AccountID } = useAuth();
-  const navigate = useNavigate();
-  const [api, contextHolder] = notification.useNotification();
-  const dispatch = useAppDispatch();
-  const [diamondList, setDiamondList] = useState<any[]>([]);
-  const [productList, setProductList] = useState<any[]>([]);
+    const navigate = useNavigate();
+    const [api, contextHolder] = notification.useNotification();
+    const dispatch = useAppDispatch();
+    const cartItems = useAppSelector((state) => state.cart.items);
 
-  const fetchCartItemsWithDetails = async () => {
-    try {
-      // Gọi API để lấy tất cả các dòng đặt hàng
-      const { data } = await showAllOrderLineForAdmin();
-      console.log("Check API: ", data.data);
+    const [discount, setDiscount] = useState(0);
+    const onApplyVoucher = (discount: number, voucherID: number) => {
+        setDiscount(discount);
+        localStorage.setItem("selectedVoucher", JSON.stringify({ discount, voucherID }));
+    };
 
-      //Get customer info
-      const customer = await getCustomer(AccountID ? AccountID : 0);
-      const customerID = customer.data.data.CustomerID;
-      console.log('Customer ID: ', customer.data.data.CustomerID);
+    const calculateTotal = (
+        subtotal: number,
+        discount: number,
+        shippingCost: number
+    ) => {
+        return subtotal - (subtotal * discount) / 100 + shippingCost;
+    };
 
-      //Get diamond list
-      const diamonds = await showAllDiamond();
-      setDiamondList(diamonds.data.data);
-      console.log('Diamond List: ', diamondList);
+    const subtotal = cartItems.reduce((acc, item) => {
+        return acc + item.price * item.quantity;
+    }, 0);
 
-      //Get product list
-      const products = await showAllProduct();
-      setProductList(products.data.data);
-      console.log('Product List: ', productList);
+    const shippingCost = cartItems.length > 0 ? 15 : 0;
+    const total = calculateTotal(subtotal, discount, shippingCost).toFixed(2);
 
-      // Lọc ra các sản phẩm có OrderID là null
-      const cartItems = data.data.filter(
-        (cartItem: { OrderID: null, DiamondID: number, ProductID: number, CustomerID: number }) =>
-          (cartItem.OrderID === null
-            && (cartItem.DiamondID !== null || cartItem.ProductID !== null))
-          && cartItem.CustomerID === customerID
-      );
-      console.log('Cart: ', cartItems);
-
-
-      // Dùng Promise.all để đảm bảo tất cả các yêu cầu API được thực hiện và trả về đầy đủ trước khi tiếp tục
-      const detailedCartItems = await Promise.all(
-        cartItems.map(async (item: { 
-            DiamondID: number, 
-            ProductID: number,
-            OrderLineID: number
-          }) => {
-          // Gọi API để lấy thông tin chi tiết về kim cương dựa vào DiamondID
-          const { data: diamondDetails } = await getDiamondDetails(
-            item.DiamondID
-          );
-
-          const { data: productDetails } = await getProductDetails(
-            item.ProductID
-          );
-
-          const { data: orderlineDetails } = await OrderLineDetail(
-            item.OrderLineID
-          );
-          console.log('a', diamondDetails?.data?.usingImage)
-
-          if (diamondDetails && diamondDetails.data && diamondDetails.data.usingImage) {
-            const usingImageID = diamondDetails.data.usingImage[0];
-            const imageDiamond = getImage(usingImageID?.UsingImageID ? usingImageID.UsingImageID : null);
-            const type = diamondDetails.data.WeightCarat ? "diamond" : "ring";
-            return { ...item, diamondDetails: diamondDetails.data, type, imageDiamond };
-          } else {
-            return { 
-              ...item, 
-              productDetails: productDetails?.data,
-              orderlineDetails: orderlineDetails?.data?.JewelrySettingVariantID
-            };
-          }
-        })
-      );
-
-      // Trả về danh sách các sản phẩm trong giỏ hàng kèm theo thông tin chi tiết về kim cương
-      console.log('detailedCartItems', detailedCartItems)
-      return detailedCartItems;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    loadCartItems();
-  }, []);
-
-  const loadCartItems = async () => {
-    const items = await fetchCartItemsWithDetails();
-    // Check if items is undefined before calling setCartItems
-    if (items) {
-      setCartItems(items);
-    }
-    dispatch(cartSlice.actions.setLength(cartItems.length));
-  };
-
-  const [discount, setDiscount] = useState(0);
-  const onApplyVoucher = (discount: number, voucherID: number) => {
-    setDiscount(discount);
-    localStorage.setItem("selectedVoucher", JSON.stringify({ discount, voucherID }));
-  };
-
-  const calculateTotal = (
-    subtotal: number,
-    discount: number,
-    shippingCost: number
-  ) => {
-    return subtotal - (subtotal * discount) / 100 + shippingCost;
-  };
-
-  // const subtotal = items.reduce((acc, item) => {
-  //   return acc + parseFloat(item.price.replace(/[$,]/g, ""));
-  // }, 0);
-
-  const subtotal = () => {
-    let total = 0;
-    cartItems.map((item) => {
-      if(item.DiamondID) total += parseFloat(item?.diamondDetails?.Price) 
-      else {
-        total += item?.DiscountPrice;
-      }
-    });
-    return total;
-  }
-
-  const shippingCost = cartItems.length === 1 ? 15 : 0;
-  const total = calculateTotal(subtotal(), discount, shippingCost).toFixed(2)
-
-  const handleRemove = async (OrderLineID: any) => {
-    try {
-      const { data } = await deleteOrderLine(OrderLineID);
-      if (data.statusCode !== 200) throw new Error;
-      else {
+    const handleRemove = (itemId: string) => {
+        dispatch(removeFromCart(itemId));
         api.success({
-          message: 'Notification',
-          description: 'Remove product successfully!'
-        })
-        loadCartItems();
-        console.log(data.message);
-      }
-    } catch (error: any) {
-      console.log(error);
-    }
-  };
+            message: 'Notification',
+            description: 'Remove product successfully!'
+        });
+    };
 
-  const handleCheckout = () => {
-    cartItems.length === 0 ? (
-      api.warning({
-        message: 'Notification',
-        description: "Your cart doesn't have any products!"
-      })
-    ) : navigate(config.routes.customer.checkout);
-  }
+    const handleCheckout = () => {
+        if (cartItems.length === 0) {
+            api.warning({
+                message: 'Notification',
+                description: "Your cart doesn't have any products!"
+            });
+        } else {
+            navigate(config.routes.customer.checkout);
+        }
+    };
+
+    // const handleClearCart = () => {
+    //     dispatch(clearCart());
+    //     api.success({
+    //         message: 'Notification',
+    //         description: 'Cart cleared successfully!'
+    //     });
+    // };
 
   return (
     <>
@@ -195,34 +85,26 @@ const Cart = () => {
             </CartStyled.CountCart>
 
             <CartStyled.MainSection>
-              <CartStyled.Column>
-                {cartItems.length === 0 ?
-                  <Empty
-                    description="Your cart doesn't have nothing here"
-                  /> :
-                  <>
-                    {cartItems.map((item, index) => (
-                      <CartItem
-                        key={index}
-                        OrderLineID={item.OrderLineID}
-                        DiamondID={item.DiamondID}
-                        ProductID={item.ProductID}
-                        designer={
-                          item.diamondDetails?.Designer ||
-                          "No description available"
-                        }
-                        name={
-                          item.diamondDetails?.Name || "No description available"
-                        }
-                        price={item.diamondDetails?.Price}
-                        images={item.imageDiamond}
-                        type={item.type}
-                        handleRemove={() => handleRemove(item.OrderLineID)}
-                      />
-                    ))}
-                  </>
-                }
-              </CartStyled.Column>
+                <CartStyled.Column>
+                    {cartItems.length === 0 ? (
+                        <Empty description="Your cart doesn't have anything here" />
+                    ) : (
+                        <>
+                            {cartItems.map((item) => (
+                                <CartItem
+                                    key={item.id}
+                                    id={item.id}
+                                    name={item.name}
+                                    price={item.price}
+                                    quantity={item.quantity}
+                                    image={item.image}
+                                    handleRemove={() => handleRemove(item.id)}
+                                />
+                            ))}
+                        </>
+                    )}
+                </CartStyled.Column>
+                
               <CartStyled.Sidebar>
                 <CartStyled.SummaryContainer>
                   <CartStyled.SummaryDetails>
@@ -231,7 +113,7 @@ const Cart = () => {
                       <CartStyled.AppliedPromo>
                         Discount {`(-${discount}%)`}:
                         <CartStyled.AppliedPromoValuve>
-                          {`-$${subtotal() * discount / 100}`}
+                          {`-${(subtotal * discount) / 100}`}
                         </CartStyled.AppliedPromoValuve>
                       </CartStyled.AppliedPromo>
                     )}
@@ -243,7 +125,7 @@ const Cart = () => {
                             Shipping
                           </CartStyled.SummaryLabel>
                           <CartStyled.SummaryValue>
-                            {cartItems.length === 1 ? "$15.00" : "Free"}
+                            {shippingCost > 0 ? `${shippingCost.toFixed(2)}` : "Free"}
                           </CartStyled.SummaryValue>
                         </>
                       }
@@ -253,7 +135,7 @@ const Cart = () => {
                         Subtotal
                       </CartStyled.SummaryLabel>
                       <CartStyled.SummaryValue>
-                        ${subtotal().toFixed(2)}
+                        ${subtotal.toFixed(2)}
                       </CartStyled.SummaryValue>
                     </CartStyled.SummaryRow>
                     <PromoCodeSection onApplyVoucher={onApplyVoucher} />

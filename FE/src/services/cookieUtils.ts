@@ -1,6 +1,7 @@
 import config from "@/config";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "universal-cookie";
+import { clearCart } from "./cartAPI";
 
 const cookies = new Cookies(null, { path: "/" });
 
@@ -20,6 +21,7 @@ class CookieUtils {
 
   deleteUser() {
     cookies.remove(config.cookies.token);
+    clearCart();
   }
 
   decodeJwt() {

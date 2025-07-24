@@ -5,19 +5,15 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import PromoCodeSection from "../../../Customer/Checkout/PromoCode";
-import { showAllOrderLineForAdmin } from "@/services/orderLineAPI";
-import { showAllDiamond } from "@/services/diamondAPI";
-import { getImage } from "@/services/imageAPI";
-import { showAllProduct } from "@/services/jewelryAPI";
-import useAuth from "@/hooks/useAuth";
-import { getCustomer } from "@/services/accountApi";
 import { useAppDispatch } from "@/hooks";
 import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
+import { CartItem as CartItemType } from "@/services/cartAPI";
+
 interface CartItemProps {
   name: string;
   image: string;
   sku?: string;
-  price: string;
+  price: number;
 }
 
 const CartItem: React.FC<CartItemProps> = ({ name, image, sku, price }) => (
@@ -31,68 +27,24 @@ const CartItem: React.FC<CartItemProps> = ({ name, image, sku, price }) => (
       <ItemName>{name}</ItemName>
       <ItemSku>{sku}</ItemSku>
     </ItemInfo>
-    <ItemPrice>${price}</ItemPrice>
+    <ItemPrice>${price.toFixed(2)}</ItemPrice>
   </CartItemContainer>
 );
 
-const Summary: React.FC = () => {
+interface SummaryProps {
+  cartItems: CartItemType[];
+}
+
+const Summary: React.FC<SummaryProps> = ({ cartItems }) => {
   const [discount, setDiscount] = useState(0);
   const [voucherID, setVoucherID] = useState<number | undefined>(undefined);
-  const [orderLineItems, setOrderLineItems] = useState<any[]>([]);
-  const [diamondList, setDiamondList] = useState<any[]>([]);
-  const [productList, setProductList] = useState<any[]>([]);
-  const { AccountID } = useAuth();
-  const [customer, setCustomer] = useState<any>();
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const onApplyVoucher = (discount: number, voucherID: number) => {
     setDiscount(discount);
     setVoucherID(voucherID);
     localStorage.setItem("selectedVoucher", JSON.stringify({ discount, voucherID }));
   };
-  console.log(discount);
-  console.log(voucherID);
-
-  const fetchData = React.useCallback(async () => {
-    try {
-      const customerResponse = await getCustomer(AccountID || 0);
-      setCustomer(customerResponse.data.data);
-
-      const { data } = await showAllOrderLineForAdmin();
-      if (data.statusCode !== 200) throw new Error();
-
-      const getOrderLineItems = data.data.filter((
-        OrderLineItem: {
-          CustomerID: number,
-          OrderID: number | null
-          DiamondID: number | null,
-          ProductID: number | null
-        }
-      ) => (
-        OrderLineItem.CustomerID === customer?.CustomerID
-        && OrderLineItem.OrderID === null
-        && (OrderLineItem.DiamondID !== null || OrderLineItem.ProductID !== null)
-      ));
-      setOrderLineItems(getOrderLineItems);
-
-      //Get diamond list
-      const response = await showAllDiamond();
-      setDiamondList(response.data.data);
-
-      //Get product list
-      const productResponse = await showAllProduct();
-      setProductList(productResponse.data.data);
-
-      //Display result
-      console.log('Cart: ', orderLineItems);
-    } catch (error: any) {
-      console.error(error);
-    }
-  }, [AccountID, customer?.CustomerID]);
-
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   const calculateTotal = (
     subtotal: number,
@@ -101,27 +53,21 @@ const Summary: React.FC = () => {
   ) => {
     return subtotal - (subtotal * discount) / 100 + shippingCost;
   };
-  // const subtotalNumber = items.reduce((acc, item) => {
-  //   return acc + parseFloat(item.price.replace(/[$,]/g, ""));
-  // }, 0);
 
-  const shippingCost = orderLineItems.length === 1 ? 15 : 0;
+  const shippingCost = cartItems.length === 1 ? 15 : 0;
   dispatch(orderSlice.actions.setShippingfee(shippingCost));
 
-  const subtotalNumber = () => {
-    let temp = 0;
-    orderLineItems.map(async (item) => {
-      temp += item.DiscountPrice;
-    })
-    return temp;
-  }
+  const subtotalNumber = cartItems.reduce((acc, item) => {
+    return acc + item.price * item.quantity;
+  }, 0);
 
-  const total = calculateTotal(subtotalNumber(), discount, shippingCost).toFixed(2);
+  const total = calculateTotal(subtotalNumber, discount, shippingCost).toFixed(2);
   dispatch(orderSlice.actions.setTotal(Number(total)));
+
   return (
     <SummarySection>
       <ItemNumber>
-        <NumberItem>{orderLineItems.length} ITEMS</NumberItem>
+        <NumberItem>{cartItems.length} ITEMS</NumberItem>
         <Link to="/cart">
           <p
             style={{
@@ -134,46 +80,30 @@ const Summary: React.FC = () => {
           </p>
         </Link>
       </ItemNumber>
-      {orderLineItems.map((item: any, index: any) => {
-        if (item?.DiamondID) {
-          const diamond = diamondList.find(d => d && d.DiamondID === item.DiamondID);
-          return (
-            <CartItem
-              key={index}
-              name={diamond ? diamond.Name : item.name}
-              image={diamond ? getImage(diamond.usingImage[0]?.UsingImageID) : item.image}
-              sku={item.sku}
-              price={diamond ? diamond.Price : 0}
-            />
-          );
-        } else {
-          const product = productList.find(p => p && p.ProductID === item.ProductID);
-          return (
-            <CartItem
-              key={index}
-              name={product ? product.Name : ""}
-              image={product ? getImage(product.UsingImage[0]?.UsingImageID) : ""}
-              price={item.DiscountPrice}
-            />
-          )
-        }
-      })}
+      {cartItems.map((item) => (
+        <CartItem
+          key={item.id}
+          name={item.name}
+          image={item.image}
+          price={item.price}
+        />
+      ))}
       <EditTotal>
         {" "}
         {discount > 0 && (
           <>
             <p>Discount {`(${discount}%)`}: </p>
-            <p>{`-$${(subtotalNumber() * discount / 100).toFixed(2)}`}</p>
+            <p>{`-$${(subtotalNumber * discount / 100).toFixed(2)}`}</p>
           </>
         )}
       </EditTotal>
       <EditTotal>
         <p>Shipping: </p>
-        <p>{orderLineItems.length === 1 ? "$15.00" : "Free"}</p>
+        <p>{cartItems.length === 1 ? "$15.00" : "Free"}</p>
       </EditTotal>
       <EditTotal>
         <p>Subtotal: </p>
-        <p>${subtotalNumber().toFixed(2)}</p>
+        <p>${subtotalNumber.toFixed(2)}</p>
       </EditTotal>
 
       <PromoCodeSection onApplyVoucher={onApplyVoucher} />

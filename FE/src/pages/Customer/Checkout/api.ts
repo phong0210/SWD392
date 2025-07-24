@@ -49,7 +49,7 @@ class Store {
   async getWardByDistrictCode(districtCode: number) {
     try {
       const wards = await this.http.get(
-        `${baseUrl}/wards?districtId=${districtCode}&size=10603`
+        `${baseUrl}/wards?districtId=${districtCode}&size=1000`
       );
       return wards.data;
     } catch (error) {

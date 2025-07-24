@@ -35,7 +35,7 @@ const Checkout: React.FC = () => {
   const dispatch = useAppDispatch();
   const [selectedVoucher, setSelectedVoucher] = useState<any | null>(null);
   const ShippingFee = useAppSelector((state) => state.order.Shippingfee);
-  const TotalPrice = useAppSelector((state) => state.order.Total);
+  const cartItems = useAppSelector((state) => state.cart.items);
   const [api, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState(false);
 
@@ -116,29 +116,9 @@ const Checkout: React.FC = () => {
       dispatch(orderSlice.actions.setOrderID(getOrderID));
       localStorage.setItem("CurrentOrderID", JSON.stringify(responeOrder.data.data.OrderID));
       console.log(getOrderID);
-      const getOrderLine = await showAllOrderLineForAdmin();
-      getOrderLine.data.data.filter((
-        orderLineItem: {
-          CustomerID: number,
-          OrderID: number | null,
-          DiamondID: number | null,
-          ProductID: number | null,
-        }
-      ) => orderLineItem.CustomerID === user?.CustomerID &&
-      orderLineItem.OrderID === null &&
-        (orderLineItem.DiamondID !== null || orderLineItem.ProductID !== null)
-      )
-        .map(async (item: any) => {
-          const linkOrder = await updateOrderLine(item.OrderLineID, {
-            ...item,
-            OrderID: getOrderID
-          });
-          if (linkOrder.data.statusCode !== 200) throw new Error(linkOrder.data.message);
-        });
-      if (!updateOrderLine) throw new Error();
 
       if (values.Method === PaymentMethodEnum.PAYPAL) {
-          const createPayment = await createOrderPaypal(TotalPrice);
+          const createPayment = await createOrderPaypal(cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0));
           window.location.href = createPayment.data.links[1].href;
       } else {
         navigate(config.routes.public.success);
@@ -221,7 +201,7 @@ const Checkout: React.FC = () => {
               loading={loading}
             />
           </Formm>
-          <StyledSummary />
+          <StyledSummary cartItems={cartItems} />
         </Content>
       </Wrapper>
     </main>

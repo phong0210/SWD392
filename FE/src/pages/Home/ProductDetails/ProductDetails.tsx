@@ -66,6 +66,8 @@ import {
   OrderLineBody,
   showAllOrderLineForAdmin,
 } from "@/services/orderLineAPI";
+import { useAppDispatch } from "@/hooks";
+import { addToCart } from "@/store/slices/cartSlice";
 const ProductDetails: React.FC = () => {
   //tab description + cmt
   const [activeTab, setActiveTab] = useState("product-description");
@@ -158,6 +160,7 @@ const ProductDetails: React.FC = () => {
   const [jewelrySettingVariant, setJewelrySettingVariant] = useState(0);
   const [cartList, setCartList] = useState<any[]>([]);
   const [api, contextHolder] = notification.useNotification();
+  const dispatch = useAppDispatch();
 
   const fetchFeedbackDetail = async (productId: number) => {
     try {
@@ -200,7 +203,7 @@ const ProductDetails: React.FC = () => {
         const foundProduct = product.product;
         setFoundProduct(foundProduct);
         console.log("Found product:", foundProduct);
-        const diamondId = product.product.id;
+        const diamondId = product.product.id.toString();
         setProductId(diamondId);
         console.log("Diamond ID:", diamondId);
 
@@ -291,30 +294,20 @@ const ProductDetails: React.FC = () => {
   const handleAddToCart = async () => {
     if (role) {
       try {
-        const OrderLineChild: OrderLineBody = {
-          Quantity: 1,
-          DiamondID: null,
-          CustomerID: user?.CustomerID,
-          ProductID: Number(id),
-          OrderID: null,
-          Inscription: inscription !== "" ? inscription : null,
-          InscriptionFont: null,
-          JewelrySettingVariantID:
-            jewelrySettingVariant !== 0 ? jewelrySettingVariant : null,
-          SizeID: selectedSize,
+        const cartItem = {
+          id: `product-${id}`,
+          productId: id,
+          name: foundProduct.Name,
+          price: foundProduct.price,
+          quantity: 1,
+          image: mainImage,
         };
-
-        if (cartList.find((cart) => cart.ProductID === id)) {
-          api.warning({
-            message: "Notification",
-            description: "The product is already in your cart",
-          });
-        } else {
-          const { data } = await createOrderLine(OrderLineChild);
-          if (data.statusCode === 404) throw new Error("Network error");
-          if (data.statusCode !== 200) throw new Error(data.message);
-          navigate(config.routes.customer.cart);
-        }
+        dispatch(addToCart(cartItem));
+        api.success({
+          message: "Notification",
+          description: "Product added to cart successfully",
+        });
+        navigate(config.routes.customer.cart);
       } catch (error: any) {
         api.error({
           message: "Error",
@@ -329,36 +322,22 @@ const ProductDetails: React.FC = () => {
   const handleCheckout = async () => {
     if (role) {
       try {
-        const OrderLineChild: OrderLineBody = {
-          Quantity: 1,
-          DiamondID: null,
-          CustomerID: user?.CustomerID,
-          ProductID: Number(id),
-          OrderID: null,
-          Inscription: inscription !== "" ? inscription : null,
-          InscriptionFont: null,
-          JewelrySettingVariantID: jewelrySettingVariant,
-          SizeID: selectedSize,
+        const cartItem = {
+          id: `product-${id}`,
+          productId: id,
+          name: foundProduct.Name,
+          price: foundProduct.price,
+          quantity: 1,
+          image: mainImage,
         };
-
-        if (cartList.find((cart) => cart.ProductID === id)) {
-          api.warning({
-            message: "Notification",
-            description: "The product is already in your cart",
-          });
-        } else {
-          const { data } = await createOrderLine(OrderLineChild);
-          if (data.statusCode === 404) throw new Error("Network error");
-          if (data.statusCode !== 200) throw new Error(data.message);
-          navigate(config.routes.customer.cart);
-        }
+        dispatch(addToCart(cartItem));
+        navigate(config.routes.customer.checkout);
       } catch (error: any) {
         api.error({
           message: "Error",
           description: error.message || "An error occurred",
         });
       }
-      navigate(config.routes.customer.checkout);
     } else {
       navigate(config.routes.public.login);
     }

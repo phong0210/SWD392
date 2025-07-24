@@ -1,4 +1,3 @@
-import { cartSlice } from "@/layouts/MainLayout/slice/cartSlice";
 import { customSlice } from "@/layouts/MainLayout/slice/customRingSlice";
 import { orderSlice } from "@/layouts/MainLayout/slice/orderSlice";
 import uploadSlice from "@/pages/Admin/ProductPage/Diamond/components/slice";
@@ -7,10 +6,11 @@ import { uploadSliceDiaProduct } from "@/pages/Admin/ProductPage/Jewelry/compone
 import uploadSliceReguProduct from "@/pages/Admin/ProductPage/Jewelry/components/AddReguComponent/slice";
 import { configureStore } from "@reduxjs/toolkit";
 import { authSlice } from "@/store/slices/authSlice";
+import cartSlice from "@/store/slices/cartSlice";
 
 export const store = configureStore({
     reducer: {
-        cart: cartSlice.reducer,
+        cart: cartSlice,
         customRing: customSlice.reducer,
         upload: uploadSlice.reducer,
         uploadSetting: uploadSliceSetting.reducer,
