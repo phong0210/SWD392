@@ -43,10 +43,19 @@ namespace DiamondShopSystem.BLL.Services.Vip
 
         public async Task<VipDto> CreateVipAsync(VipCreateRequestDto createDto)
         {
+            var userRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.User>();
+            var userExists = await userRepo.GetByIdAsync(createDto.UserId.GetValueOrDefault());
+
+            if (userExists == null)
+            {
+                throw new KeyNotFoundException($"User with ID {createDto.UserId} not found.");
+            }
+
             var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
             var vipEntity = _mapper.Map<DiamondShopSystem.DAL.Entities.Vip>(createDto);
             vipEntity.VipId = Guid.NewGuid();
             vipEntity.StartDate = DateTime.UtcNow;
+            vipEntity.EndDate = DateTime.UtcNow.AddMonths(1);
             await vipRepo.AddAsync(vipEntity);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<VipDto>(vipEntity);

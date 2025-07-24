@@ -1,61 +1,134 @@
 import * as Styled from "./CollectionDetail.styled";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import MarketingMenu from "@/components/Staff/SalesStaff/MarketingMenu/MarketingMenu";
-import { collectionData } from "../MarketingData";
-import { productData, ProductDataType } from "../../ProductPage/ProductData";
-import {
-  Button,
-  TableColumnsType,
-  Table,
-} from "antd";
+import { Table, Space } from "antd";
+import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
+import { showAllProduct } from "@/services/productAPI";
+import { EyeOutlined } from "@ant-design/icons";
+import defaultImage from "@/assets/diamond/defaultImage.png";
 
 const CollectionDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-  const activeCollection = collectionData.find(
-    (collection) => collection.collectionID === id
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await showAllProduct();
+        console.log("API response:", response.data);
 
-  const productList = productData.filter(
-    (product) => product.collectionID === id
-  );
+        if (response && Array.isArray(response.data)) {
+          const fetchedProducts = (
+            response.data as ProductApiResponseItem[]
+          ).map((item) => {
+            const product = item.product;
+            return {
+              id: product.id,
+              name: product.name,
+              sku: product.sku,
+              description: product.description,
+              price: product.price,
+              carat: product.carat,
+              color: product.color,
+              clarity: product.clarity,
+              cut: product.cut,
+              stockQuantity: product.stockQuantity,
+              giaCertNumber: product.giaCertNumber,
+              isHidden: product.isHidden,
+              categoryId: product.categoryId,
+              orderDetailId: product.orderDetailId,
+              warrantyId: product.warrantyId,
+              salePrice: product.salePrice,
+              firstPrice: product.firstPrice,
+              totalDiamondPrice: product.totalDiamondPrice,
+              star: product.star,
+              type: product.type,
+              images: Array.isArray(product.images) ? product.images : [],
+            };
+          });
+          console.log(fetchedProducts);
+          setProducts(fetchedProducts);
+        } else {
+          console.error("Unexpected API response format:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching diamonds:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const [data] = useState<ProductDataType[]>(productList);
+  useEffect(() => {
+    const filtered = products.filter(
+      (product) =>
+        product.isHidden === false && product.categoryId?.toString() === id
+    );
+    console.log("Filtered products:", filtered);
+    console.log("Category ID from params:", id);
+    setFilteredProducts(filtered);
+  }, [products, id]);
 
-
-  const columns: TableColumnsType<ProductDataType> = [
+  const columns = [
     {
-      title: "Jewelry ID",
-      dataIndex: "jewelryID",
-      defaultSortOrder: "descend",
-      sorter: (a, b) => a.jewelryID.localeCompare(b.jewelryID),
+      title: "Product ID",
+      dataIndex: "id",
+      sorter: (a: any, b: any) => a.id.localeCompare(b.id),
     },
     {
-      title: "Product Image",
-      dataIndex: "jewelryImg",
-      render: (_, record) => (
-        <a href="#" target="_blank" rel="noopener noreferrer">
+      title: "Image",
+      dataIndex: "images",
+      render: (_: unknown, record: any) => {
+        const imageUrl =
+          record.images && record.images.length > 0
+            ? record.images[0]
+            : defaultImage;
+
+        return (
           <img
-            src={record.jewelryImg}
-            alt={record.jewelryName}
-            style={{ width: "50px", height: "50px" }}
+            src={imageUrl}
+            alt={record.name || "Product"}
+            style={{
+              width: "50px",
+              height: "50px",
+              objectFit: "cover",
+              borderRadius: "4px",
+            }}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = defaultImage;
+            }}
           />
-        </a>
+        );
+      },
+    },
+    {
+      title: "Product Name",
+      dataIndex: "name",
+      editable: true,
+      sorter: (a: any, b: any) => a.name.length - b.name.length,
+    },
+    {
+      title: "Category ID",
+      dataIndex: "categoryId",
+      render: (categoryId: any) => categoryId || "N/A",
+    },
+    {
+      title: "Detail",
+      key: "detail",
+      className: "TextAlign",
+      render: (_: unknown, record: any) => (
+        <Space size="middle">
+          <Link to={`/sales-staff/product/diamond/detail/${record.id}`}>
+            <EyeOutlined />
+          </Link>
+        </Space>
       ),
     },
-    {
-      title: "Jewelry Name",
-      dataIndex: "jewelryName",
-      showSorterTooltip: { target: "full-header" },
-      onFilter: (value, record) =>
-        record.jewelryName.indexOf(value as string) === 0,
-      sorter: (a, b) => a.jewelryName.length - b.jewelryName.length,
-      sortDirections: ["descend"],
-    },
   ];
-
 
   return (
     <>
@@ -66,51 +139,21 @@ const CollectionDetail = () => {
           <MarketingMenu />
 
           <Styled.PageContent>
-            {activeCollection ? (
-              <>
-                    <Styled.PageContent_Bot>
-                      <Styled.PageDetail_Title>
-                        <p>Collection Detail</p>
-                      </Styled.PageDetail_Title>
-                      <Styled.PageDetail_Infor>
-                        <Styled.InforLine>
-                          <p className="InforLine_Title">Collection ID</p>
-                          <p>{activeCollection?.collectionID}</p>
-                        </Styled.InforLine>
-                        <Styled.InforLine>
-                          <p className="InforLine_Title">Collection Name</p>
-                          <p>{activeCollection?.collectionName}</p>
-                        </Styled.InforLine>
-                        <Styled.InforLine>
-                          <p className="InforLine_Title">Debut Date</p>
-                          <p>{activeCollection?.debutDate}</p>
-                        </Styled.InforLine>
-                        <Styled.InforLine_Descrip>
-                          <p className="InforLine_Title">Description</p>
-                          <p>{activeCollection?.description}</p>
-                        </Styled.InforLine_Descrip>
-                      </Styled.PageDetail_Infor>
-                      <Styled.MaterialTable>
-                        <Table
-                          dataSource={data}
-                          columns={columns}
-                          rowClassName={() => "editable-row"}
-                          bordered
-                          pagination={{ pageSize: 4 }}
-                        />
-                      </Styled.MaterialTable>
-                    </Styled.PageContent_Bot>
-                    <Styled.ActionBtn>
-                      <Styled.ActionBtn_Left>
-                        <Link to="/sales-staff/marketing">
-                          <Button style={{ marginLeft: "10px" }}>Back</Button>
-                        </Link>
-                      </Styled.ActionBtn_Left>
-                    </Styled.ActionBtn>
-              </>
-            ) : (
-              <p>No Collection found.</p>
-            )}
+            <Styled.PageContent_Bot>
+              <Styled.PageDetail_Title>
+                <p>Category Detail</p>
+              </Styled.PageDetail_Title>
+
+              <Styled.MaterialTable>
+                <Table
+                  dataSource={filteredProducts}
+                  columns={columns}
+                  rowClassName={() => "editable-row"}
+                  bordered
+                  pagination={false}
+                />
+              </Styled.MaterialTable>
+            </Styled.PageContent_Bot>
           </Styled.PageContent>
         </Styled.AdminPage>
       </Styled.PageAdminArea>

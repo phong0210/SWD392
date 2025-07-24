@@ -14,7 +14,7 @@ type JwtType = {
 }
 
 export type UserType = {
-    CustomerID: number;
+    CustomerID: string;
     AccountID: number;
     Name: string;
     PhoneNumber: string | null;

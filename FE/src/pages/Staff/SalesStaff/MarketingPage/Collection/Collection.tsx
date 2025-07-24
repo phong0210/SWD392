@@ -1,76 +1,98 @@
 import * as Styled from "./Collection.styled";
-import React, { useState } from "react";
-import {
-  SearchOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
-import type {
-  TableProps,
-  TableColumnsType,
-} from "antd";
-import {
-  Form,
-  Input,
-  Table,
-  Space,
-} from "antd";
+import React, { useEffect, useState } from "react";
+import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
+import type { TableProps, TableColumnsType } from "antd";
+import { Form, Input, Table, Space, notification } from "antd";
 import { Link } from "react-router-dom";
 import { collectionData, CollectionDataType } from "../MarketingData";
 import { productData } from "../../ProductPage/ProductData";
 import Sidebar from "@/components/Staff/SalesStaff/Sidebar/Sidebar";
 import MarketingMenu from "@/components/Staff/SalesStaff/MarketingMenu/MarketingMenu";
-
+import { showAllCategory } from "@/services/productAPI";
 
 const Collection = () => {
   const [form] = Form.useForm();
-  const [data] = useState<CollectionDataType[]>(collectionData);
+  const [api, contextHolder] = notification.useNotification();
+  const [collections, setCollections] = useState<any[]>([]);
+  const [editingKey, setEditingKey] = useState("");
+  const isEditing = (record: any) => record.key === editingKey;
 
-  const columns: TableColumnsType<CollectionDataType> = [
+  const fetchData = async () => {
+    try {
+      const response = await showAllCategory();
+
+      const data = response.data;
+
+      console.log("Parsed categories:", data);
+
+      const formattedCollections = data.map((item: any) => ({
+        key: item.category.id,
+        categoryId: item.category.id,
+        name: item.category.name,
+        description: item.category.description,
+      }));
+
+      setCollections(formattedCollections);
+    } catch (error) {
+      console.error("Failed to fetch category or product:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const columns = [
     {
-      title: "Collection ID",
-      dataIndex: "collectionID",
-      sorter: (a: CollectionDataType, b: CollectionDataType) =>
-        a.collectionID.localeCompare(b.collectionID),
+      title: "Category ID",
+      dataIndex: "categoryId",
+      sorter: (a: any, b: any) => a.categoryId.localeCompare(b.categoryId), // Changed to string comparison since IDs are UUIDs
     },
     {
-      title: "Collection Name",
-      dataIndex: "collectionName",
-      sorter: (a: CollectionDataType, b: CollectionDataType) =>
-        a.collectionName.length - b.collectionName.length,
+      title: "Category Name",
+      dataIndex: "name",
+      editable: true,
+      sorter: (a: any, b: any) => a.name.length - b.name.length,
     },
     {
-      title: "Debut Date",
-      dataIndex: "debutDate",
-      sorter: (a: CollectionDataType, b: CollectionDataType) =>
-        a.debutDate.length - b.debutDate.length,
-    },
-    {
-      title: "Product Quantity",
-      dataIndex: "collectionID",
-      render: (_, { collectionID }) => {
-        let count = 0;
-        productData.forEach((collection) => {
-          if (collection.collectionID === collectionID) {
-            count++;
-          }
-        });
-        return count;
-      },
-      sorter: (a, b) => a.collectionID.length - b.collectionID.length,
+      title: "Description",
+      dataIndex: "description",
+      editable: true,
     },
     {
       title: "Detail",
       key: "detail",
       className: "TextAlign",
-      render: (_: unknown, { collectionID }) => (
+      render: (
+        _: unknown,
+        record: any // Fixed destructuring
+      ) => (
         <Space size="middle">
-          <Link to={`/sales-staff/marketing/collection/detail/${collectionID}`}>
+          <Link
+            to={`/sales-staff/marketing/collection/detail/${record.categoryId}`}
+          >
             <EyeOutlined />
           </Link>
         </Space>
       ),
     },
   ];
+
+  const mergedColumns = columns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record: any) => ({
+        record,
+        inputType: col.dataIndex === "text",
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditing(record),
+      }),
+    };
+  });
 
   const onChangeTable: TableProps<CollectionDataType>["onChange"] = (
     pagination,
@@ -81,21 +103,10 @@ const Collection = () => {
     console.log("params", pagination, filters, sorter, extra);
   };
 
-  // SEARCH AREA
-  const [searchText, setSearchText] = useState("");
-
-  const onSearch = (value: string) => {
-    console.log("Search:", value);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      onSearch(searchText);
-    }
-  };
-
   return (
     <>
+      {contextHolder}
+
       <Styled.GlobalStyle />
       <Styled.ProductAdminArea>
         <Sidebar />
@@ -104,32 +115,17 @@ const Collection = () => {
           <MarketingMenu />
 
           <Styled.AdPageContent>
-            <Styled.AdPageContent_Head>
-                  <Styled.SearchArea>
-                    <Input
-                      className="searchInput"
-                      type="text"
-                      // size="large"
-                      placeholder="Search here..."
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      prefix={<SearchOutlined className="searchIcon" />}
-                    />
-                  </Styled.SearchArea>
-            </Styled.AdPageContent_Head>
-
             <Styled.AdminTable>
-                <Form form={form} component={false}>
-                  <Table
-                    bordered
-                    dataSource={data}
-                    columns={columns}
-                    rowClassName="editable-row"
-                    pagination={{ pageSize: 6 }} // Add pagination here
-                    onChange={onChangeTable}
-                  />
-                </Form>
+              <Form form={form} component={false}>
+                <Table
+                  bordered
+                  dataSource={collections}
+                  columns={mergedColumns}
+                  rowClassName="editable-row"
+                  pagination={{ pageSize: 6 }}
+                  onChange={onChangeTable}
+                />
+              </Form>
             </Styled.AdminTable>
           </Styled.AdPageContent>
         </Styled.AdminPage>

@@ -11,10 +11,8 @@ import {
 import AccountCus from "@/components/Customer/Account Details/AccountCus";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { orderRelation, showAllOrder, updateOrder } from "@/services/orderAPI";
-import { showAllAccounts } from "@/services/authAPI";
+import { fetchAllOrderByUserId, updateOrder } from "@/services/orderAPI";
 import useAuth from "@/hooks/useAuth";
-// import DropdownButton from './DropdownButton';
 
 const onChange: TableProps<DataType>["onChange"] = (
   pagination,
@@ -26,20 +24,38 @@ const onChange: TableProps<DataType>["onChange"] = (
 };
 
 interface DataType {
-  OrderID: number;
-  OrderDate: string;
-  CompleteDate: string;
-  CustomerID: string | null;
-  OrderStatus: string; // Thêm OrderStatus vào đây nếu chưa có
-  IsActive: boolean;
-  AccountDeliveryID: string | null;
-  AccountSaleID: string | null;
-  TotalPrice?: string;
-  VoucherPrice?: string;
-  Shippingfee?: number; 
+  id: string;
+  userId: string;
+  totalPrice: number;
+  orderDate: string;
+  vipApplied: boolean;
+  status: number;
+  saleStaff: string;
+  orderDetails: {
+    id: string;
+    orderId: string;
+    unitPrice: number;
+    quantity: number;
+  }[];
+  delivery: {
+    id: string;
+    orderId: string;
+    dispatchTime: string;
+    deliveryTime: string;
+    shippingAddress: string;
+    status: number;
+  };
+  payments: {
+    id: string;
+    orderId: string;
+    method: string;
+    date: string;
+    amount: number;
+    status: number;
+  }[];
 }
 
-const formatPrice = (price: number | bigint) => {
+const formatPrice = (price: number) => {
   return `$ ${new Intl.NumberFormat("en-US", {
     style: "decimal",
     minimumFractionDigits: 0,
@@ -54,74 +70,52 @@ const formatDateTime = (dateTime: string) => {
   }).format(new Date(dateTime));
 };
 
-const fetchAllOrder = async (AccountID: number) => {
+const getStatusText = (status: number): string => {
+  switch (status) {
+    case 0:
+      return "Pending";
+    case 1:
+      return "Accepted";
+    case 2:
+      return "Delivering";
+    case 3:
+      return "Delivered";
+    case 4:
+      return "Completed";
+    case 5:
+      return "Confirmed";
+    case 6:
+      return "Canceled";
+    default:
+      return "Unknown";
+  }
+};
+
+const statusColors: Record<string, string> = {
+  Pending: "grey",
+  Accepted: "orange",
+  Delivering: "purple",
+  Delivered: "blue",
+  Completed: "#32CD32", // Lime green
+  Confirmed: "cyan",
+  Canceled: "volcano",
+  Unknown: "green",
+};
+
+const fetchAllOrder = async (userId: string) => {
   try {
-    const { data } = await showAllOrder();
-    console.log("Check API: ", data.data);
-
-    const res = data.data;
-    // Get all accounts
-    const getAllAccounts = await showAllAccounts();
-    console.log(getAllAccounts.data.data);
-    // Find AccountID
-    const account = getAllAccounts.data.data.find(
-      (acc: { AccountID: number }) => acc.AccountID === AccountID
-    );
-    if (!account) {
-      console.log("Account not found");
-      return [];
-    }
-    // Get CustomerID
-    const customerID = account.CustomerID;
-    console.log("Customer ID: ", customerID);
-    // Get all orders have CustomerID===
-    const customerOrders = res.filter(
-      (order: { CustomerID: number }) => order.CustomerID === customerID
-    );
-    console.log("Check customerOrders: ", customerOrders);
-
-    // Fetch detailed info for each filtered order
-    const detailedOrders = await Promise.all(
-      customerOrders.map(async (order: DataType) => {
-        const detailedOrder = await fetchOrderRelation(order.OrderID);
-
-        return {
-          ...order,
-          TotalPrice: detailedOrder.TotalPrice,
-          // VoucherPrice: detailedOrder.VoucherPrice,
-        };
-      })
-    );
-
-    console.log("Check detailedOrders: ", detailedOrders);
-
-    return detailedOrders;
+    const { data } = await fetchAllOrderByUserId(userId);
+    console.log("Check API: ", data);
+    return data;
   } catch (error) {
     console.error(error);
     return [];
   }
 };
 
-
-const fetchOrderRelation = async (id: number) => {
+const handleConfirm = async (orderId: string) => {
   try {
-    const { data } = await orderRelation(id);
-    console.log("Check API: ", data.data);
-    return data.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-};
-
-const handleComfirm = async (orderID: number) => {
-  try {
-    const order = {
-      OrderStatus: "Completed",
-      IsPayed: true,
-      IsActive: true,
-    };
-    await updateOrder(orderID, order);
+    await updateOrder(orderId);
   } catch (error) {
     console.error(error);
   }
@@ -129,25 +123,27 @@ const handleComfirm = async (orderID: number) => {
 
 const OrderList = () => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedOrderID, setSelectedOrderID] = useState<number | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orders, setOrders] = useState<DataType[]>([]);
   const navigate = useNavigate();
   const { AccountID } = useAuth();
 
   useEffect(() => {
+    console.log("useAuth AccountID:", AccountID);
     const fetchData = async () => {
       if (AccountID) {
-        const detailedOrders = await fetchAllOrder(AccountID);
-        setOrders(detailedOrders);
+        const ordersData = await fetchAllOrder(AccountID.toString());
+        setOrders(ordersData);
       }
     };
 
     fetchData();
   }, [AccountID]);
+
   const handleOk = () => {
     setShowModal(false);
-    if (selectedOrderID) {
-      handleComfirm(selectedOrderID);
+    if (selectedOrderId) {
+      handleConfirm(selectedOrderId);
     }
   };
 
@@ -157,74 +153,62 @@ const OrderList = () => {
 
   const columns: TableColumnsType<DataType> = [
     {
-      title: "OrderID",
-      dataIndex: "OrderID",
-      sorter: (a: DataType, b: DataType) => a.OrderID - b.OrderID,
+      title: "Order ID",
+      dataIndex: "id",
+      sorter: (a: DataType, b: DataType) => a.id.localeCompare(b.id),
     },
     {
       title: "Order Date",
-      dataIndex: "OrderDate",
+      dataIndex: "orderDate",
       render: (text) => formatDateTime(text),
       sorter: (a: DataType, b: DataType) =>
-        a.OrderDate.localeCompare(b.OrderDate),
+        a.orderDate.localeCompare(b.orderDate),
     },
     {
       title: "Total Price",
-      dataIndex: "TotalPrice",
-      render: (_, record) => {
-        const price = record.VoucherPrice  || record.TotalPrice ;
-        const shippingFee = record.Shippingfee || 0;
-        const totalPrice = parseFloat(price || "0") + shippingFee;
-        return formatPrice(Number(totalPrice || 0));
-      },
-      sorter: (a: DataType, b: DataType) =>
-        parseFloat(a.TotalPrice || "0") - parseFloat(b.TotalPrice || "0"),
+      dataIndex: "totalPrice",
+      render: (price) => formatPrice(price),
+      sorter: (a: DataType, b: DataType) => a.totalPrice - b.totalPrice,
     },
     {
-      title: "Status",
-      dataIndex: "OrderStatus",
-      render: (_, { OrderStatus }) => {
-        let color = "green";
-        if (OrderStatus === "Pending") {
-          color = "grey";
-        } else if (OrderStatus === "Completed") {
-          color = "#32CD32";
-        } else if (OrderStatus === "Canceled") {
-          color = "volcano";
-        } else if (OrderStatus === "Delivered") {
-          color = "blue";
-        }
+  title: "Status",
+  dataIndex: "status",
+  render: (_, { status }) => {
+    const statusText = getStatusText(status);
+    const color = statusColors[statusText] || statusColors.Unknown;
 
-        return (
-          <Tag color={color} key={OrderStatus}>
-            {OrderStatus.toUpperCase()}
-          </Tag>
-        );
-      },
-      filters: [
-        { text: "Completed", value: "Completed" },
-        { text: "Canceled", value: "Canceled" },
-        { text: "Delivering", value: "Delivering" },
-        { text: "Pending", value: "Pending" },
-      ],
-      onFilter: (value, record) =>
-        record.OrderStatus.indexOf(value as string) === 0,
-    },
+    return (
+      <Tag color={color} key={statusText}>
+        {statusText.toUpperCase()}
+      </Tag>
+    );
+  },
+  filters: [
+    { text: "Pending", value: 0 },
+    { text: "Accepted", value: 1 },
+    { text: "Delivering", value: 2 },
+    { text: "Delivered", value: 3 },
+    { text: "Completed", value: 4 },
+    { text: "Confirmed", value: 5 },
+    { text: "Canceled", value: 6 },
+  ],
+  onFilter: (value, record) => record.status === value,
+},
     {
       title: "Action",
       key: "action",
       render: (_, record) => (
         <Space style={{ width: 134 }} size="middle">
           <a
-            onClick={() => navigate(`/order-details?orderId=${record.OrderID}`)}
+            onClick={() => navigate(`/order-details?orderId=${record.id}`)}
           >
             View
           </a>
-          {record.OrderStatus === "Delivered" && (
+          {record.status === 5 && (
             <Button
               type="primary"
               onClick={() => {
-                setSelectedOrderID(record.OrderID);
+                setSelectedOrderId(record.id);
                 setShowModal(true);
               }}
             >
@@ -248,16 +232,17 @@ const OrderList = () => {
             dataSource={orders}
             pagination={{ pageSize: 6 }}
             onChange={onChange}
+            rowKey="id"
           />
         </TableContainer>
       </Section>
       <Modal
-        title="Comfirm Order"
-        visible={showModal}
+        title="Confirm Order"
+        open={showModal}
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <p>Are you sure you want to comfirm this order?</p>
+        <p>Are you sure you want to confirm this order?</p>
       </Modal>
     </main>
   );

@@ -55,7 +55,7 @@ namespace DiamondShopSystem.BLL.Handlers.User.Commands.Register
 
             return new UserRegisterResponseDto
             {
-                Success = true,
+                Success = true, 
                 Email = request.Dto.Email,
                 Error = "OTP sent to email. Please verify to complete registration."
             };

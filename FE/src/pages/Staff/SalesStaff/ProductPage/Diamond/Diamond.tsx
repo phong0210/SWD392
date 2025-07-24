@@ -177,7 +177,7 @@ const Diamond = () => {
       className: "TextAlign",
       render: (_, { id }) => (
         <Space size="middle">
-          <Link to={`/admin/product/diamond/detail/${id}`}>
+          <Link to={`/sales-staff/product/diamond/detail/${id}`}>
             <EyeOutlined />
           </Link>
         </Space>

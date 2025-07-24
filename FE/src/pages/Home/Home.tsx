@@ -52,56 +52,6 @@ import config from "@/config";
 import { useDocumentTitle } from "@/hooks";
 import { showAllProduct } from "@/services/productAPI";
 
-// import { getImage } from "@/services/imageAPI";
-
-const categories = [
-  {
-    href: `${config.routes.public.jewelryList.replace(":jewelryType", "ring")}`,
-    imgSrc:
-      "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Frings.png?alt=media&token=c98d3b13-b088-4446-beec-818451532578",
-    title: "Rings",
-  },
-  {
-    href: `${config.routes.public.jewelryList.replace(
-      ":jewelryType",
-      "necklace"
-    )}`,
-    imgSrc:
-      "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Fnecklaces.png?alt=media&token=f93e37c0-56ba-465b-8cd4-bae4e0f2f01b",
-    title: "Necklaces",
-  },
-  {
-    href: `${config.routes.public.jewelryList.replace(
-      ":jewelryType",
-      "earrings"
-    )}`,
-    imgSrc:
-      "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Fearring.png?alt=media&token=9463ef63-fd14-469e-85c4-acaadab99c89",
-    title: "Earrings",
-  },
-  {
-    href: `${config.routes.public.jewelryList.replace(
-      ":jewelryType",
-      "bracelet"
-    )}`,
-    imgSrc:
-      "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Fbracelets.png?alt=media&token=153a1833-4a24-465d-8cd8-27e2e7d8bb73",
-    title: "Bracelets",
-  },
-  {
-    href: `${config.routes.public.allEngagement}`,
-    imgSrc:
-      "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Fengagement-home(1)(1).png?alt=media&token=8eac7cdd-3705-4242-9859-c5987f91a1a0",
-    title: "Engagement Ring",
-  },
-  {
-    href: `${config.routes.public.allWedding}`,
-    imgSrc:
-      "https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Fwedding-home(1)(1).png?alt=media&token=cf3a01fb-63de-4daf-a868-0b99d0b667c4",
-    title: "Wedding Ring",
-  },
-];
-
 const shapes = [
   {
     href: `${config.routes.public.diamondList.replace(
@@ -304,7 +254,6 @@ const Home: React.FC = () => {
     (current - 1) * pageSize,
     current * pageSize
   );
-
   return (
     <Body>
       <Container>
@@ -329,34 +278,6 @@ const Home: React.FC = () => {
             </Button>
           </BannerContent>
         </Banner>
-        <Categories>
-          <Heading>
-            <h5>JEWELRY</h5>
-            <h2 className="title-cate">BY CATEGORIES</h2>
-          </Heading>
-          <Contain>
-            <DotGrid>
-              <StyledCarousel
-                slidesToShow={5}
-                slidesToScroll={3}
-                dots={true}
-                infinite={false}
-              >
-                {categories.map((category, index) => (
-                  <Cate key={index}>
-                    <StyledLink to={category.href}>
-                      <CateImage>
-                        <img src={category.imgSrc} alt={category.title} />
-                      </CateImage>
-
-                      <CateTitle>{category.title}</CateTitle>
-                    </StyledLink>
-                  </Cate>
-                ))}
-              </StyledCarousel>
-            </DotGrid>
-          </Contain>
-        </Categories>
         <Shape>
           <Heading>
             <h5>DIAMONDS</h5>
@@ -446,7 +367,6 @@ const Home: React.FC = () => {
             >
               {paginatedProducts.slice(0, 2).map((product, index) => {
                 const key = product.id || `${index}-${product.name}`;
-                console.log("Rendering product with id:", key);
 
                 return (
                   <div
@@ -465,12 +385,6 @@ const Home: React.FC = () => {
                             src={defaultImage}
                             alt={product.name}
                             className="product-image"
-                            onMouseOver={(e) =>
-                              (e.currentTarget.src = defaultImage)
-                            }
-                            onMouseOut={(e) =>
-                              (e.currentTarget.src = defaultImage)
-                            }
                           />
                         </Link>
                       }
@@ -501,19 +415,48 @@ const Home: React.FC = () => {
                 justifyContent: "center",
               }}
             >
-              {paginatedProducts.slice(0, 2).map((product, index) => {
-                const key = product.id || `${index}-${product.name}`;
-                console.log("Rendering product with id:", key);
+              {paginatedProducts.slice(2, 4).map((product, index) => {
+                const key = product.id || `${index + 2}-${product.name}`;
 
                 return (
                   <div
                     key={key}
                     className="card-wrapper"
                     style={{ marginBottom: index === 0 ? "16px" : "0" }}
-                  ></div>
+                  >
+                    <StyledCard
+                      style={{ borderRadius: "0", height: "100%" }}
+                      hoverable
+                      className="product-card"
+                      cover={
+                        <Link to={`/product/${product.id}`}>
+                          <img
+                            style={{ borderRadius: "0" }}
+                            src={defaultImage}
+                            alt={product.name}
+                            className="product-image"
+                          />
+                        </Link>
+                      }
+                    >
+                      <div className="product-info">
+                        <Title level={4} className="product-name">
+                          <Link to={`/product/${product.id}`}>
+                            <div>{product.name}</div>
+                          </Link>
+                        </Title>
+                        <div className="price-container">
+                          <Text className="product-price">
+                            ${product.price}
+                          </Text>
+                        </div>
+                      </div>
+                    </StyledCard>
+                  </div>
                 );
               })}
             </Col>
+
             <Col span={8} style={{ paddingLeft: "16px" }}>
               <div className="custom-cover">
                 <img

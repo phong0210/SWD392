@@ -121,7 +121,7 @@ const CollectionDetail = () => {
       className: "TextAlign",
       render: (_: unknown, record: any) => (
         <Space size="middle">
-          <Link to={`/admin/product/diamond/detail/${record.id}`}>
+          <Link to={`/sales-staff/product/diamond/detail/${record.id}`}>
             <EyeOutlined />
           </Link>
         </Space>

@@ -21,6 +21,8 @@ namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Create
         {
             var loyaltyPoint = _mapper.Map<DiamondShopSystem.DAL.Entities.LoyaltyPoints>(request.Dto);
             loyaltyPoint.Id = Guid.NewGuid();
+            loyaltyPoint.PointsEarned = 0;
+            loyaltyPoint.PointsRedeemed = 0;
             loyaltyPoint.LastUpdated = DateTime.UtcNow;
 
             await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.LoyaltyPoints>().AddAsync(loyaltyPoint);
