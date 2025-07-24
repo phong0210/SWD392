@@ -10,10 +10,10 @@ using DiamondShopSystem.BLL.Handlers.Order.Queries.GetRevenueSummary;
 using DiamondShopSystem.DAL.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.EF;
-
 
 namespace DiamondShopSystem.BLL.Services.Order
 {
@@ -32,8 +32,67 @@ namespace DiamondShopSystem.BLL.Services.Order
 
         public async Task<CreateOrderResponseDto> CreateOrderAsync(CreateOrderDto createOrderDto)
         {
-            // Implementation for creating an order
-            throw new NotImplementedException();
+            // Validate input
+            if (createOrderDto.CustomerId == Guid.Empty)
+            {
+                return new CreateOrderResponseDto { Success = false, Error = "Invalid customer ID." };
+            }
+            if (createOrderDto.OrderItems == null || !createOrderDto.OrderItems.Any())
+            {
+                return new CreateOrderResponseDto { Success = false, Error = "Order must contain at least one item." };
+            }
+            if (createOrderDto.OrderItems.Any(item => item.ProductId == Guid.Empty || item.Quantity <= 0))
+            {
+                return new CreateOrderResponseDto { Success = false, Error = "Invalid product ID or quantity in order items." };
+            }
+
+            // Map DTO to Order entity
+            var order = _mapper.Map<DiamondShopSystem.DAL.Entities.Order>(createOrderDto);
+            order.Id = Guid.NewGuid();
+            order.OrderDate = DateTime.UtcNow;
+            order.Status = (int)OrderStatus.Pending;
+            order.UserId = createOrderDto.CustomerId; // Map CustomerId to UserId
+
+            // Map OrderItems to OrderDetail entities
+            var orderDetails = new List<DiamondShopSystem.DAL.Entities.OrderDetail>();
+            foreach (var item in createOrderDto.OrderItems)
+            {
+                // Validate product existence
+                var product = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>()
+                                              .GetAllQueryable()
+                                              .FirstOrDefaultAsync(p => p.Id == item.ProductId);
+                if (product == null)
+                {
+                    return new CreateOrderResponseDto { Success = false, Error = $"Product not found for ProductId {item.ProductId}." };
+                }
+
+                orderDetails.Add(new DiamondShopSystem.DAL.Entities.OrderDetail
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = order.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice // Use UnitPrice from DTO
+                });
+            }
+
+            // Calculate TotalPrice
+            order.TotalPrice = orderDetails.Sum(od => od.Quantity * od.UnitPrice);
+
+            // Add order and order details to repository
+            await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>().AddAsync(order);
+            foreach (var orderDetail in orderDetails)
+            {
+                await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.OrderDetail>().AddAsync(orderDetail);
+            }
+
+            // Save changes
+            await _unitOfWork.SaveChangesAsync();
+
+            // Map to response DTO
+            var response = _mapper.Map<CreateOrderResponseDto>(order);
+            response.Success = true;
+            return response;
         }
 
         public async Task<UpdateOrderResponseDto> UpdateOrderAsync(Guid id, UpdateOrderDto updateOrderDto)
@@ -41,6 +100,8 @@ namespace DiamondShopSystem.BLL.Services.Order
             var existingOrder = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>()
                                             .GetAllQueryable()
                                             .Include(o => o.User)
+                                            .Include(o => o.OrderDetails)
+                                            .ThenInclude(od => od.Product)
                                             .FirstOrDefaultAsync(o => o.Id == id);
 
             if (existingOrder == null)
@@ -51,8 +112,32 @@ namespace DiamondShopSystem.BLL.Services.Order
             // Determine the next status
             OrderStatus currentStatus = (OrderStatus)existingOrder.Status;
             OrderStatus nextStatus = GetNextStatus(currentStatus);
-            existingOrder.Status = (int)nextStatus;
 
+            // Check if transitioning from Pending to Confirmed
+            if (currentStatus == OrderStatus.Pending && nextStatus == OrderStatus.Confirmed)
+            {
+                // Check and update inventory
+                foreach (var orderDetail in existingOrder.OrderDetails)
+                {
+                    var product = orderDetail.Product;
+                    if (product == null)
+                    {
+                        return new UpdateOrderResponseDto { Success = false, Error = $"Product not found for OrderDetail {orderDetail.Id}." };
+                    }
+
+                    if (product.StockQuantity < orderDetail.Quantity)
+                    {
+                        return new UpdateOrderResponseDto { Success = false, Error = $"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {orderDetail.Quantity}." };
+                    }
+
+                    // Deduct the stock quantity
+                    product.StockQuantity -= orderDetail.Quantity;
+                    _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Product>().Update(product);
+                }
+            }
+
+            // Update the order status
+            existingOrder.Status = (int)nextStatus;
             _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Order>().Update(existingOrder);
             await _unitOfWork.SaveChangesAsync();
 
@@ -75,39 +160,34 @@ namespace DiamondShopSystem.BLL.Services.Order
                 OrderStatus.Delivering => OrderStatus.Delivered,
                 OrderStatus.Delivered => OrderStatus.Completed,
                 OrderStatus.Completed => OrderStatus.Confirm,
-                OrderStatus.Confirm => OrderStatus.Cancelled, // Transition from Confirm to Cancelled
-                OrderStatus.Cancelled => OrderStatus.Cancelled, // No change for Cancelled
-                _ => currentStatus // No change for other statuses
+                OrderStatus.Confirm => OrderStatus.Cancelled,
+                OrderStatus.Cancelled => OrderStatus.Cancelled,
+                _ => currentStatus
             };
         }
 
         public async Task<bool> DeleteOrderAsync(Guid id)
         {
-            // Implementation for deleting an order
             throw new NotImplementedException();
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
         {
-            // Implementation for getting all orders
             throw new NotImplementedException();
         }
 
         public async Task<GetOrderByIdResponseDto> GetOrderByIdAsync(Guid id)
         {
-            // Implementation for getting an order by ID
             throw new NotImplementedException();
         }
 
         public async Task<GetOrderRelationsResponseDto> GetOrderRelationsAsync(Guid id)
         {
-            // Implementation for getting order relations
             throw new NotImplementedException();
         }
 
         public async Task<GetRevenueSummaryResponseDto> GetRevenueSummaryAsync()
         {
-            // Implementation for getting revenue summary
             throw new NotImplementedException();
         }
 
@@ -140,7 +220,7 @@ namespace DiamondShopSystem.BLL.Services.Order
                                                 .Select(g => new WeeklyRevenueSummaryDto
                                                 {
                                                     WeekStartDate = g.Key,
-                                                    WeekEndDate = g.Key.AddDays(6), // Assuming week starts on Monday
+                                                    WeekEndDate = g.Key.AddDays(6),
                                                     TotalRevenue = g.Sum(o => o.TotalPrice)
                                                 })
                                                 .OrderBy(w => w.WeekStartDate)
