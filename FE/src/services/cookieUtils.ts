@@ -48,6 +48,19 @@ class CookieUtils {
   clear() {
     cookies.remove(config.cookies.token, { path: "/" });
   }
-}
 
+ clearCartCookie = () => {
+  try {
+    const cart = cookies.get("cart");
+    if (cart) {
+      cookies.remove("cart", { path: "/" });
+      console.log("[CookieUtils] Cart cookie cleared successfully");
+    } else {
+      console.log("[CookieUtils] No cart cookie found to clear");
+    }
+  } catch (error) {
+    console.error("[CookieUtils] Error clearing cart cookie:", error);
+  }
+}
+}
 export default new CookieUtils();

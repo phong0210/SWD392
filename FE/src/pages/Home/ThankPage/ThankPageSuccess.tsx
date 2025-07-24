@@ -10,6 +10,7 @@ import { Container } from "./ThankPage.styled";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import config from "@/config";
 import { useAppSelector, useAppDispatch } from "@/hooks";
+import { clearCart } from "@/services/cartAPI";
 import {
   captureOrderPaypalAsync,
   handleVNPayReturnAsync,
@@ -51,6 +52,7 @@ const ThankPageSuccess: React.FC = () => {
         "[ThankPageSuccess] Cleaning up, removing CurrentOrderID from localStorage"
       );
       localStorage.removeItem("CurrentOrderID");
+      clearCart();
       dispatch(resetOrderStatus());
     };
   }, [location.search, dispatch]);

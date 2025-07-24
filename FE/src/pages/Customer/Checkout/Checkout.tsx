@@ -17,7 +17,8 @@ import { createOrderAsync, resetOrderStatus } from "@/store/slices/orderSlice";
 import { createOrderPaypal, createVnPayPayment } from "@/services/paymentAPI";
 import vipAPI from "@/services/vipAPI";
 import { clearCart } from "@/store/slices/cartSlice";
-import { clear } from "console";
+import CookieUtils from "@/services/cookieUtils";
+
 
 const Checkout: React.FC = () => {
   const { AccountID, user } = useAuth();
@@ -121,99 +122,96 @@ const Checkout: React.FC = () => {
   }, [dispatch, orderStatus]);
 
   // Effect to handle navigation after order creation
-  useEffect(() => {
-    if (orderStatus === "succeeded" && order && order.id) {
-      console.log("[Checkout] Order status succeeded, order:", order);
+useEffect(() => {
+  if (orderStatus === "succeeded" && order && order.id) {
+    console.log("[Checkout] Order status succeeded, order:", order);
 
-      const paymentMethod = order.payments?.[0]?.method;
+    const paymentMethod = order.payments?.[0]?.method;
 
-      if (paymentMethod === PaymentMethodEnum.PAYPAL.toString()) {
-        console.log("[Checkout] Initiating PayPal flow for order:", order.id);
-        createOrderPaypal(order.totalPrice)
-          .then((createPayment) => {
-            const approvalUrl = createPayment.data.links.find(
-              (link: any) => link.rel === "approve"
-            )?.href;
-            if (approvalUrl) {
-              console.log(
-                "[Checkout] Redirecting to PayPal approval URL:",
-                approvalUrl
-              );
-              window.location.href = approvalUrl;
-            } else {
-              throw new Error("PayPal approval URL not found");
-            }
-          })
-          .catch((error) => {
-            console.error("[Checkout] PayPal error:", error);
-            api.error({
-              message: "PayPal Error",
-              description:
-                error.message ||
-                "Failed to create PayPal payment. Please try again.",
-            });
-            setLoading(false);
-          });
-      } else if (paymentMethod === PaymentMethodEnum.VNPAY.toString()) {
-        console.log("[Checkout] Initiating VNPay flow for order:", order.id);
-        createVnPayPayment({
-          amount: order.totalPrice,
-          orderDescription: `Payment for order #${order.id}`,
-          name: Customer?.Name || user?.Name || "Customer",
-          orderId: order.id,
-          returnUrlSuccess: `${window.location.origin}${config.routes.public.success}`,
-          returnUrlFail: `${window.location.origin}${config.routes.public.fail}`,
+    if (paymentMethod === PaymentMethodEnum.PAYPAL.toString()) {
+      // PayPal flow
+      console.log("[Checkout] Initiating PayPal flow for order:", order.id);
+      createOrderPaypal(order.totalPrice)
+        .then((createPayment) => {
+          const approvalUrl = createPayment.data.links.find(
+            (link: any) => link.rel === "approve"
+          )?.href;
+          if (approvalUrl) {
+            console.log("[Checkout] Redirecting to PayPal approval URL:", approvalUrl);
+            window.location.href = approvalUrl;
+          } else {
+            throw new Error("PayPal approval URL not found");
+          }
         })
-          .then((createPayment) => {
-            const approvalUrl = createPayment.data.url;
-            if (approvalUrl) {
-              console.log(
-                "[Checkout] Redirecting to VNPay approval URL:",
-                approvalUrl
-              );
-              window.location.href = approvalUrl;
-            } else {
-              throw new Error("VNPay approval URL not found");
-            }
-          })
-          .catch((error) => {
-            console.error("[Checkout] VNPay error:", error);
-            api.error({
-              message: "VNPay Error",
-              description:
-                error.message ||
-                "Failed to create VNPay payment. Please try again.",
-            });
-            setLoading(false);
+        .catch((error) => {
+          console.error("[Checkout] PayPal error:", error);
+          api.error({
+            message: "PayPal Error",
+            description: error.message || "Failed to create PayPal payment. Please try again.",
           });
-      } else {
-        // COD or other payment methods
-        console.log(
-          "[Checkout] Navigating to success page for COD order:",
-          order.id
-        );
-       clearCart();
+          setLoading(false);
+        });
+    } else if (paymentMethod === PaymentMethodEnum.VNPAY.toString()) {
+      // VNPay flow
+      console.log("[Checkout] Initiating VNPay flow for order:", order.id);
+      createVnPayPayment({
+        amount: order.totalPrice,
+        orderDescription: `Payment for order #${order.id}`,
+        name: Customer?.Name || user?.Name || "Customer",
+        orderId: order.id,
+        returnUrlSuccess: `${window.location.origin}${config.routes.public.success}`,
+        returnUrlFail: `${window.location.origin}${config.routes.public.fail}`,
+      })
+        .then((createPayment) => {
+          const approvalUrl = createPayment.data.url;
+          if (approvalUrl) {
+            console.log("[Checkout] Redirecting to VNPay approval URL:", approvalUrl);
+            window.location.href = approvalUrl;
+          } else {
+            throw new Error("VNPay approval URL not found");
+          }
+        })
+        .catch((error) => {
+          console.error("[Checkout] VNPay error:", error);
+          api.error({
+            message: "VNPay Error",
+            description: error.message || "Failed to create VNPay payment. Please try again.",
+          });
+          setLoading(false);
+        });
+    } else {
+      // COD or other payment methods
+      console.log("[Checkout] Navigating to success page for COD order:", order.id);
+      try {
+        CookieUtils.clearCartCookie();
+        navigate(config.routes.public.success);
+      } catch (error) {
+        console.error("[Checkout] Error clearing cart cookie:", error);
+        api.error({
+          message: "Cart Clear Error",
+          description: "Failed to clear cart. Proceeding to success page.",
+        });
         navigate(config.routes.public.success);
       }
-    } else if (orderStatus === "failed") {
-      console.error("[Checkout] Order creation failed, error:", orderError);
-      api.error({
-        message: "Order Creation Failed",
-        description:
-          orderError || "An error occurred while creating your order",
-      });
-      setLoading(false);
     }
-  }, [
-    orderStatus,
-    order,
-    orderError,
-    navigate,
-    api,
-    Customer?.Name,
-    user?.Name,
-    dispatch,
-  ]);
+  } else if (orderStatus === "failed") {
+    console.error("[Checkout] Order creation failed, error:", orderError);
+    api.error({
+      message: "Order Creation Failed",
+      description: orderError || "An error occurred while creating your order",
+    });
+    setLoading(false);
+  }
+}, [
+  orderStatus,
+  order,
+  orderError,
+  navigate,
+  api,
+  Customer?.Name,
+  user?.Name,
+  dispatch,
+]);
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -250,6 +248,9 @@ const Checkout: React.FC = () => {
       };
 
       console.log("[Checkout] Submitting order:", requestBodyOrder);
+      dispatch(clearCart(AccountID?.toString() || ""));
+      console.log("[Checkout] Cart cleared after order submission", AccountID);
+      CookieUtils.clearCartCookie();
       await dispatch(createOrderAsync(requestBodyOrder)).unwrap();
     } catch (error: any) {
       console.error("[Checkout] Checkout error:", error);

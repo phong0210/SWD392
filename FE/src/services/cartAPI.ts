@@ -78,8 +78,7 @@ export const updateCartItemQuantity = (itemId: string, quantity: number, account
 
 // Clear cart
 export const clearCart = (accountId?: string | null): void => {
-    // This function now does nothing, as we want to persist the cart in cookies.
-    // The Redux state will be cleared by the clearCart thunk.
     const effectiveAccountId = accountId ?? getAccountID();
-    console.log(`[clearCart] Clearing cart state for account: ${effectiveAccountId || 'anonymous'}, but not removing cookie.`);
+    const CART_COOKIE_KEY = getCartCookieKey(effectiveAccountId);
+    Cookies.remove(CART_COOKIE_KEY);
 };
