@@ -1,19 +1,21 @@
 import { Input } from "antd";
 import { Rule } from "antd/es/form";
 import { NamePath } from "antd/es/form/interface";
+import { ReactNode } from "react";
 import { EyeInvisibleOutlinedIcon, EyeOutlinedIcon } from "./AuthFrom.styled";
+import { EyeInvisibleOutlined, EyeTwoTone, MailOutlined } from '@ant-design/icons';
 
 export type FieldType = {
-    key: number;
+    key: number | string;
     label: string;
     name: string;
     dependencies?: NamePath;
     rules: Rule[];
-    children: JSX.Element;
+    children: ReactNode;
     initialValue?: string;
 }
 
-const validateWhitespace = (_: unknown, value: string) => {
+const validateWhitespace = (_: unknown, value: string): Promise<void> => {
     if (value && value.trim() === '') {
         return Promise.reject('Please enter a valid value');
     }
@@ -52,7 +54,7 @@ export const LoginFields: FieldType[] = [
         ],
         children: (
             <Input.Password
-                iconRender={(visible) => visible ? <EyeOutlinedIcon /> : <EyeInvisibleOutlinedIcon />}
+                iconRender={(visible: boolean) => visible ? <EyeOutlinedIcon /> : <EyeInvisibleOutlinedIcon />}
                 placeholder=""
             />
         )
@@ -121,7 +123,7 @@ export const RegisterFields: FieldType[] = [
         ],
         children: (
             <Input.Password
-                iconRender={(visible) => visible ? <EyeOutlinedIcon /> : <EyeInvisibleOutlinedIcon />}
+                iconRender={(visible: boolean) => visible ? <EyeOutlinedIcon /> : <EyeInvisibleOutlinedIcon />}
                 placeholder=""
             />
         )
@@ -144,5 +146,85 @@ export const OtpFields: FieldType[] = [
             }
         ],
         children: <Input placeholder="" />,
+    },
+];
+
+// Forgot Password Fields (Email input)
+export const ForgotPasswordFields: FieldType[] = [
+    {
+        key: 'forgot-password-email',
+        label: 'Email Address',
+        name: 'Email',
+        rules: [
+            {
+                required: true,
+                message: 'Please enter your email address!',
+            },
+            {
+                type: 'email',
+                message: 'Please enter a valid email address!',
+            },
+        ],
+        children: (
+            <Input
+                placeholder=""
+            />
+        ),
+    },
+];
+
+// Reset Password Fields (New password and confirm password)
+export const ResetPasswordFields: FieldType[] = [
+    {
+        key: 'reset-password',
+        label: 'New Password',
+        name: 'Password',
+        rules: [
+            {
+                required: true,
+                message: 'Please enter your new password!',
+            },
+            {
+                min: 8,
+                message: 'Password must be at least 8 characters long!',
+            },
+            {
+                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+                message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character!',
+            },
+        ],
+        children: (
+            <Input.Password
+                placeholder=""
+                size="large"
+                iconRender={(visible: boolean) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+            />
+        ),
+    },
+    {
+        key: 'confirm-reset-password',
+        label: 'Confirm New Password',
+        name: 'ConfirmPassword',
+        rules: [
+            {
+                required: true,
+                message: 'Please confirm your new password!',
+            },
+            ({ getFieldValue }) => ({
+                validator(_: unknown, value: string) {
+                    if (!value || getFieldValue('Password') === value) {
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('Passwords do not match!'));
+                },
+            }),
+        ],
+        children: (
+            <Input.Password
+                placeholder=""
+                size="large"
+                iconRender={(visible: boolean) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+            />
+        ),
     },
 ];

@@ -286,6 +286,22 @@ export const FormImage = styled(Image)`
     object-fit: cover;
 `;
 
+// Add this to your AuthForm.styled.ts file
 
+export const FormForgotPasswordButton = styled.button`
+    display: block;
+    margin: 12px auto;
+    padding: 0;
+    font-size: 1rem;
+    color: ${theme.color.textSecondary};
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+
+    &:hover {
+        color: ${theme.color.textPrimary};
+    }
+`;
 
 
