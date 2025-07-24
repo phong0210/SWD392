@@ -3,12 +3,12 @@ const routes = {
     home: "/",
     login: "/login",
     register: "/register",
-    
+
     setPassword: "/set-password",
     notFound: "/404",
     product: "/product",
     productDetail: "/product/:id",
-    diamondDetail: "/diamond/:id",
+    diamondDetail: "/product/:id",
     jewelryList: "/jewelry/:jewelryType",
     diamondList: "/diamond/shape/:diamondShape",
     firmList: "/jewelry/firm/:jewelryFirm",
@@ -20,7 +20,7 @@ const routes = {
     gift: "/gift/:jewelryType",
     giftFirm: "/gift/firm/:jewelryFirm",
     ringGuide: "/ring-guide",
-    diamond: "/diamond",
+    diamond: "/all",
     collection: "/collection",
     collectionInfo: "/info",
     coming: "/coming",
@@ -63,7 +63,7 @@ const routes = {
     orderDetails: "/order-details",
     reviewFeedBack: "/review-feedback",
     vip: "/vip",
-    loyalty: "/loyalty"
+    loyalty: "/loyalty",
   },
   admin: {
     dashboard: "/admin",
@@ -87,6 +87,7 @@ const routes = {
     jewelryTypeProduct: "/admin/product/jewelry-type",
     materialProduct: "/admin/product/material",
     marketing: "/admin/marketing",
+    collection: "/admin/marketing/collection",
     collectionDetail: "/admin/marketing/collection/detail/:id",
     discount: "/admin/marketing/discount",
     discountDetail: "/admin/marketing/discount/detail/:id",

@@ -9,27 +9,17 @@ import {
   LeftSection,
 } from "./AllProduct.styled";
 import { Card, Col, Row, Typography, Spin } from "antd";
-import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { showAllProduct } from "@/services/productAPI";
-import { getImage } from "@/services/imageAPI";
 import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
 import defaultImage from "@/assets/diamond/defaultImage.png";
 
 const { Title, Text } = Typography;
 
 const AllProduct: React.FC = () => {
-  const excludedCategories = [
-    "Wedding Ring",
-    "Engagement Ring",
-    "Men Engagement Ring",
-    "Men Wedding Ring",
-  ];
-
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
-  const [wishList, setWishList] = useState<string[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
@@ -85,30 +75,10 @@ const AllProduct: React.FC = () => {
 
   useEffect(() => {
     const filtered = products.filter(
-      (product) =>
-        !excludedCategories.includes(product.type) && product.isHidden === false // Chỉ hiển thị sản phẩm có isHidden = true
+      (product) => product.isHidden === false // Chỉ hiển thị sản phẩm có isHidden = true
     );
     setFilteredProducts(filtered);
   }, [products]);
-
-  useEffect(() => {
-    const savedWishList = sessionStorage.getItem("wishlist");
-    if (savedWishList) {
-      setWishList(JSON.parse(savedWishList));
-    }
-  }, []);
-
-  useEffect(() => {
-    sessionStorage.setItem("wishlist", JSON.stringify(wishList));
-  }, [wishList]);
-
-  const toggleWishList = (productId: string) => {
-    setWishList((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-  };
 
   const handleChangePage = (page: any) => {
     setCurrentPage(page);
@@ -211,34 +181,7 @@ const AllProduct: React.FC = () => {
                         <Link to={`/product/${product.id}`}>
                           <div>{product.name}</div>
                         </Link>
-                        {wishList.includes(product.id) ? (
-                          <HeartFilled
-                            className="wishlist-icon"
-                            onClick={() => toggleWishList(product.id)}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className="wishlist-icon"
-                            onClick={() => toggleWishList(product.id)}
-                          />
-                        )}
                       </Title>
-                      <div className="price-container">
-                        {product.discountFirstPrice ? (
-                          <>
-                            <Text className="product-price">
-                              ${product.discountFirstPrice}
-                            </Text>
-                            <Text delete className="product-sale-price">
-                              ${product.firstPrice}
-                            </Text>
-                          </>
-                        ) : (
-                          <Text className="product-price">
-                            ${product.firstPrice}
-                          </Text>
-                        )}
-                      </div>
                     </div>
                   </Card>
                 </Col>

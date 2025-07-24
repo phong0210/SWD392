@@ -231,32 +231,11 @@ const brand = [
 const Home: React.FC = () => {
   useDocumentTitle("Aphromas Diamond");
 
-  const [wishList, setWishList] = useState<number[]>([]);
-
-  useEffect(() => {
-    const savedWishList = sessionStorage.getItem("wishlist");
-    if (savedWishList) {
-      setWishList(JSON.parse(savedWishList));
-    }
-  }, []);
-
-  useEffect(() => {
-    sessionStorage.setItem("wishlist", JSON.stringify(wishList));
-  }, [wishList]);
-
-  // const toggleWishList = (productId: number) => {
-  //   setWishList((prev) =>
-  //     prev.includes(productId)
-  //       ? prev.filter((id) => id !== productId)
-  //       : [...prev, productId]
-  //   );
-  // };
-
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [current, setCurrent] = useState(1);
-  const pageSize = 2;
+  const pageSize = 4;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -314,23 +293,11 @@ const Home: React.FC = () => {
     setCurrent(page);
   };
 
-  const excludedCategories = [
-    "Wedding Ring",
-    "Engagement Ring",
-    "Men Engagement Ring",
-    "Men Wedding Ring",
-  ];
-
   useEffect(() => {
-    const filtered = products.filter(
-      (product) => !excludedCategories.includes(product.type || "")
+    const visibleProducts = products.filter(
+      (product) => product.isHidden === false
     );
-
-    const sortedAndLimited = filtered
-      .sort((a, b) => (b.star || 0) - (a.star || 0))
-      .slice(0, 8);
-
-    setFilteredProducts(sortedAndLimited);
+    setFilteredProducts(visibleProducts);
   }, [products]);
 
   const paginatedProducts = filteredProducts.slice(
@@ -358,12 +325,6 @@ const Home: React.FC = () => {
                 onClick={() => navigate(config.routes.public.allProduct)}
               >
                 SHOP ALL
-              </button>
-              <button
-                className="shopSale"
-                onClick={() => navigate(config.routes.public.sale)}
-              >
-                SHOP SALE JEWELRY
               </button>
             </Button>
           </BannerContent>
@@ -427,12 +388,7 @@ const Home: React.FC = () => {
         <Banner2>
           <Banner2Container>
             <Row gutter={[0, 0]}>
-              <Col xs={24} md={12}>
-                <StyledImage
-                  src="https://firebasestorage.googleapis.com/v0/b/testsaveimage-abb59.appspot.com/o/Home%2Fmodel.f0d74.jpg?alt=media&token=912a91dc-09f3-43f4-8708-5246d4c912ab"
-                  alt=""
-                />
-              </Col>
+              <Col xs={24} md={12}></Col>
               <Col xs={24} md={12}>
                 <StyledContent>
                   <Title
@@ -516,9 +472,6 @@ const Home: React.FC = () => {
                               (e.currentTarget.src = defaultImage)
                             }
                           />
-                          {product.salePrice && (
-                            <div className="sale-badge">SALE</div>
-                          )}
                         </Link>
                       }
                     >
@@ -530,15 +483,8 @@ const Home: React.FC = () => {
                         </Title>
                         <div className="price-container">
                           <Text className="product-price">
-                            $
-                            {(product.firstPrice || 0) +
-                              (product.totalDiamondPrice || 0)}
+                            ${product.price}
                           </Text>
-                          {product.salePrice && (
-                            <Text delete className="product-sale-price">
-                              ${product.totalDiamondPrice}
-                            </Text>
-                          )}
                         </div>
                       </div>
                     </StyledCard>
@@ -564,63 +510,7 @@ const Home: React.FC = () => {
                     key={key}
                     className="card-wrapper"
                     style={{ marginBottom: index === 0 ? "16px" : "0" }}
-                  >
-                    <StyledCard
-                      style={{ borderRadius: "0", height: "100%" }}
-                      hoverable
-                      className="product-card"
-                      cover={
-                        <Link to={`/product/${product.id}`}>
-                          <img
-                            style={{ borderRadius: "0" }}
-                            src={defaultImage}
-                            alt={product.name}
-                            className="product-image"
-                            onMouseOver={(e) =>
-                              (e.currentTarget.src = defaultImage)
-                            }
-                            onMouseOut={(e) =>
-                              (e.currentTarget.src = defaultImage)
-                            }
-                          />
-                          {product.salePrice && (
-                            <div className="sale-badge">SALE</div>
-                          )}
-                        </Link>
-                      }
-                    >
-                      <div className="product-info">
-                        <Title level={4} className="product-name">
-                          <Link to={`/product/${product.id}`}>
-                            <div>{product.name}</div>
-                          </Link>
-                          {/* {wishList.includes(product.id) ? (
-                          <HeartFilled
-                            className="wishlist-icon"
-                            // onClick={() => toggleWishList(product.id)}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className="wishlist-icon"
-                            // onClick={() => toggleWishList(product.id)}
-                          />
-                        )} */}
-                        </Title>
-                        <div className="price-container">
-                          <Text className="product-price">
-                            $
-                            {(product.firstPrice || 0) +
-                              (product.totalDiamondPrice || 0)}
-                          </Text>
-                          {product.salePrice && (
-                            <Text delete className="product-sale-price">
-                              ${product.totalDiamondPrice}
-                            </Text>
-                          )}
-                        </div>
-                      </div>
-                    </StyledCard>
-                  </div>
+                  ></div>
                 );
               })}
             </Col>
@@ -669,9 +559,6 @@ const Home: React.FC = () => {
             <Button>
               <button onClick={() => navigate(config.routes.public.allProduct)}>
                 SHOPPING NOW!
-              </button>
-              <button onClick={() => navigate(config.routes.public.sale)}>
-                ALL SHOP SALE
               </button>
             </Button>
           </Banner4Container>

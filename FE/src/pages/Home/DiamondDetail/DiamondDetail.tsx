@@ -57,7 +57,7 @@ import {
 import { getImage } from "@/services/imageAPI";
 import { Modal } from "antd";
 
-import { getProductDetails } from "@/services/productAPI";
+import { getProductDetails, showAllProduct } from "@/services/productAPI";
 import { Product } from "@/models/Entities/Product";
 import defaultImage from "@/assets/diamond/defaultImage.png";
 
@@ -120,8 +120,11 @@ const DiamondDetails: React.FC = () => {
     const fetchDiamondDetails = async () => {
       try {
         console.log("Fetching diamond details...");
+       
         const response = await getProductDetails(id);
+
         console.log("Response from getProductDetails:", response.data);
+       
         if (response.status === 200) {
           const product = response.data;
           const foundProduct = product.product;
@@ -139,54 +142,54 @@ const DiamondDetails: React.FC = () => {
           }
           setSelectedThumb(0);
 
-          // const weightCarat = product.WeightCarat;
-          // const params = { weightCarat };
-          // const sameWeightProductsResponse = await showDiamonds(params);
+          const weightCarat = product.WeightCarat;
+          const params = { weightCarat };
+          const sameWeightProductsResponse = await showDiamonds(params);
 
-          // if (sameWeightProductsResponse.status === 200) {
-          //   if (
-          //     sameWeightProductsResponse.data &&
-          //     Array.isArray(sameWeightProductsResponse.data.data)
-          //   ) {
-          //     const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
-          //       (item: any) => ({
-          //         id: item.DiamondID,
-          //         name: item.Name,
-          //         cut: item.Cut,
-          //         stars: item.Stars,
-          //         price: item.Price,
-          //         color: item.Color,
-          //         description: item.Description,
-          //         isActive: item.IsActive,
-          //         clarity: item.Clarity,
-          //         cutter: item.Cutter,
-          //         discountPrice: item.DiscountPrice,
-          //         images: item.usingImage.map((image: any) => ({
-          //           id: image.UsingImageID,
-          //           name: image.Name,
-          //           url: getImage(image.UsingImageID),
-          //         })),
-          //       })
-          //     );
+          if (sameWeightProductsResponse.status === 200) {
+            if (
+              sameWeightProductsResponse.data &&
+              Array.isArray(sameWeightProductsResponse.data.data)
+            ) {
+              const fetchedDiamonds = sameWeightProductsResponse.data.data.map(
+                (item: any) => ({
+                  id: item.DiamondID,
+                  name: item.Name,
+                  cut: item.Cut,
+                  stars: item.Stars,
+                  price: item.Price,
+                  color: item.Color,
+                  description: item.Description,
+                  isActive: item.IsActive,
+                  clarity: item.Clarity,
+                  cutter: item.Cutter,
+                  discountPrice: item.DiscountPrice,
+                  images: item.usingImage.map((image: any) => ({
+                    id: image.UsingImageID,
+                    name: image.Name,
+                    url: getImage(image.UsingImageID),
+                  })),
+                })
+              );
 
-          //     const maxProductsToShow = 4;
-          //     const productsToShow =
-          //       fetchedDiamonds.length <= maxProductsToShow
-          //         ? fetchedDiamonds
-          //         : fetchedDiamonds
-          //             .sort(() => 0.5 - Math.random())
-          //             .slice(0, maxProductsToShow);
+              const maxProductsToShow = 4;
+              const productsToShow =
+                fetchedDiamonds.length <= maxProductsToShow
+                  ? fetchedDiamonds
+                  : fetchedDiamonds
+                      .sort(() => 0.5 - Math.random())
+                      .slice(0, maxProductsToShow);
 
-          //     setSameBrandProducts(productsToShow);
-          //   } else {
-          //     setSameBrandProducts([]);
-          //   }
-          // } else {
-          //   setSameBrandProducts([]);
-          // }
-          // if (diamondId !== null) {
-          //   await fetchFeedbackDetail(diamondId);
-          // }
+              setSameBrandProducts(productsToShow);
+            } else {
+              setSameBrandProducts([]);
+            }
+          } else {
+            setSameBrandProducts([]);
+          }
+          if (diamondId !== null) {
+            await fetchFeedbackDetail(diamondId);
+          }
         } else {
           setFoundProduct(null);
         }

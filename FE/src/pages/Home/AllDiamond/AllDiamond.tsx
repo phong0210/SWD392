@@ -11,16 +11,12 @@ import {
   LeftSection,
 } from "./AllDiamond.styled";
 import { Card, Col, Row, Typography, Spin } from "antd";
-import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { labels, texts } from "./AllDiamond.props";
 import { useDocumentTitle } from "@/hooks";
 import { Link } from "react-router-dom";
 import { showAllProduct } from "@/services/productAPI";
 import { Product, ProductApiResponseItem } from "@/models/Entities/Product";
-import { UUID } from "crypto";
 import defaultImage from "@/assets/diamond/defaultImage.png";
-
-const { Title, Text } = Typography;
 
 const items = texts.map((text, index) => ({
   key: (index + 1).toString(),
@@ -38,17 +34,8 @@ const AllDiamond: React.FC = () => {
   const [diamonds, setDiamonds] = useState<Product[]>([]);
   const [filteredDiamonds, setFilteredDiamonds] = useState<Product[]>([]); // Thêm state để lưu diamonds đã lọc
   const [loading, setLoading] = useState<boolean>(true);
-  const [wishList, setWishList] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
-
-  const toggleWishList = (productId: UUID) => {
-    setWishList((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
-  };
 
   const handleChangePage = (page: any) => {
     setCurrentPage(page);
@@ -135,7 +122,7 @@ const AllDiamond: React.FC = () => {
               href: "/",
             },
             {
-              title: "All Diamond",
+              title: "All Products",
             },
           ]}
         />
@@ -175,7 +162,7 @@ const AllDiamond: React.FC = () => {
                   hoverable
                   className="product-card"
                   cover={
-                    <Link to={`/diamond/${diamond.id}`}>
+                    <Link to={`/product/${diamond.id}`}>
                       <img
                         style={{ borderRadius: "0" }}
                         src={defaultImage}
@@ -189,39 +176,7 @@ const AllDiamond: React.FC = () => {
                       {diamond.price && <div className="sale-badge">SALE</div>}
                     </Link>
                   }
-                >
-                  <div className="product-info">
-                    <Title level={4} className="product-name">
-                      <Link to={`/diamond/${diamond.id}`}>{diamond.name}</Link>
-                      {wishList.includes(diamond.id) ? (
-                        <HeartFilled
-                          className="wishlist-icon"
-                          onClick={() => toggleWishList(diamond.id)}
-                        />
-                      ) : (
-                        <HeartOutlined
-                          className="wishlist-icon"
-                          onClick={() => toggleWishList(diamond.id)}
-                        />
-                      )}
-                    </Title>
-                    {/* <div className="price-container">
-                      <Text className="product-price">
-                        $
-                        {diamond.discountPrice &&
-                        diamond.discountPrice !== diamond.price
-                          ? diamond.discountPrice
-                          : diamond.price}
-                      </Text>
-                      {diamond.discountPrice &&
-                        diamond.discountPrice !== diamond.price && (
-                          <Text delete className="product-sale-price">
-                            ${diamond.price}
-                          </Text>
-                        )}
-                    </div> */}
-                  </div>
-                </Card>
+                ></Card>
               </Col>
             ))}
         </Row>
