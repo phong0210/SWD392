@@ -109,6 +109,7 @@ export const Heading = styled.div`
 
   .title {
     font-size: 32px;
+    padding-bottom: 20px;
     margin-bottom: 20px;
     font-family: "Gantari", sans-serif;
     color: ${theme.color.primary};
@@ -220,7 +221,7 @@ export const Banner2 = styled.section`
 `;
 
 export const Banner2Container = styled.div`
-  max-width: 1340px;
+  max-width: 1500px;
   margin: 0 auto;
 `;
 
@@ -277,6 +278,7 @@ export const ButtonSale = styled.div`
     transition: all 0.45s ease;
     align-self: flex-start;
     margin-top: 40px;
+    margin-bottom: 20px;
     &:hover {
       background-color: ${theme.color.primary};
       color: ${theme.color.white};

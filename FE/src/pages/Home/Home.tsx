@@ -261,11 +261,11 @@ const Home: React.FC = () => {
           <BannerContent>
             <h2>To Love and Cherish</h2>
             <p>
-              Discover timeless elegance with our exquisite diamond jewelry,
-              crafted to celebrate your most cherished moments. Each piece is
-              designed to embody the essence of love and sophistication, making
+              Discover timeless elegance with our exquisite diamond,
+              celebrate your most cherished moments. Each piece is
+              diamond to embody the essence of love and sophistication, making
               it perfect for commemorating special occasions. Indulge in our
-              luxurious collection and let our jewelry be a symbol of your
+              luxurious diamond and let our products be a symbol of your
               everlasting memories.
             </p>
             <Button>
@@ -295,7 +295,7 @@ const Home: React.FC = () => {
                 {shapes.map((shape, index) => (
                   <ShapeItem key={index}>
                     <DotImage>
-                      <Link to={shape.href}>
+                      <Link to={config.routes.public.allProduct}>
                         <img src={shape.imgSrc} alt={shape.title} />
                         <DotTitle>{shape.title}</DotTitle>
                       </Link>
@@ -315,7 +315,8 @@ const Home: React.FC = () => {
                   <Title
                     level={5}
                     className="super"
-                    style={{ paddingBottom: "0" }}
+                    style={{ paddingBottom: "0", paddingTop: "20px" }}
+                    
                   >
                     SUPER SALE
                   </Title>
@@ -493,10 +494,9 @@ const Home: React.FC = () => {
             <h5>HAPPY</h5>
             <h2>VALENTINE'S DAY!</h2>
             <h6>
-              Celebrate Valentine's Day with our exclusive diamond jewelry sale!
+              Celebrate Valentine's Day with our exclusive diamond sale!
               Find the perfect gift to express your love with our stunning
-              selection of diamond pieces. From elegant necklaces to dazzling
-              rings, our collection is designed to make this Valentine's Day
+              selection of diamond pieces. Our collections make this Valentine's Day
               truly unforgettable.
             </h6>
             <Button>
@@ -514,12 +514,12 @@ const Home: React.FC = () => {
               <br /> AUTUMN IS COMING...
             </h2>
 
-            <button onClick={() => navigate(config.routes.public.coming)}>
+            {/* <button onClick={() => navigate(config.routes.public.coming)}>
               DO GET IT!
-            </button>
+            </button> */}
           </Banner3Container>
         </Banner3>
-        <Brand>
+        {/* <Brand>
           <Heading>
             <h5>DISCOVER</h5>
             <h2 className="title">POPULAR BRANDS</h2>
@@ -546,7 +546,7 @@ const Home: React.FC = () => {
               </Carousel>
             </DotGrid>
           </ContainBrand>
-        </Brand>
+        </Brand> */}
         <AboutContainer>
           <About id="about" className="about container">
             <Row gutter={[0, 0]}>
@@ -556,16 +556,11 @@ const Home: React.FC = () => {
                     <h2 className="title"> ABOUT OUR COMPANY</h2>
                   </Heading>
                   <AboutText>
-                    Welcome to Aphromas Diamond, where the beauty and elegance
-                    of diamonds are celebrated in every piece of jewelry. With
-                    years of experience, we offer unique designs, exceptional
-                    quality, and professional service. Our mission is to create
-                    jewelry that not only looks stunning but also carries deep
-                    meaning. We use the finest materials and craftsmanship to
-                    ensure every product is perfect. Our dedicated team is
-                    always ready to help you find the perfect piece, whether
-                    it's a special gift, an engagement ring, or a set for a
-                    memorable occasion.
+                   Welcome to Aphromas Diamond, where the beauty and brilliance of natural diamonds are celebrated in every detail.
+                    With decades of experience, we offer ethically sourced, certified diamonds known for exceptional quality and unmatched sparkle.
+                    Our mission is to provide diamonds that not only shine with elegance but also hold lasting value and meaning.
+                    Crafted with precision and care, each diamond reflects our commitment to excellence.
+                    Our dedicated team is here to help you find the perfect diamond for any occasion.
                   </AboutText>
 
                   <ButtonAbout>

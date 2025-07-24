@@ -58,7 +58,7 @@ const TopMenu = ({ role }: HeaderProps) => {
             </Styled.Email>
           </Styled.Contact>
           <Styled.Feature>
-            <Search placeholder="Search" allowClear />
+            {/* <Search placeholder="Search" allowClear /> */}
 
             {role ? (
               <>
