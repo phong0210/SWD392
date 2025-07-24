@@ -18,26 +18,26 @@ namespace DiamondShopSystem.BLL.Services.LoyaltyPoint
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<LoyaltyPointResponseDto>> GetAllLoyaltyPointsAsync()
+        public async Task<IEnumerable<LoyaltyPointDto>> GetAllLoyaltyPointsAsync()
         {
             var loyaltyPoints = await _unitOfWork.Repository<LoyaltyPoints>().GetAllAsync();
-            return _mapper.Map<IEnumerable<LoyaltyPointResponseDto>>(loyaltyPoints);
+            return _mapper.Map<IEnumerable<LoyaltyPointDto>>(loyaltyPoints);
         }
 
-        public async Task<LoyaltyPointResponseDto> GetLoyaltyPointByIdAsync(Guid id)
+        public async Task<LoyaltyPointDto> GetLoyaltyPointByIdAsync(Guid id)
         {
             var loyaltyPoint = await _unitOfWork.Repository<LoyaltyPoints>().GetByIdAsync(id);
-            return _mapper.Map<LoyaltyPointResponseDto>(loyaltyPoint);
+            return _mapper.Map<LoyaltyPointDto>(loyaltyPoint);
         }
 
-        public async Task AddLoyaltyPointAsync(LoyaltyPointResponseDto loyaltyPointDto)
+        public async Task AddLoyaltyPointAsync(LoyaltyPointDto loyaltyPointDto)
         {
             var loyaltyPoint = _mapper.Map<LoyaltyPoints>(loyaltyPointDto);
             await _unitOfWork.Repository<LoyaltyPoints>().AddAsync(loyaltyPoint);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task UpdateLoyaltyPointAsync(LoyaltyPointResponseDto loyaltyPointDto)
+        public async Task UpdateLoyaltyPointAsync(LoyaltyPointDto loyaltyPointDto)
         {
             var loyaltyPoint = _mapper.Map<LoyaltyPoints>(loyaltyPointDto);
             _unitOfWork.Repository<LoyaltyPoints>().Update(loyaltyPoint);

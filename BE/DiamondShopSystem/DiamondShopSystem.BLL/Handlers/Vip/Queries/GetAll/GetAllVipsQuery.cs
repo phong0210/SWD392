@@ -1,8 +1,8 @@
 using MediatR;
-using System.Collections.Generic;
 using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
+using System.Collections.Generic;
 
 namespace DiamondShopSystem.BLL.Handlers.Vip.Queries.GetAll
 {
-    public class GetAllVipsQuery : IRequest<IEnumerable<VipDto>> { }
+    public record GetAllVipsQuery : IRequest<IEnumerable<VipDto>>;
 }

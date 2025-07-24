@@ -1,11 +1,9 @@
-
-using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 using MediatR;
-using System.Collections.Generic;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 
-namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries.GetAll
+namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries
 {
-    public class GetAllLoyaltyPointQuery : IRequest<IEnumerable<LoyaltyPointResponseDto>>
+    public class GetAllLoyaltyPointsQuery : IRequest<IEnumerable<LoyaltyPointDto>>
     {
     }
 }

@@ -1,24 +1,32 @@
+using AutoMapper;
+using DiamondShopSystem.BLL.Handlers.Promotion.DTOs;
+using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
+using DiamondShopSystem.DAL.Entities;
+using DiamondShopSystem.DAL.Repositories;
 using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
-using DiamondShopSystem.BLL.Services.Vip;
 
 namespace DiamondShopSystem.BLL.Handlers.Vip.Queries.GetById
 {
-    public class GetVipByIdQueryHandler : IRequestHandler<GetVipByIdQuery, VipDto?>
+    public class GetVipByIdQueryHandler : IRequestHandler<GetVipByIdQuery, VipDto>
     {
-        private readonly IVipService _vipService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public GetVipByIdQueryHandler(IVipService vipService)
+        public GetVipByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _vipService = vipService;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<VipDto?> Handle(GetVipByIdQuery request, CancellationToken cancellationToken)
+        public async Task<VipDto> Handle(GetVipByIdQuery request, CancellationToken cancellationToken)
         {
-            return await _vipService.GetVipByIdAsync(request.Id);
+            var vipRepo = _unitOfWork.Repository<DAL.Entities.Vip>();
+            var vip = await vipRepo.GetByIdAsync(request.Id);
+
+            return vip == null ? null : _mapper.Map<VipDto>(vip);
         }
     }
 }

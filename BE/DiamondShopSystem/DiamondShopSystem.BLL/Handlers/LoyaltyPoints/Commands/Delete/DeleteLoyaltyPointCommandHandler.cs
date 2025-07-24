@@ -1,27 +1,27 @@
-
 using MediatR;
+using DiamondShopSystem.DAL.Entities;
 using DiamondShopSystem.DAL.Repositories;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Delete
 {
-    public class DeleteLoyaltyPointCommandHandler : IRequestHandler<DeleteLoyaltyPointCommand, int>
+    public class DeleteLoyaltyPointHandler : IRequestHandler<DeleteLoyaltyPointCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public DeleteLoyaltyPointCommandHandler(IUnitOfWork unitOfWork)
+        public DeleteLoyaltyPointHandler(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<int> Handle(DeleteLoyaltyPointCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteLoyaltyPointCommand request, CancellationToken cancellationToken)
         {
-            var loyaltyPoint = await _unitOfWork.Repository<DAL.Entities.LoyaltyPoints>().GetByIdAsync(request.Id);
-            if (loyaltyPoint == null) return 0; 
+            var loyaltyPoint = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.LoyaltyPoints>().GetByIdAsync(request.Id);
+            if (loyaltyPoint == null)
+                return false;
 
-            _unitOfWork.Repository<DAL.Entities.LoyaltyPoints>().Remove(loyaltyPoint);
-            return await _unitOfWork.SaveChangesAsync();
+            _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.LoyaltyPoints>().Remove(loyaltyPoint);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
         }
     }
 }

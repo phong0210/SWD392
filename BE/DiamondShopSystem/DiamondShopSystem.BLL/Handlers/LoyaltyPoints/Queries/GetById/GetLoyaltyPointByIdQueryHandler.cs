@@ -1,27 +1,26 @@
-using AutoMapper;
-using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
-using DiamondShopSystem.DAL.Repositories;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
+using AutoMapper;
+using DiamondShopSystem.DAL.Entities;
+using DiamondShopSystem.DAL.Repositories;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 
-namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries.GetById
+namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries
 {
-    public class GetLoyaltyPointByIdQueryHandler : IRequestHandler<GetLoyaltyPointByIdQuery, LoyaltyPointResponseDto>
+    public class GetLoyaltyPointByIdHandler : IRequestHandler<GetLoyaltyPointByIdQuery, LoyaltyPointDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public GetLoyaltyPointByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetLoyaltyPointByIdHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        public async Task<LoyaltyPointResponseDto> Handle(GetLoyaltyPointByIdQuery request, CancellationToken cancellationToken)
+        public async Task<LoyaltyPointDto> Handle(GetLoyaltyPointByIdQuery request, CancellationToken cancellationToken)
         {
-            var loyaltyPoint = await _unitOfWork.Repository<DAL.Entities.LoyaltyPoints>().GetByIdAsync(request.Id);
-            return _mapper.Map<LoyaltyPointResponseDto>(loyaltyPoint);
+            var loyaltyPoint = await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.LoyaltyPoints>().GetByIdAsync(request.LoyaltyPointId);
+            return _mapper.Map<LoyaltyPointDto>(loyaltyPoint);
         }
     }
 }

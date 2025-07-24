@@ -1,18 +1,11 @@
-
-using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 using MediatR;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Update
 {
-    public class UpdateLoyaltyPointCommand : IRequest<int>
+    public class UpdateLoyaltyPointCommand : IRequest<LoyaltyPointDto>
     {
-        public Guid Id { get; }
-        public LoyaltyPointResponseDto LoyaltyPoint { get; }
-
-        public UpdateLoyaltyPointCommand(Guid id, LoyaltyPointResponseDto loyaltyPoint)
-        {
-            Id = id;
-            LoyaltyPoint = loyaltyPoint;
-        }
+        public Guid Id { get; set; }
+        public LoyaltyPointUpdateDto Dto { get; set; }
     }
 }

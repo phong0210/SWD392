@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Get
 {
-    public class GetLoyaltyPointCommandHandler : IRequestHandler<GetLoyaltyPointCommand, LoyaltyPointResponseDto>
+    public class GetLoyaltyPointCommandHandler : IRequestHandler<GetLoyaltyPointCommand, LoyaltyPointDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -19,10 +19,10 @@ namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Get
             _mapper = mapper;
         }
 
-        public async Task<LoyaltyPointResponseDto> Handle(GetLoyaltyPointCommand request, CancellationToken cancellationToken)
+        public async Task<LoyaltyPointDto> Handle(GetLoyaltyPointCommand request, CancellationToken cancellationToken)
         {
             var loyaltyPoint = await _unitOfWork.Repository<DAL.Entities.LoyaltyPoints>().GetByIdAsync(request.Id);
-            return _mapper.Map<LoyaltyPointResponseDto>(loyaltyPoint);
+            return _mapper.Map<LoyaltyPointDto>(loyaltyPoint);
         }
     }
 }

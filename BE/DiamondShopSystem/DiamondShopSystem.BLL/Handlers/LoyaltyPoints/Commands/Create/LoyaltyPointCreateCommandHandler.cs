@@ -1,28 +1,32 @@
-
-using AutoMapper;
 using MediatR;
+using AutoMapper;
+using DiamondShopSystem.DAL.Entities;
 using DiamondShopSystem.DAL.Repositories;
-using System.Threading;
-using System.Threading.Tasks;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Create
 {
-    public class LoyaltyPointCreateCommandHandler : IRequestHandler<LoyaltyPointCreateCommand, int>
+    public class LoyaltyPointCreateHandler : IRequestHandler<LoyaltyPointCreateCommand, LoyaltyPointDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public LoyaltyPointCreateCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public LoyaltyPointCreateHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        public async Task<int> Handle(LoyaltyPointCreateCommand request, CancellationToken cancellationToken)
+        public async Task<LoyaltyPointDto> Handle(LoyaltyPointCreateCommand request, CancellationToken cancellationToken)
         {
-            var loyaltyPoint = _mapper.Map<DAL.Entities.LoyaltyPoints>(request.LoyaltyPoint);
-            await _unitOfWork.Repository<DAL.Entities.LoyaltyPoints>().AddAsync(loyaltyPoint);
-            return await _unitOfWork.SaveChangesAsync();
+            var loyaltyPoint = _mapper.Map<DiamondShopSystem.DAL.Entities.LoyaltyPoints>(request.Dto);
+            loyaltyPoint.Id = Guid.NewGuid();
+            loyaltyPoint.LastUpdated = DateTime.UtcNow;
+
+            await _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.LoyaltyPoints>().AddAsync(loyaltyPoint);
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<LoyaltyPointDto>(loyaltyPoint);
         }
     }
 }

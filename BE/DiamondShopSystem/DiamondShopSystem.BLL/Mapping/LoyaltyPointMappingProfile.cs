@@ -8,7 +8,7 @@ namespace DiamondShopSystem.BLL.Mapping
     {
         public LoyaltyPointMappingProfile()
         {
-            CreateMap<LoyaltyPoints, LoyaltyPointResponseDto>().ReverseMap();
+            CreateMap<LoyaltyPoints, LoyaltyPointDto>().ReverseMap();
         }
     }
 }

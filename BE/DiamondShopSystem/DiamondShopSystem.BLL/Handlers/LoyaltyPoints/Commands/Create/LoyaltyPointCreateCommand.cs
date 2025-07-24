@@ -1,16 +1,15 @@
-
-using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 using MediatR;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 
 namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Create
 {
-    public class LoyaltyPointCreateCommand : IRequest<int>
+    public class LoyaltyPointCreateCommand : IRequest<LoyaltyPointDto>
     {
-        public LoyaltyPointResponseDto LoyaltyPoint { get; }
+        public LoyaltyPointCreateDto Dto { get; set; }
 
-        public LoyaltyPointCreateCommand(LoyaltyPointResponseDto loyaltyPoint)
+        public LoyaltyPointCreateCommand(LoyaltyPointCreateDto dto)
         {
-            LoyaltyPoint = loyaltyPoint;
+            Dto = dto;
         }
     }
 }

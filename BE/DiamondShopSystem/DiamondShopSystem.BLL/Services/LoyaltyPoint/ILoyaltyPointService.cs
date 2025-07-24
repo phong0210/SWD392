@@ -6,10 +6,10 @@ namespace DiamondShopSystem.BLL.Services.LoyaltyPoint
 {
     public interface ILoyaltyPointService
     {
-        Task<IEnumerable<LoyaltyPointResponseDto>> GetAllLoyaltyPointsAsync();
-        Task<LoyaltyPointResponseDto> GetLoyaltyPointByIdAsync(Guid id);
-        Task AddLoyaltyPointAsync(LoyaltyPointResponseDto loyaltyPointDto);
-        Task UpdateLoyaltyPointAsync(LoyaltyPointResponseDto loyaltyPointDto);
+        Task<IEnumerable<LoyaltyPointDto>> GetAllLoyaltyPointsAsync();
+        Task<LoyaltyPointDto> GetLoyaltyPointByIdAsync(Guid id);
+        Task AddLoyaltyPointAsync(LoyaltyPointDto loyaltyPointDto);
+        Task UpdateLoyaltyPointAsync(LoyaltyPointDto loyaltyPointDto);
         Task DeleteLoyaltyPointAsync(Guid id);
     }
 }

@@ -9,6 +9,7 @@ namespace DiamondShopSystem.BLL.Services.Vip
     {
         Task<VipDto> GetVipByIdAsync(Guid vipId);
         Task<List<VipDto>> GetAllVipsAsync();
+        Task<VipDto> GetVipByUserIdAsync(Guid userId);
         Task<VipDto> CreateVipAsync(VipCreateRequestDto createDto);
         Task<VipDto> UpdateVipAsync(Guid vipId, VipUpdateRequestDto updateDto);
         Task<bool> DeleteVipAsync(Guid vipId);

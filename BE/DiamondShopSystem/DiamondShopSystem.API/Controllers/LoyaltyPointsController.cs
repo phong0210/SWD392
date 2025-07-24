@@ -1,125 +1,97 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using DiamondShopSystem.BLL.Services.LoyaltyPoint;
+﻿using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Create;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Delete;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.Update;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Commands.UpdateByUserId;
 using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries.GetById;
+using DiamondShopSystem.BLL.Handlers.Vip.Queries.GetById;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DiamondShopSystem.API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class LoyaltyPointsController : ControllerBase
     {
-        private readonly ILoyaltyPointService _loyaltyPointService;
+        private readonly IMediator _mediator;
 
-        public LoyaltyPointsController(ILoyaltyPointService loyaltyPointService)
+        public LoyaltyPointsController(IMediator mediator)
         {
-            _loyaltyPointService = loyaltyPointService;
+            _mediator = mediator;
         }
 
-
-        [HttpGet]
-        public async Task<IActionResult> GetAllLoyaltyPoints()
+        [HttpPost("Create")]
+        public async Task<IActionResult> CreateLoyaltyPoint([FromBody] LoyaltyPointCreateDto loyaltyPointDto)
         {
-            try
-            {
-                var result = await _loyaltyPointService.GetAllLoyaltyPointsAsync();
-                return Ok(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var command = new LoyaltyPointCreateCommand(loyaltyPointDto);
+            var loyaltyPoint = await _mediator.Send(command);
+            return CreatedAtAction(nameof(GetLoyaltyPointById), new { loyaltyPointId = loyaltyPoint.Id }, loyaltyPoint);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetLoyaltyPointById(Guid id)
+        [HttpGet("GetLoyaltyPointById/{loyaltyPointId}")]
+        public async Task<IActionResult> GetLoyaltyPointById(Guid loyaltyPointId)
         {
-            try
-            {
-                var result = await _loyaltyPointService.GetLoyaltyPointByIdAsync(id);
-                if (result == null)
-                {
-                    return NotFound(new { success = false, message = "Loyalty point not found" });
-                }
-                return Ok(new { success = true, data = result });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var query = new GetLoyaltyPointByIdQuery { LoyaltyPointId = loyaltyPointId };
+            var loyaltyPoint = await _mediator.Send(query);
+            if (loyaltyPoint == null) return NotFound();
+            return Ok(loyaltyPoint);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateLoyaltyPoint([FromBody] LoyaltyPointResponseDto loyaltyPointDto)
+        [HttpGet("GetLoyaltyPointByUserId/{userId}")]
+        public async Task<IActionResult> GetLoyaltyPointByUserId(Guid userId)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
-                }
-
-                await _loyaltyPointService.AddLoyaltyPointAsync(loyaltyPointDto);
-                return CreatedAtAction(
-                    nameof(GetLoyaltyPointById),
-                    new { id = loyaltyPointDto.Id },
-                    new { success = true, message = "Loyalty point created successfully" }
-                );
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var query = new GetLoyaltyPointByUserIdQuery(userId);
+            var loyaltyPoint = await _mediator.Send(query);
+            if (loyaltyPoint == null) return NotFound();
+            return Ok(loyaltyPoint);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLoyaltyPoint(Guid id, [FromBody] LoyaltyPointResponseDto loyaltyPointDto)
+        [HttpPut("user/{userId}/loyalty-points")]
+        public async Task<ActionResult<LoyaltyPointDto>> UpdateLoyaltyPointsByUserId(Guid userId,LoyaltyPointUpdateDto updateDto)
         {
-            try
+            var command = new UpdateLoyaltyPointByUserIdCommand
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
-                }
+                UserId = userId,
+                Dto = updateDto
+            };
 
-                if (id != loyaltyPointDto.Id)
-                {
-                    return BadRequest(new { success = false, message = "ID mismatch" });
-                }
+            var result = await _mediator.Send(command);
 
-                var existingLoyaltyPoint = await _loyaltyPointService.GetLoyaltyPointByIdAsync(id);
-                if (existingLoyaltyPoint == null)
-                {
-                    return NotFound(new { success = false, message = "Loyalty point not found" });
-                }
+            if (result == null)
+                return NotFound($"Loyalty points not found for user {userId}");
 
-                await _loyaltyPointService.UpdateLoyaltyPointAsync(loyaltyPointDto);
-                return Ok(new { success = true, message = "Loyalty point updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            return Ok(result);
         }
 
+        [HttpGet("ShowAll")]
+        public async Task<ActionResult<IEnumerable<LoyaltyPointDto>>> GetAllLoyaltyPoints()
+        {
+            var query = new GetAllLoyaltyPointsQuery();
+            var loyaltyPoints = await _mediator.Send(query);
+            return Ok(loyaltyPoints);
+        }
 
-        [HttpDelete("{id}")]
+        [HttpPut("UpdateLoyaltyPoint/{id}")]
+        public async Task<IActionResult> UpdateLoyaltyPoint(Guid id, [FromBody] LoyaltyPointUpdateDto loyaltyPointDto)
+        {
+            var command = new UpdateLoyaltyPointCommand { Id = id, Dto = loyaltyPointDto };
+            var loyaltyPoint = await _mediator.Send(command);
+            if (loyaltyPoint == null) return NotFound();
+            return Ok(loyaltyPoint);
+        }
+
+        [HttpDelete("DeleteLoyaltyPoint/{id}")]
         public async Task<IActionResult> DeleteLoyaltyPoint(Guid id)
         {
-            try
-            {
-                var existingLoyaltyPoint = await _loyaltyPointService.GetLoyaltyPointByIdAsync(id);
-                if (existingLoyaltyPoint == null)
-                {
-                    return NotFound(new { success = false, message = "Loyalty point not found" });
-                }
-
-                await _loyaltyPointService.DeleteLoyaltyPointAsync(id);
-                return Ok(new { success = true, message = "Loyalty point deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var command = new DeleteLoyaltyPointCommand { Id = id };
+            var result = await _mediator.Send(command);
+            if (!result) return NotFound();
+            return NoContent();
         }
     }
 }

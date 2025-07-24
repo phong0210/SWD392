@@ -1,16 +1,10 @@
-
-using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 using MediatR;
+using DiamondShopSystem.BLL.Handlers.LoyaltyPoints.DTOs;
 
-namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries.GetById
+namespace DiamondShopSystem.BLL.Handlers.LoyaltyPoints.Queries
 {
-    public class GetLoyaltyPointByIdQuery : IRequest<LoyaltyPointResponseDto>
+    public class GetLoyaltyPointByIdQuery : IRequest<LoyaltyPointDto>
     {
-        public Guid Id { get; }
-
-        public GetLoyaltyPointByIdQuery(Guid id)
-        {
-            Id = id;
-        }
+        public Guid LoyaltyPointId { get; set; }
     }
 }

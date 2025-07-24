@@ -26,6 +26,14 @@ namespace DiamondShopSystem.BLL.Services.Vip
             return _mapper.Map<VipDto>(vipEntity);
         }
 
+        public async Task<VipDto> GetVipByUserIdAsync(Guid userId)
+        {
+            var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
+            var vipEntities = await vipRepo.FindAsync(v => v.UserId == userId);
+            var vipEntity = vipEntities.FirstOrDefault();
+            return _mapper.Map<VipDto>(vipEntity);
+        }
+
         public async Task<List<VipDto>> GetAllVipsAsync()
         {
             var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
@@ -37,13 +45,10 @@ namespace DiamondShopSystem.BLL.Services.Vip
         {
             var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
             var vipEntity = _mapper.Map<DiamondShopSystem.DAL.Entities.Vip>(createDto);
-
             vipEntity.VipId = Guid.NewGuid();
             vipEntity.StartDate = DateTime.UtcNow;
-
             await vipRepo.AddAsync(vipEntity);
             await _unitOfWork.SaveChangesAsync();
-
             return _mapper.Map<VipDto>(vipEntity);
         }
 
@@ -51,17 +56,13 @@ namespace DiamondShopSystem.BLL.Services.Vip
         {
             var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
             var vipEntity = await vipRepo.GetByIdAsync(vipId);
-
             if (vipEntity == null)
             {
-                return null; // Or throw an exception
+                return null;
             }
-
             _mapper.Map(updateDto, vipEntity);
-
             vipRepo.Update(vipEntity);
             await _unitOfWork.SaveChangesAsync();
-
             return _mapper.Map<VipDto>(vipEntity);
         }
 
@@ -69,15 +70,12 @@ namespace DiamondShopSystem.BLL.Services.Vip
         {
             var vipRepo = _unitOfWork.Repository<DiamondShopSystem.DAL.Entities.Vip>();
             var vipEntity = await vipRepo.GetByIdAsync(vipId);
-
             if (vipEntity == null)
             {
                 return false;
             }
-
             vipRepo.Remove(vipEntity);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
     }

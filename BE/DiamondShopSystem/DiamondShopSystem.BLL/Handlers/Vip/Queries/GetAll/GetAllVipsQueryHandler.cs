@@ -1,24 +1,30 @@
 using MediatR;
+using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
+using DiamondShopSystem.DAL.Repositories;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DiamondShopSystem.BLL.Handlers.Vip.DTOs;
-using DiamondShopSystem.BLL.Services.Vip;
+using AutoMapper;
 
 namespace DiamondShopSystem.BLL.Handlers.Vip.Queries.GetAll
 {
     public class GetAllVipsQueryHandler : IRequestHandler<GetAllVipsQuery, IEnumerable<VipDto>>
     {
-        private readonly IVipService _vipService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public GetAllVipsQueryHandler(IVipService vipService)
+        public GetAllVipsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _vipService = vipService;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<VipDto>> Handle(GetAllVipsQuery request, CancellationToken cancellationToken)
         {
-            return await _vipService.GetAllVipsAsync();
+            var vipRepository = _unitOfWork.Repository<DAL.Entities.Vip>();
+            var vips = await vipRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<VipDto>>(vips);
         }
     }
 }

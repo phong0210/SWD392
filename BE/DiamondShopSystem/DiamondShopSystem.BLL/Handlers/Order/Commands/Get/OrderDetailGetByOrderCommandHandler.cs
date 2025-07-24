@@ -18,17 +18,13 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Get
         {
             try
             {
-                var orderDetails = await _orderDetailService.GetOrderDetailByIdAsync(request.OrderId);
-
-                var orderDetailsCollection = orderDetails is IEnumerable<OrderDetailDto>
-                    ? (IEnumerable<OrderDetailDto>)orderDetails
-                    : new List<OrderDetailDto> { orderDetails };
+                var orderDetails = await _orderDetailService.GetOrderDetailsByOrderIdAsync(request.OrderId);
 
                 return new OrderDetailGetByOrderResponse
                 {
                     Success = true,
                     Message = "Order details retrieved successfully",
-                    Data = orderDetailsCollection
+                    Data = orderDetails
                 };
             }
             catch (Exception ex)
@@ -41,21 +37,4 @@ namespace DiamondShopSystem.BLL.Handlers.Order.Commands.Get
             }
         }
     }
-
-    // Add missing command and response classes
-    public class OrderDetailGetByOrderCommand : MediatR.IRequest<OrderDetailGetByOrderResponse>
-    {
-        public Guid OrderId { get; }
-        public OrderDetailGetByOrderCommand(Guid orderId)
-        {
-            OrderId = orderId;
-        }
-    }
-
-    public class OrderDetailGetByOrderResponse
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public IEnumerable<DiamondShopSystem.BLL.Handlers.Order.DTOs.OrderDetailDto>? Data { get; set; }
-    }
-} 
+}
