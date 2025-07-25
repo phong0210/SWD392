@@ -18,7 +18,8 @@ import { createOrderPaypal, createVnPayPayment } from "@/services/paymentAPI";
 import vipAPI from "@/services/vipAPI";
 import { clearCart } from "@/store/slices/cartSlice";
 import CookieUtils from "@/services/cookieUtils";
-
+import { showAllProduct } from '@/services/productAPI';
+import { Product } from '@/models/Entities/Product';
 
 const Checkout: React.FC = () => {
   const { AccountID, user } = useAuth();
@@ -122,96 +123,169 @@ const Checkout: React.FC = () => {
   }, [dispatch, orderStatus]);
 
   // Effect to handle navigation after order creation
-useEffect(() => {
-  if (orderStatus === "succeeded" && order && order.id) {
-    console.log("[Checkout] Order status succeeded, order:", order);
+  useEffect(() => {
+    if (orderStatus === "succeeded" && order && order.id) {
+      console.log("[Checkout] Order status succeeded, order:", order);
 
-    const paymentMethod = order.payments?.[0]?.method;
+      const paymentMethod = order.payments?.[0]?.method;
 
-    if (paymentMethod === PaymentMethodEnum.PAYPAL.toString()) {
-      // PayPal flow
-      console.log("[Checkout] Initiating PayPal flow for order:", order.id);
-      createOrderPaypal(order.totalPrice)
-        .then((createPayment) => {
-          const approvalUrl = createPayment.data.links.find(
-            (link: any) => link.rel === "approve"
-          )?.href;
-          if (approvalUrl) {
-            console.log("[Checkout] Redirecting to PayPal approval URL:", approvalUrl);
-            window.location.href = approvalUrl;
-          } else {
-            throw new Error("PayPal approval URL not found");
-          }
-        })
-        .catch((error) => {
-          console.error("[Checkout] PayPal error:", error);
-          api.error({
-            message: "PayPal Error",
-            description: error.message || "Failed to create PayPal payment. Please try again.",
+      if (paymentMethod === PaymentMethodEnum.PAYPAL.toString()) {
+        // PayPal flow
+        console.log("[Checkout] Initiating PayPal flow for order:", order.id);
+        createOrderPaypal(order.totalPrice)
+          .then((createPayment) => {
+            const approvalUrl = createPayment.data.links.find(
+              (link: any) => link.rel === "approve"
+            )?.href;
+            if (approvalUrl) {
+              console.log("[Checkout] Redirecting to PayPal approval URL:", approvalUrl);
+              window.location.href = approvalUrl;
+            } else {
+              throw new Error("PayPal approval URL not found");
+            }
+          })
+          .catch((error) => {
+            console.error("[Checkout] PayPal error:", error);
+            api.error({
+              message: "PayPal Error",
+              description: error.message || "Failed to create PayPal payment. Please try again.",
+            });
+            setLoading(false);
           });
-          setLoading(false);
-        });
-    } else if (paymentMethod === PaymentMethodEnum.VNPAY.toString()) {
-      // VNPay flow
-      console.log("[Checkout] Initiating VNPay flow for order:", order.id);
-      createVnPayPayment({
-        amount: order.totalPrice,
-        orderDescription: `Payment for order #${order.id}`,
-        name: Customer?.Name || user?.Name || "Customer",
-        orderId: order.id,
-        returnUrlSuccess: `${window.location.origin}${config.routes.public.success}`,
-        returnUrlFail: `${window.location.origin}${config.routes.public.fail}`,
-      })
-        .then((createPayment) => {
-          const approvalUrl = createPayment.data.url;
-          if (approvalUrl) {
-            console.log("[Checkout] Redirecting to VNPay approval URL:", approvalUrl);
-            window.location.href = approvalUrl;
-          } else {
-            throw new Error("VNPay approval URL not found");
-          }
+      } else if (paymentMethod === PaymentMethodEnum.VNPAY.toString()) {
+        // VNPay flow
+        console.log("[Checkout] Initiating VNPay flow for order:", order.id);
+        createVnPayPayment({
+          amount: order.totalPrice,
+          orderDescription: `Payment for order #${order.id}`,
+          name: Customer?.Name || user?.Name || "Customer",
+          orderId: order.id,
+          returnUrlSuccess: `${window.location.origin}${config.routes.public.success}`,
+          returnUrlFail: `${window.location.origin}${config.routes.public.fail}`,
         })
-        .catch((error) => {
-          console.error("[Checkout] VNPay error:", error);
-          api.error({
-            message: "VNPay Error",
-            description: error.message || "Failed to create VNPay payment. Please try again.",
+          .then((createPayment) => {
+            const approvalUrl = createPayment.data.url;
+            if (approvalUrl) {
+              console.log("[Checkout] Redirecting to VNPay approval URL:", approvalUrl);
+              window.location.href = approvalUrl;
+            } else {
+              throw new Error("VNPay approval URL not found");
+            }
+          })
+          .catch((error) => {
+            console.error("[Checkout] VNPay error:", error);
+            api.error({
+              message: "VNPay Error",
+              description: error.message || "Failed to create VNPay payment. Please try again.",
+            });
+            setLoading(false);
           });
-          setLoading(false);
-        });
-    } else {
-      // COD or other payment methods
-      console.log("[Checkout] Navigating to success page for COD order:", order.id);
-      try {
-        CookieUtils.clearCartCookie();
-        navigate(config.routes.public.success);
-      } catch (error) {
-        console.error("[Checkout] Error clearing cart cookie:", error);
-        api.error({
-          message: "Cart Clear Error",
-          description: "Failed to clear cart. Proceeding to success page.",
-        });
-        navigate(config.routes.public.success);
+      } else {
+        // COD or other payment methods
+        console.log("[Checkout] Navigating to success page for COD order:", order.id);
+        try {
+          CookieUtils.clearCartCookie();
+          navigate(config.routes.public.success);
+        } catch (error) {
+          console.error("[Checkout] Error clearing cart cookie:", error);
+          api.error({
+            message: "Cart Clear Error",
+            description: "Failed to clear cart. Proceeding to success page.",
+          });
+          navigate(config.routes.public.success);
+        }
       }
+    } else if (orderStatus === "failed") {
+      console.error("[Checkout] Order creation failed, error:", orderError);
+      api.error({
+        message: "Order Creation Failed",
+        description: orderError || "An error occurred while creating your order",
+      });
+      setLoading(false);
     }
-  } else if (orderStatus === "failed") {
-    console.error("[Checkout] Order creation failed, error:", orderError);
-    api.error({
-      message: "Order Creation Failed",
-      description: orderError || "An error occurred while creating your order",
-    });
-    setLoading(false);
-  }
-}, [
-  orderStatus,
-  order,
-  orderError,
-  navigate,
-  api,
-  Customer?.Name,
-  user?.Name,
-  dispatch,
-]);
+  }, [
+    orderStatus,
+    order,
+    orderError,
+    navigate,
+    api,
+    Customer?.Name,
+    user?.Name,
+    dispatch,
+  ]);
+
+  // Enhanced stock validation function
+  const validateStock = async (cartItems: any[]): Promise<boolean> => {
+    console.log("[Checkout] Starting stock validation");
+    
+    try {
+      const productsResponse = await showAllProduct();
+      const products: Product[] = productsResponse.data.data;
+      console.log(`[Checkout] Products fetched for stock validation: ${products.length} products`);
+
+      const stockValidationErrors: string[] = [];
+      
+      for (const item of cartItems) {
+        // Handle different possible ID fields
+        const itemId = item.productId || item.diamondId || item.id;
+        const product = products.find((p) => p.id === itemId);
+        
+        if (!product) {
+          stockValidationErrors.push(`Product with ID ${itemId} not found.`);
+          continue;
+        }
+        
+        const requestedQuantity = item.quantity || 1;
+        const availableStock = product.stockQuantity || 0;
+        
+        console.log(`[Checkout] Stock check - Product: ${product.name}, Requested: ${requestedQuantity}, Available: ${availableStock}`);
+        
+        if (requestedQuantity > availableStock) {
+          if (availableStock === 0) {
+            stockValidationErrors.push(`${product.name} is out of stock.`);
+          } else {
+            stockValidationErrors.push(
+              `${product.name} has only ${availableStock} item${availableStock === 1 ? '' : 's'} in stock, but you requested ${requestedQuantity}.`
+            );
+          }
+        }
+      }
+      
+      // If there are stock validation errors, show them
+      if (stockValidationErrors.length > 0) {
+        console.error("[Checkout] Stock validation failed:", stockValidationErrors);
+        
+        api.error({
+          message: "Stock Validation Failed",
+          description: (
+            <div>
+              <p>The following items have insufficient stock:</p>
+              <ul style={{ marginTop: '8px', paddingLeft: '16px', marginBottom: '8px' }}>
+                {stockValidationErrors.map((error, index) => (
+                  <li key={index} style={{ marginBottom: '4px' }}>{error}</li>
+                ))}
+              </ul>
+              <p>Please update your cart and try again.</p>
+            </div>
+          ),
+          duration: 10, // Show for 10 seconds
+        });
+        
+        return false;
+      }
+      
+      console.log("[Checkout] Stock validation passed for all items");
+      return true;
+      
+    } catch (stockCheckError) {
+      console.error("[Checkout] Error during stock validation:", stockCheckError);
+      api.error({
+        message: "Stock Validation Error",
+        description: "Unable to verify product availability. Please try again or contact support.",
+      });
+      return false;
+    }
+  };
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -220,6 +294,15 @@ useEffect(() => {
         throw new Error(
           "Your cart is empty. Please add items before checkout."
         );
+      }
+
+      // Stock validation for VNPay payment method
+      if (values.Method === PaymentMethodEnum.VNPAY) {
+        const stockValidationPassed = await validateStock(cartItems);
+        if (!stockValidationPassed) {
+          setLoading(false);
+          return; // Stop checkout process
+        }
       }
 
       const orderItems = cartItems.map((item) => ({
